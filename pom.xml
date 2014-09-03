@@ -100,7 +100,15 @@
     	<distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
     	<distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
   </properties>
-	<distributionManagement>
+  <profiles>
+    <profile>
+      <id>windows</id>
+      <modules>
+        <module>winpkg</module>
+      </modules>
+    </profile>
+  </profiles>
+  <distributionManagement>
         <repository>
             <id>${distMgmtStagingId}</id>
             <name>${distMgmtStagingName}</name>
@@ -152,7 +160,7 @@
           <skipTests>true</skipTests>
         </configuration>
       </plugin>
-<!--
+<!--     
       <plugin>
         <groupId>com.google.code.maven-replacer-plugin</groupId>
             <artifactId>maven-replacer-plugin</artifactId>
@@ -169,6 +177,9 @@
                 <file>${project.basedir}/templates/version</file>
                 <ignoreMissingFile>true</ignoreMissingFile>
                 <outputFile>${project.build.outputDirectory}/version</outputFile>
+                <includes>
+                    <include>winpkg/src/scripts/*</include>
+                </includes>
                 <replacements>
                     <replacement>
                         <token>@build.version@</token>
@@ -190,6 +201,7 @@
              <descriptor>src/main/assembly/storm-agent.xml</descriptor>
              <descriptor>src/main/assembly/admin-web.xml</descriptor>
              <descriptor>src/main/assembly/usersync.xml</descriptor>
+             <descriptor>src/main/assembly/winpkg.xml</descriptor>
            </descriptors>
          </configuration>
       </plugin>
