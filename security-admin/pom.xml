@@ -202,13 +202,11 @@
 		    <artifactId>spring-web</artifactId>
 		    <version>${springframework.version}</version>
 		</dependency>
-<!--
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring</artifactId>
 			<version>${springframework.spring.version}</version>
 		</dependency>
--->
 		<dependency>
 		    <groupId>com.sun.jersey</groupId>
 		    <artifactId>jersey-bundle</artifactId>
@@ -285,13 +283,11 @@
 		    <artifactId>velocity</artifactId>
 		    <version>1.7</version>
 		</dependency>
-<!--
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>${javax.servlet.version}</version>
 		</dependency>
--->
 		<dependency>
     		<groupId>log4j</groupId>
     		<artifactId>log4j</artifactId>
