@@ -31,15 +31,6 @@
     <name>Argus WinPkg</name>
     <packaging>pom</packaging>
 
-    <!--<profiles>
-        <profile>
-            <id>windows</id>
-            <modules>
-                <module>winpkg</module>
-            </modules>
-        </profile>
-    </profiles>-->
-
     <build>
         <plugins>
             <plugin>
@@ -80,13 +71,10 @@
                         <exclude>.gitignore/**</exclude>
                         <exclude>.svn/**</exclude>
                         <exclude>.idea/**</exclude>
-                        <exclude>dev-support/**</exclude>
                         <exclude>**/.gitignore/**</exclude>
                         <exclude>**/.project/**</exclude>
                         <exclude>**/.settings/**</exclude>
                         <exclude>**/.classpath/**</exclude>
-                        <exclude>src/stage.txt</exclude>
-                        <exclude>src/vote.txt</exclude>
                         <exclude>**/*.iml</exclude>
                         <exclude>**/target/**</exclude>
                         <exclude>**/install/**</exclude>
@@ -95,14 +83,8 @@
                         <exclude>**/patchprocess/**</exclude>
                         <exclude>**/test/resources/**</exclude>
                         <exclude>**/main/resources/**/*.json</exclude>
-                        <exclude>**/home/CHANGES</exclude>
-                        <exclude>**/home/ISSUES</exclude>
-                        <exclude>**/home/samples/*.jar</exclude>
-                        <exclude>**/.externalToolBuilders/*</exclude>
                         <exclude>*.patch</exclude>
-                        <exclude>atlassian-ide-plugin.xml</exclude>
                         <exclude>README.txt</exclude>
-                        <exclude>build.sh</exclude>
                         <exclude>HDP-CHANGES.txt</exclude>
                     </excludes>
                 </configuration>
