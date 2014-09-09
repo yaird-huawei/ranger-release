@@ -2,6 +2,7 @@
   <id>hdfs-agent</id> 
   <formats>
      <format>tar</format>
+	 <format>zip</format>
   </formats>
   <baseDirectory>${project.name}-${project.version}-hdfs-agent</baseDirectory>
   <includeBaseDirectory>true</includeBaseDirectory>

@@ -16,7 +16,7 @@
   limitations under the License.
 -->
 <assembly>
-    <id>argus-winpkg</id>
+    <id>${project.version}.winpkg</id>
     <formats>
         <format>dir</format>
         <format>zip</format>
@@ -25,28 +25,28 @@
     <fileSets>
         <!-- resources -->
         <fileSet>
-          <directory>winpkg/src/resources</directory>
-          <outputDirectory>winpkg/target/resources</outputDirectory>
+          <directory>${basedir}/src/resources</directory>
+          <outputDirectory>/resources</outputDirectory>
           <includes>
             <include>**</include>
           </includes>
         </fileSet>
         <!-- scripts -->
         <fileSet>
-          <directory>winpkg/src/scripts</directory>
-          <outputDirectory>winpkg/target/scripts</outputDirectory>
+          <directory>${basedir}/src/scripts</directory>
+          <outputDirectory>/scripts</outputDirectory>
           <includes>
             <include>**</include>
           </includes>
         </fileSet>
         <!-- Argus Secure Zip -->
         <fileSet>
-          <directory>target/</directory>
-          <outputDirectory>winpkg/target/resources</outputDirectory>
+          <directory>${basedir}/../target/</directory>
+          <outputDirectory>/resources</outputDirectory>
           <includes>
-            <include>argus-*-agent.zip</include>
             <include>argus-*-ugsync.zip</include>
-            <include>argus-*-admin.zip</include>
+			<include>argus-*-admin.zip</include>
+			<include>argus*agent.zip</include>
           </includes>
           <excludes>
             <exclude>*-src.zip</exclude>

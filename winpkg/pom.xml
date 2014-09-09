@@ -29,29 +29,39 @@
     <artifactId>argus-winpkg</artifactId>
     <description>Argus WinPkg</description>
     <name>Argus WinPkg</name>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <!--profiles>
+    <!--<profiles>
         <profile>
             <id>windows</id>
             <modules>
                 <module>winpkg</module>
             </modules>
         </profile>
-    </profiles-->
+    </profiles>-->
 
     <build>
         <plugins>
-            <!--plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>ArgusWin</finalName>
+                    <finalName>argus</finalName>
                     <descriptors>
                         <descriptor>/src/main/assemblies/winpkg.xml</descriptor>
                     </descriptors>
                 </configuration>
-            </plugin-->
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>

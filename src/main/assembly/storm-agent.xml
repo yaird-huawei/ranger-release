@@ -2,6 +2,7 @@
   <id>storm-agent</id> 
   <formats>
      <format>tar</format>
+	 <format>zip</format>
   </formats>
   <baseDirectory>${project.name}-${project.version}-storm-agent</baseDirectory>
   <includeBaseDirectory>true</includeBaseDirectory>
