@@ -58,68 +58,12 @@ function Install(
     if ( $component -eq "argus" )
     {
         $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
-        Write-Log "Checking the JAVA Installation."
-        if( -not (Test-Path $ENV:JAVA_HOME\bin\java.exe))
-        {
-            Write-Log "JAVA_HOME not set properly; $ENV:JAVA_HOME\bin\java.exe does not exist" "Failure"
-            throw "Install: JAVA_HOME not set properly; $ENV:JAVA_HOME\bin\java.exe does not exist."
-        }
-
-        Write-Log "Checking the Hadoop Installation."
-        if( -not (Test-Path $ENV:HADOOP_HOME\bin\winutils.exe))
-        {
-          Write-Log "HADOOP_HOME not set properly; $ENV:HADOOP_HOME\bin\winutils.exe does not exist" "Failure"
-          throw "Install: HADOOP_HOME not set properly; $ENV:HADOOP_HOME\bin\winutils.exe does not exist."
-        }
 
         ### $argusInstallPath: the name of the folder containing the application, after unzipping
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
         $argusInstallToBin = Join-Path "$argusInstallPath" "bin"
 
-	    Write-Log "Installing $FinalName to $argusInstallPath"
-
-        ### Create Install Root directory
-        if( -not (Test-Path "$argusInstallPath"))
-        {
-            Write-Log "Creating Install Root directory: `"$argusInstallPath`""
-            $cmd = "mkdir `"$argusInstallPath`""
-            Invoke-CmdChk $cmd
-        }
-
-        #$sourceZip = "$FinalName-bin.zip"
-
-        # Rename zip file and initialize parent directory of $argusInstallPath
-        #Rename-Item "$HDP_RESOURCES_DIR\$sourceZip" "$HDP_RESOURCES_DIR\$FinalName.zip"
-        $argusInstallPathParent = (Get-Item $argusInstallPath).parent.FullName
-
-        ###
-        ###  Unzip Argus secure from compressed archive
-        ###
-
-        Write-Log "Extracting $FinalName.zip to $argusInstallPathParent"
-        if ( Test-Path ENV:UNZIP_CMD )
-        {
-            ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$FinalName.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPathParent`"")
-            ### We ignore the error code of the unzip command for now to be
-            ### consistent with prior behavior.
-            Invoke-Ps $unzipExpr
-        }
-        else
-        {
-            $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$FinalName.zip")
-            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
-            $destinationFolder.CopyHere($zipPackage.Items(), 20)
-        }
-
-        ###
-        ### Set ARGUS_HOME environment variable
-        ###
-        Write-Log "Setting the ARGUS_HOME environment variable at machine scope to `"$argusInstallPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_HOME", $argusInstallPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HOME = "$argusInstallPath"
+        InstallBinaries $nodeInstallRoot $serviceCredential
 
 		if ($roles) {
 
@@ -151,6 +95,102 @@ function Install(
         throw "Install: Unsupported component argument."
     }
 }
+
+
+###############################################################################
+###
+### Installs argus binaries.
+###
+### Arguments:
+###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
+###     serviceCredential: 
+###
+###############################################################################
+function InstallBinaries(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=2, Mandatory=$true )]
+    $serviceCredential
+    )
+{
+        $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
+    
+        # setup path variables
+        $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
+        $argusInstallToBin = Join-Path "$argusInstallPath" "bin"
+        $argusAdminFile = Join-Path "$FinalName" "-admin"
+        $argusHbaseAgentFile = Join-Path "$FinalName" "-hbase-agent"
+        $argusHiveAgentFile = Join-Path "$FinalName" "-hive-agent"
+        $argusKnoxAgentFile = Join-Path "$FinalName" "-knox-agent"
+        $argusHdfsAgentFile = Join-Path "$FinalName" "-hdfs-agent"
+        $argusStormAgentFile = Join-Path "$FinalName" "-storm-agent"
+        $argusUgsyncFile = Join-Path "$FinalName" "-ugsync"
+
+        Write-Log "Installing $FinalName to $argusInstallPath"
+        #argus: Installing argus-0.1.0.2.1.1.0-1111 to D:\HDP\\argus-0.1.0.2.1.1.0-1111
+
+        Write-Log "Checking the JAVA Installation."
+        if( -not (Test-Path $ENV:JAVA_HOME\bin\java.exe))
+        {
+            Write-Log "JAVA_HOME not set properly; $ENV:JAVA_HOME\bin\java.exe does not exist" "Failure"
+            throw "Install: JAVA_HOME not set properly; $ENV:JAVA_HOME\bin\java.exe does not exist."
+        }
+
+        Write-Log "Checking the Hadoop Installation."
+        if( -not (Test-Path $ENV:HADOOP_HOME\bin\winutils.exe))
+        {
+          Write-Log "HADOOP_HOME not set properly; $ENV:HADOOP_HOME\bin\winutils.exe does not exist" "Failure"
+          throw "Install: HADOOP_HOME not set properly; $ENV:HADOOP_HOME\bin\winutils.exe does not exist."
+        }
+
+        ### Create Install Root directory
+        if( -not (Test-Path "$argusInstallPath"))
+        {
+            Write-Log "Creating Install Root directory: `"$argusInstallPath`""
+            $cmd = "mkdir `"$argusInstallPath`""
+            Invoke-CmdChk $cmd
+        }
+
+        #$sourceZip = "$FinalName-bin.zip"
+        # Rename zip file and initialize parent directory of $argusInstallPath
+        #Rename-Item "$HDP_RESOURCES_DIR\$sourceZip" "$HDP_RESOURCES_DIR\$FinalName.zip"
+        $argusInstallPathParent = (Get-Item $argusInstallPath).parent.FullName
+
+        ###
+        ###  Unzip Argus secure from compressed archive
+        ###
+
+        Write-Log "Extracting $argusAdminFile.zip to $argusInstallPathParent"
+        #argus: Extracting argus-0.1.0.2.1.1.0-1111.zip to D:\HDP
+
+        if ( Test-Path ENV:UNZIP_CMD )
+        {
+            ### Use external unzip command if given
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusAdminFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPathParent`"")
+            ### We ignore the error code of the unzip command for now to be
+            ### consistent with prior behavior.
+            Invoke-Ps $unzipExpr
+        }
+        else
+        {
+            $shellApplication = new-object -com shell.application
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusAdminFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $destinationFolder.CopyHere($zipPackage.Items(), 20)
+        }
+
+        ###
+        ### Set ARGUS_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_HOME environment variable at machine scope to `"$argusInstallPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_HOME", $argusInstallPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_HOME = "$argusInstallPath"
+
+}
+
 
 
 ###############################################################################
@@ -299,6 +339,7 @@ function StopService(
         throw "StartService: Unsupported compoment argument."
     }
 }
+
 
 ###############################################################################
 ###
