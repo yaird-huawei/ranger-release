@@ -31,6 +31,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import com.xasecure.common.GUIDUtil;
 import com.xasecure.common.XACommonEnums;
 import com.xasecure.common.XAConstants;
@@ -1017,19 +1018,16 @@ public class XABizUtil {
 		List<XXPermMap> permMapList = new ArrayList<XXPermMap>();
 		userGroups = daoManager.getXXGroup().findByUserId(xUserId);
 		permMapList = daoManager.getXXPermMap().findByResourceId(resourceId);
+		Long publicGroupId = getPublicGroupId();
 		boolean matchFound = false;
 		for (XXPermMap permMap : permMapList) {
 			if (permMap.getPermType() == permission) {
-				// check whether permission is group permission and permission
-				// is enabled for group to which user belong
-				if (permMap.getPermFor() == AppConstants.XA_PERM_FOR_GROUP
-						&& isGroupInList(permMap.getGroupId(), userGroups)) {
-					matchFound = true;
-				} // check whether permission is user permission and enabled to
-					// user
-				else if (permMap.getPermFor() == AppConstants.XA_PERM_FOR_USER
-						&& permMap.getUserId().equals(xUserId)) {
-					matchFound = true;
+				if (permMap.getPermFor() == AppConstants.XA_PERM_FOR_GROUP) {
+					// check whether permission is enabled for public group or a group to which user belongs
+					matchFound = (publicGroupId != null && publicGroupId == permMap.getGroupId()) || isGroupInList(permMap.getGroupId(), userGroups);
+				} else if (permMap.getPermFor() == AppConstants.XA_PERM_FOR_USER) {
+					// check whether permission is enabled to user
+					matchFound = permMap.getUserId().equals(xUserId);
 				}
 			}
 			if (matchFound) {
@@ -1037,6 +1035,12 @@ public class XABizUtil {
 			}
 		}
 		return matchFound;
+	}
+	
+	public Long getPublicGroupId() {
+		XXGroup xXGroupPublic = daoManager.getXXGroup().findByGroupName(XAConstants.GROUP_PUBLIC);
+
+		return xXGroupPublic != null ? xXGroupPublic.getId() : null;
 	}
 
 	/**
