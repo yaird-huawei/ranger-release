@@ -46,9 +46,9 @@ define(function(require){
     	},
     	breadCrumbs :function(){
     		if(this.model.isNew())
-    			return [XALinks.get('RepositoryManager'),XALinks.get('ManageKnoxPolicies',{model : this.assetModel}),XALinks.get('PolicyCreate')];
+    			return [XALinks.get('RepositoryManager'),XALinks.get('ManageStormPolicies',{model : this.assetModel}),XALinks.get('PolicyCreate')];
     		else
-    			return [XALinks.get('RepositoryManager'),XALinks.get('ManageKnoxPolicies',{model : this.assetModel}),XALinks.get('PolicyEdit')];
+    			return [XALinks.get('RepositoryManager'),XALinks.get('ManageStormPolicies',{model : this.assetModel}),XALinks.get('PolicyEdit')];
     	} , 
 		/** Layout sub regions */
     	regions: {
@@ -59,7 +59,8 @@ define(function(require){
     	ui: {
     		'btnSave'	: '[data-id="save"]',
 			'btnCancel' : '[data-id="cancel"]',
-			'btnDelete' : '[data-id="delete"]'
+			'btnDelete' : '[data-id="delete"]',
+			'policyDisabledAlert' : '[data-id="policyDisabledAlert"]'
     	},
 
 		/** ui events hash */
@@ -99,6 +100,7 @@ define(function(require){
 
 		/** on render callback */
 		onRender: function() {
+			XAUtil.showAlerForDisabledPolicy(this);
 			this.rForm.show(this.form);
 			this.initializePlugins();
 			this.rForm.$el.dirtyFields();

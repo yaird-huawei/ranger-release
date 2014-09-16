@@ -51,7 +51,7 @@ define(function(require){
     		};
     	},
     	breadCrumbs : function(){
-    		return [XALinks.get('RepositoryManager'),XALinks.get('ManageKnoxPolicies',{model : this.assetModel})];
+    		return [XALinks.get('RepositoryManager'),XALinks.get('ManageStormPolicies',{model : this.assetModel})];
    		},
 		/** Layout sub regions */
     	regions: {
@@ -107,6 +107,7 @@ define(function(require){
 			this.initializePlugins();
 			this.addVisualSearch();
 			this.renderTable();
+			XAUtil.highlightDisabledPolicy(this);
 		},
 
 		/** all post render plugin initialization */
@@ -114,7 +115,7 @@ define(function(require){
 		},
 		renderTable : function(){
 			var that = this;
-			var tableRow = Backgrid.Row.extend({
+			/*var tableRow = Backgrid.Row.extend({
 				events: {
 					'click' : 'onClick'
 				},
@@ -143,13 +144,13 @@ define(function(require){
 					}	
 									
 				}
-			});
+			});*/
 			this.rTableList.show(new XATableLayout({
 				columns: this.getColumns(),
 				collection: this.collection,
 				includeFilter : false,
 				gridOpts : {
-					row: tableRow,
+//					row: tableRow,
 					header : XABackgrid,
 					emptyText : 'No Policies found!'
 				}
@@ -170,7 +171,7 @@ define(function(require){
 				topologies : {
 					label	: localization.tt("lbl.topologyName")+'(s)',
 					/*href: function(model){
-						return '#!/knox/'+model.get('assetId')+'/policy/' + model.id;
+						return '#!/storm/'+model.get('assetId')+'/policy/' + model.id;
 					},*/
 					editable:false,
 //					cell :'uri',
