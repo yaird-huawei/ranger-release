@@ -61,9 +61,12 @@ function Install(
 
         ### $argusInstallPath: the name of the folder containing the application, after unzipping
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
-        $argusInstallToBin = Join-Path "$argusInstallPath" "bin"
+        #$argusAdminInstallToBin = Join-Path "$argusInstallPath" "bin"
+        #$argusUgsyncInstallToBin = Join-Path "$argusInstallPath" "bin"
 
         InstallBinaries $nodeInstallRoot $serviceCredential
+
+        $argusAdmin = Join-Path "$argusInstallPath" "$FinalName"
 
 		if ($roles) {
 
@@ -80,9 +83,19 @@ function Install(
 	        Write-Log "Role : $roles"
 	        foreach( $service in empty-null ($roles -Split('\s+')))
 	        {
+                $argusAdmin = $FinalName + "-admin"
+                $argusInstallToBin = Join-Path "$argusInstallPath" "$argusAdmin" "bin"
 	            CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
-	            $cmd="$ENV:WINDIR\system32\sc.exe config $service start= demand"
-	            Invoke-CmdChk $cmd
+                ###
+                ### Setup argus service config
+                ###
+                $ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
+                Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
+                $cmd = "python $argusInstallToBin\argus_start.py --service > `"$argusInstallToBin\$service.xml`""
+                Invoke-CmdChk $cmd    
+
+	            #$cmd="$ENV:WINDIR\system32\sc.exe config $service start= demand"
+	            #Invoke-CmdChk $cmd
 	
 	        }
 	
@@ -120,13 +133,13 @@ function InstallBinaries(
         # setup path variables
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
         $argusInstallToBin = Join-Path "$argusInstallPath" "bin"
-        $argusAdminFile = Join-Path "$FinalName" "-admin"
-        $argusHbaseAgentFile = Join-Path "$FinalName" "-hbase-agent"
-        $argusHiveAgentFile = Join-Path "$FinalName" "-hive-agent"
-        $argusKnoxAgentFile = Join-Path "$FinalName" "-knox-agent"
-        $argusHdfsAgentFile = Join-Path "$FinalName" "-hdfs-agent"
-        $argusStormAgentFile = Join-Path "$FinalName" "-storm-agent"
-        $argusUgsyncFile = Join-Path "$FinalName" "-ugsync"
+        $argusAdminFile = $FinalName + "-admin"
+        $argusHbaseAgentFile = $FinalName + "-hbase-agent"
+        $argusHiveAgentFile = $FinalName + "-hive-agent"
+        $argusKnoxAgentFile = $FinalName + "-knox-agent"
+        $argusHdfsAgentFile = $FinalName + "-hdfs-agent"
+        $argusStormAgentFile = $FinalName +"-storm-agent"
+        $argusUgsyncFile = $FinalName + "-ugsync"
 
         Write-Log "Installing $FinalName to $argusInstallPath"
         #argus: Installing argus-0.1.0.2.1.1.0-1111 to D:\HDP\\argus-0.1.0.2.1.1.0-1111
@@ -153,23 +166,19 @@ function InstallBinaries(
             Invoke-CmdChk $cmd
         }
 
-        #$sourceZip = "$FinalName-bin.zip"
-        # Rename zip file and initialize parent directory of $argusInstallPath
-        #Rename-Item "$HDP_RESOURCES_DIR\$sourceZip" "$HDP_RESOURCES_DIR\$FinalName.zip"
         $argusInstallPathParent = (Get-Item $argusInstallPath).parent.FullName
 
         ###
         ###  Unzip Argus secure from compressed archive
         ###
 
-        Write-Log "Extracting $argusAdminFile.zip to $argusInstallPathParent"
-        #argus: Extracting argus-0.1.0.2.1.1.0-1111.zip to D:\HDP
+        Write-Log "Extracting $argusAdminFile.zip to $argusInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
             $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusAdminFile.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPathParent`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
             Invoke-Ps $unzipExpr

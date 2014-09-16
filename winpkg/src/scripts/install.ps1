@@ -81,7 +81,7 @@ function Main( $scriptDir )
     ###
     ### Install and Configure argus (Looks like this config will come from earlier HDP installation steps )
     ###
-    if ( $ENV:IS_argus -eq "yes" ) {
+    if ( $ENV:IS_ARGUS -eq "yes" ) {
       $roles = "argus" # TODO!!
     }
 

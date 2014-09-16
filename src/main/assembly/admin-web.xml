@@ -135,5 +135,11 @@
 		</includes>
 		<fileMode>444</fileMode>
 	</fileSet>
+   <fileSet>
+        <directory>src/bin</directory>
+        <outputDirectory>bin</outputDirectory>
+        <fileMode>0755</fileMode>
+        <directoryMode>0755</directoryMode>
+    </fileSet>
   </fileSets>
 </assembly>
