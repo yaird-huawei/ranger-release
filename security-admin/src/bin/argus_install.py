@@ -796,4 +796,4 @@ def run_setup(cmd, app_type):
     #update_properties()
     # do_authentication_setup()
     # copy_to_webapps()
-    print "Setup of Argus PolicyManager Web Application is COMPLETED."
+    #print "Setup of Argus PolicyManager Web Application is COMPLETED."
