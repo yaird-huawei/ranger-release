@@ -1,5 +1,25 @@
-package com.xasecure.rest;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
+ package com.xasecure.rest;
+
+import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -20,9 +40,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.xasecure.biz.AssetMgr;
 import com.xasecure.common.AppConstants;
+import com.xasecure.common.MessageEnums;
 import com.xasecure.common.RESTErrorUtil;
 import com.xasecure.common.SearchCriteria;
 import com.xasecure.common.StringUtil;
+import com.xasecure.common.XAConstants;
 import com.xasecure.common.XASearchUtil;
 import com.xasecure.common.annotation.XAAnnotationClassName;
 import com.xasecure.common.annotation.XAAnnotationJSMgrName;
@@ -121,9 +143,9 @@ public class PublicAPIs {
 		assetMgr.deleteXAsset(id, force);
 	}
 
-	@POST
-	@Path("/api/repository/testConfig")
-	@Produces({ "application/xml", "application/json" })
+	// @POST
+	// @Path("/api/repository/testConfig")
+	// @Produces({ "application/xml", "application/json" })
 	public VXResponse testConfig(VXRepository vXRepository) {
 		VXAsset vXAsset = xRepositoryService.mapPublicToXAObject(vXRepository);
 		return assetMgr.testConfig(vXAsset);
@@ -138,6 +160,11 @@ public class PublicAPIs {
 				request, xAssetService.sortFields);
 		searchUtil.extractString(request, searchCriteria, "name",
 				"Repository Name", null);
+		searchUtil.extractBoolean(request, searchCriteria, "status",
+				"Activation Status");
+		searchUtil.extractString(request, searchCriteria, "type",
+				"Repository Type", null);
+
 		searchCriteria = xRepositoryService.getMappedSearchParams(request,
 				searchCriteria);
 		VXAssetList vXAssetList = assetMgr.searchXAssets(searchCriteria);
@@ -151,6 +178,12 @@ public class PublicAPIs {
 	public VXLong countRepositories(@Context HttpServletRequest request) {
 		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
 				request, xAssetService.sortFields);
+
+        ArrayList<Integer> valueList = new ArrayList<Integer>();
+        valueList.add(XAConstants.STATUS_DISABLED);
+        valueList.add(XAConstants.STATUS_ENABLED);
+        searchCriteria.addParam("status", valueList);
+
 		return assetMgr.getXAssetSearchCount(searchCriteria);
 	}
 
@@ -232,8 +265,16 @@ public class PublicAPIs {
 					AppConstants.getEnumFor_AssetType(repositoryType));
 		}
 
-		searchUtil.extractInt(request, searchCriteria, "isRecursive",
-				"Is Recursive");
+		String isRec = request.getParameter("isRecursive");
+		if (isRec != null) {
+			boolean isRecursiveBool = restErrorUtil.parseBoolean(isRec,
+					"Invalid value for " + "isRecursive",
+					MessageEnums.INVALID_INPUT_DATA, null, "isRecursive");
+			int isRecursive = (isRecursiveBool == true) ? XAConstants.BOOL_TRUE
+					: XAConstants.BOOL_FALSE;
+			searchCriteria.getParamList().put("isRecursive", isRecursive);
+		}
+			
 		searchUtil.extractString(request, searchCriteria, "userName",
 				"User Name", StringUtil.VALIDATION_TEXT);
 		searchUtil.extractString(request, searchCriteria, "repositoryName",
@@ -251,6 +292,7 @@ public class PublicAPIs {
 	public VXLong countPolicies(@Context HttpServletRequest request) {
 		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
 				request, xResourceService.sortFields);
+
 
 		return assetMgr.getXResourceSearchCount(searchCriteria);
 	}

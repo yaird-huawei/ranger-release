@@ -1,4 +1,23 @@
-/**
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+ /**
  * 
  */
 package com.xasecure.service;
@@ -214,8 +233,14 @@ public class XPolicyService extends PublicAPIServiceBase<VXResource, VXPolicy> {
 		vXResource.setColumns(vXPolicy.getColumns());
 		vXResource.setUdfs(vXPolicy.getUdfs());
 		vXResource.setAssetName(vXPolicy.getRepositoryName());
-		vXResource.setAssetType(AppConstants.getEnumFor_AssetType(vXPolicy
-				.getRepositoryType()));
+		
+		int assetType = AppConstants.getEnumFor_AssetType(vXPolicy
+				.getRepositoryType());
+		if (assetType == 0 || assetType == AppConstants.ASSET_UNKNOWN) {
+			assetType = xAsset.getAssetType();
+			vXPolicy.setRepositoryType(AppConstants.getLabelFor_AssetType(assetType));
+		}
+		vXResource.setAssetType(assetType);
 
 		int resourceStatus = AppConstants.STATUS_ENABLED;
 		if (!vXPolicy.getIsEnabled()) {
@@ -263,6 +288,7 @@ public class XPolicyService extends PublicAPIServiceBase<VXResource, VXPolicy> {
 		}
 		for (VXPermObj permObj : permObjList) {
 			String permGrp = new Date() + " : " + rand.nextInt(9999);
+			String ipAddress = permObj.getIpAddress();
 
 			if (!stringUtil.isEmpty(permObj.getUserList())) {
 				int permFor = AppConstants.XA_PERM_FOR_USER;
@@ -287,6 +313,7 @@ public class XPolicyService extends PublicAPIServiceBase<VXResource, VXPolicy> {
 						vXPermMap.setPermType(permType);
 						vXPermMap.setUserId(xxUser.getId());
 						vXPermMap.setResourceId(resId);
+						vXPermMap.setIpAddress(ipAddress);
 						permMapList.add(vXPermMap);
 
 						StringBuilder uniqueKey = new StringBuilder();
@@ -323,6 +350,7 @@ public class XPolicyService extends PublicAPIServiceBase<VXResource, VXPolicy> {
 						vXPermMap.setPermType(permType);
 						vXPermMap.setGroupId(xxGroup.getId());
 						vXPermMap.setResourceId(resId);
+						vXPermMap.setIpAddress(ipAddress);
 						permMapList.add(vXPermMap);
 
 						StringBuilder uniqueKey = new StringBuilder();
@@ -346,6 +374,8 @@ public class XPolicyService extends PublicAPIServiceBase<VXResource, VXPolicy> {
 				} else {
 					VXPermMap vPMap = xPermMapService
 							.populateViewBean(prevPermMap.get(entry.getKey()));
+					VXPermMap vPMapNew = entry.getValue();
+					vPMap.setIpAddress(vPMapNew.getIpAddress());
 					updPermMapList.add(vPMap);
 				}
 			}
@@ -647,10 +677,10 @@ public class XPolicyService extends PublicAPIServiceBase<VXResource, VXPolicy> {
 		}
 		if (!stringUtil.isEmpty(vXPolicy.getDatabases())) {
 			resourceType = AppConstants.RESOURCE_DB;
-			if (!stringUtil.isEmpty(vXPolicy.getTables())) {
+			if (!stringUtil.isEmptyOrWildcardAsterisk(vXPolicy.getTables())) {
 				resourceType = AppConstants.RESOURCE_TABLE;
 			}
-			if (!stringUtil.isEmpty(vXPolicy.getColumns())) {
+			if (!stringUtil.isEmptyOrWildcardAsterisk(vXPolicy.getColumns())) {
 				resourceType = AppConstants.RESOURCE_COLUMN;
 			}
 			if (!stringUtil.isEmpty(vXPolicy.getUdfs())) {
@@ -658,15 +688,15 @@ public class XPolicyService extends PublicAPIServiceBase<VXResource, VXPolicy> {
 			}
 		} else if (!stringUtil.isEmpty(vXPolicy.getTables())) {
 			resourceType = AppConstants.RESOURCE_TABLE;
-			if (!stringUtil.isEmpty(vXPolicy.getColumnFamilies())) {
+			if (!stringUtil.isEmptyOrWildcardAsterisk(vXPolicy.getColumnFamilies())) {
 				resourceType = AppConstants.RESOURCE_COL_FAM;
 			}
-			if (!stringUtil.isEmpty(vXPolicy.getColumns())) {
+			if (!stringUtil.isEmptyOrWildcardAsterisk(vXPolicy.getColumns())) {
 				resourceType = AppConstants.RESOURCE_COLUMN;
 			}
 		} else if (!stringUtil.isEmpty(vXPolicy.getTopologies())) {
 			resourceType = AppConstants.RESOURCE_TOPOLOGY;
-			if (!stringUtil.isEmpty(vXPolicy.getServices())) {
+			if (!stringUtil.isEmptyOrWildcardAsterisk(vXPolicy.getServices())) {
 				resourceType = AppConstants.RESOURCE_SERVICE_NAME;
 			}
 		}
