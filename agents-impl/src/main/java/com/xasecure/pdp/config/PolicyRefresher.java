@@ -170,7 +170,7 @@ public class PolicyRefresher  {
 	
 	
 	private void savePolicyToFile() {
-		if (!watcherDaemon.iscacheModfied()) {
+		if (watcherDaemon != null && !watcherDaemon.iscacheModfied()) {
 			// Do not Save the file if the policy is not modified.
 			return;
 		}
@@ -201,7 +201,7 @@ public class PolicyRefresher  {
 	
 	 private void savePolicyToCacheFile() {
 		 
-		 if (!watcherDaemon.iscacheModfied()) {
+		 if (watcherDaemon != null && !watcherDaemon.iscacheModfied()) {
 			    // Don't Save the file if the policy is not modified.
 				return;
 		  }
@@ -226,7 +226,9 @@ public class PolicyRefresher  {
 		    finally {
 		    	 //make the policy file cache to be 600 permission when it gets created and updated
 		    	 lastSaveFile.setReadable(false,false);
+		    	 lastSaveFile.setWritable(false,false);
 		    	 lastSaveFile.setReadable(true,true);
+		    	 lastSaveFile.setWritable(true,true);
 		    	 if (writer != null) {
 				 writer.close();
 		    	}
