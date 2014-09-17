@@ -619,40 +619,61 @@ def setup_authentication(authentication_method, xmlPath):
 pass
 
 def do_authentication_setup(): 
+    global PWD
+    sys_conf_dict={}
     log("Starting setup based on user authentication method=authentication_method","debug")
     ##Written new function to perform authentication setup for all  cases
-    setup_authentication(authentication_method, app_home)
+    authentication_method = os.getenv("authentication_method")
+    setup_authentication(authentication_method, PWD)
+    ldap_file=PWD +"/WEB-INF/resources/xa_ldap.properties"
+    if os.path.isfile(ldap_file):
+        log(ldap_file + " file found", "info")
+    else:
+        log(ldap_file + " does not exists", "warning")
+    config = StringIO.StringIO()
+    config.write('[dummysection]\n')
+    config.write(open(ldap_file).read())
+    config.seek(0, os.SEEK_SET)
+    ##Now parse using configparser
+    cObj = ConfigParser.ConfigParser()
+    cObj.optionxform = str
+    cObj.readfp(config)
+    options = cObj.options('dummysection')
+    for option in options:
+        value = cObj.get('dummysection', option)
+        sys_conf_dict[option] = value
+        cObj.set("dummysection",option, value)
+    log("LDAP file : "+ ldap_file + " file found", "info")
+
     if authentication_method == "LDAP":
         log("Loading LDAP attributes and properties", "debug");
         newPropertyValue='' 
-        ldap_file=app_home+"/WEB-INF/classes/xa_ldap.properties"
-        if os.path.isfile(ldap_file):
-            log("LDAP file : "+ ldap_file + " file found", "info")
-            propertyName="xa_ldap_url"
-            newPropertyValue=xa_ldap_url
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
-            ###########            
-            propertyName="xa_ldap_userDNpattern"
-            newPropertyValue=xa_ldap_userDNpattern
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
-            ###########            
-            propertyName="xa_ldap_groupSearchBase"
-            newPropertyValue=xa_ldap_groupSearchBase
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
-            ###########            
-            propertyName="xa_ldap_groupSearchFilter"
-            newPropertyValue=xa_ldap_groupSearchFilter
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
-            ###########            
-            propertyName="xa_ldap_groupRoleAttribute"
-            newPropertyValue=xa_ldap_groupRoleAttribute
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
-            ###########            
-            propertyName="authentication_method"
-            newPropertyValue=authentication_method
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
-        else:
-            log( "LDAP file: "+ ldap_file +" does not exists","exception")
+        ##########
+        propertyName="xa_ldap_url"
+        newPropertyValue=xa_ldap_url
+        cObj.set('dummysection',propertyName,newPropertyValue)        
+        ###########            
+        propertyName="xa_ldap_userDNpattern"
+        newPropertyValue=xa_ldap_userDNpattern
+        cObj.set('dummysection',propertyName,newPropertyValue)        
+        ###########            
+        propertyName="xa_ldap_groupSearchBase"
+        newPropertyValue=xa_ldap_groupSearchBase
+        cObj.set('dummysection',propertyName,newPropertyValue)        
+        ###########            
+        propertyName="xa_ldap_groupSearchFilter"
+        newPropertyValue=xa_ldap_groupSearchFilter
+        cObj.set('dummysection',propertyName,newPropertyValue)        
+        ###########            
+        propertyName="xa_ldap_groupRoleAttribute"
+        newPropertyValue=xa_ldap_groupRoleAttribute
+        cObj.set('dummysection',propertyName,newPropertyValue)        
+        ###########            
+        propertyName="authentication_method"
+        newPropertyValue=authentication_method
+        cObj.set('dummysection',propertyName,newPropertyValue)
+    else:
+        log( "LDAP file: "+ ldap_file +" does not exists","exception")
     if authentication_method == "ACTIVE_DIRECTORY":
         log("[I] Loading ACTIVE DIRECTORY attributes and properties", "debug")
         newPropertyValue=''
@@ -661,22 +682,26 @@ def do_authentication_setup():
             log("LDAP file : "+ ldap_file + " file found", "info")
             propertyName="xa_ldap_ad_url"
             newPropertyValue=xa_ldap_ad_url
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
+            cObj.set('dummysection',propertyName,newPropertyValue)
             ###########        
             propertyName="xa_ldap_ad_domain"
             newPropertyValue=xa_ldap_ad_domain
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
+            cObj.set('dummysection',propertyName,newPropertyValue)
             ###########            
             propertyName="authentication_method"
             newPropertyValue=authentication_method
-            updatePropertyToFile(propertyName, newPropertyValue, ldap_file)
+            cObj.set('dummysection',propertyName,newPropertyValue)
         else:
             log(ldap_file + " does not exists", "exception")
+    with open(ldap_file, 'wb') as configfile:
+        cObj.write(configfile)        
+
     #if authentication_method == "UNIX":
         ## I think it is not needed for Windows 
         ##do_unixauth_setup
     log("Finished setup based on user authentication method=authentication_method", "info") 
 pass
+
 
 
 ## Argus Functions Ends here --------------------
