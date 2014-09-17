@@ -28,6 +28,7 @@ import commands
 from datetime import date
 import getpass
 import subprocess
+import glob
 
 base_dir = ' '
 PWD = os.path.dirname(os.path.realpath(__file__))
@@ -83,7 +84,9 @@ def init_variables():
     INSTALL_DIR = os.path.join(os.getenv("ARGUS_HOME") , "app")
 
     # TODO FIX THIS
-    war_file = os.path.join(ARGUS_HOME , "war", "security-admin-web-5.5.5.war")
+    war_file_path = os.path.join(ARGUS_HOME , "war", "security-admin-web-*.war")
+    war_file_list = glob.glob(war_file_path)
+    war_file = war_file_list[0]
 
     EWS_ROOT = os.path.join(INSTALL_DIR , "ews")
     WEBAPP_ROOT= os.path.join(INSTALL_DIR , "ews" , "webapp")
