@@ -20,12 +20,14 @@ import ConfigParser
 import StringIO
 import subprocess
 import fileinput
-#import MySQLdb
+import MySQLdb
 import zipfile
 import re
 import shutil
 import commands
 from datetime import date
+import getpass
+import subprocess
 
 base_dir = ' '
 PWD = os.path.dirname(os.path.realpath(__file__))
@@ -43,6 +45,9 @@ LOGFILES = ''
 VERSION = ''
 INSTALL_DIR=''
 WEBAPP_ROOT=''
+XAPOLICYMGR_DIR=''
+MYSQL_HOST = "localhost"
+MYSQL_CONNECTOR_JAR=''
 war_file=''
 db_core_file=''
 db_audit_file=''
@@ -185,14 +190,17 @@ def getPropertyFromFile(propName,fileName,varName):
 pass
 
 def check_mysql_connector(): 
+    global MYSQL_CONNECTOR_JAR
     ### From properties file 
+    MYSQL_CONNECTOR_JAR = os.getenv("MYSQL_CONNECTOR_JAR")
     debugMsg = "Checking MYSQL CONNECTOR FILE : " + MYSQL_CONNECTOR_JAR
     log(debugMsg, 'debug') 
+    print "Checking MYSQL CONNECTOR FILE : " + MYSQL_CONNECTOR_JAR
     ### From properties file 
     if os.path.isfile(MYSQL_CONNECTOR_JAR):
         log(" MYSQL CONNECTOR FILE :" + MYSQL_CONNECTOR_JAR + "file found",'info')
     else:
-      log(" MYSQL CONNECTOR FILE : " + MYSQL_CONNECTOR_JAR + "file does not exist",'info')
+      log(" MYSQL CONNECTOR FILE : "+MYSQL_CONNECTOR_JAR+" file does not exist",'info')
 pass
 
 def sanity_check_files():
@@ -215,29 +223,35 @@ def sanity_check_files():
 #     cp "APP" "BAK_FILE"
 
 def create_mysql_user():
-    global conf_dict
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
-    check_mysql_password
-    check_mysql_user_password
+    global MYSQL_HOST
+
+    db_user = os.getenv("db_user")
+    db_password = os.getenv("db_password")
+    db_root_password = os.getenv("db_root_password")
+    if db_root_password == "":
+        db_root_password = getpass.getpass('Password:')        
+    check_mysql_password()
+    check_mysql_user_password()
     ### From properties file 
     log(" Creating MySQL user "+db_user+" (using root priviledges)", 'debug')
     count=0
     db = MySQLdb.connect(host=MYSQL_HOST, user="root", passwd=db_root_password)
     cursor = db.cursor ()
-    cursor.execute("select count(*) from mysql.user where user = '"+ db_user+"' and host = '"+thost+"'")
+    cursor.execute("select count(*) from mysql.user where user='"+ db_user+"' and host='"+MYSQL_HOST+"'")
     row = cursor.fetchone()
     if row[0]: 
         print "user found"
     else:
-        cursor.execute("create user '" + db_user + "'@'"+ thost +"' identified by " + db_password)
-        result = cursor.use_result()
-        if result: 
-            mysqlquery="GRANT ALL ON *.* TO '" + db_user + "@" + thost+"';\
-            grant all privileges on *.* to '" + db_user + "'@'" + thost + "' with grant option;\
+        if db_password == "":
+            cursor.execute("create user '" + db_user + "'@'"+ MYSQL_HOST +"'")
+        else:
+            cursor.execute("create user '" + db_user + "'@'"+ MYSQL_HOST +"' identified by '" + db_password + "'")
+        if cursor: 
+            mysqlquery="GRANT ALL ON *.* TO '" + db_user + "'@'" + MYSQL_HOST+"';\
+            grant all privileges on *.* to '" + db_user + "'@'" + MYSQL_HOST + "' with grant option;\
             FLUSH PRIVILEGES;"
             cursor.execute(mysqlquery)
-            grantResult = cursor.use_result()
-            if grantResult: 
+            if cursor: 
                 log("Creating MySQL user '" + db_user + "' (using root priviledges) DONE", "info")
             else:
                 log("MySQL create user failed", "exception")
@@ -246,6 +260,9 @@ def check_mysql_password ():
     count=0
     log("Checking MYSQL root password","debug")
     # connect
+    db_root_password = os.getenv("db_root_password")
+    if db_root_password == "":
+        db_root_password = getpass.getpass('Password:')
     db = MySQLdb.connect(host=MYSQL_HOST, user="root", passwd=db_root_password)
     if db:
         log("Checking MYSQL root password DONE", "info")
@@ -254,14 +271,20 @@ def check_mysql_password ():
     
 
 def check_mysql_user_password(): 
+    db_user = os.getenv("db_user")
+    db_password = os.getenv("db_password")
     db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password)
     if db:
-        log("Checking MYSQL root password DONE", "info")
+        log("Checking MYSQL "+ db_user +" password DONE", "info")
     else:  
         log("COMMAND: mysql -u " + db_user + " --password=..... -h " + MYSQL_HOST + " : FAILED with error message:\n*******************************************\n" + {msg} + "\n*******************************************\n", "exception")
 
 def check_mysql_audit_user_password(): 
+    global MYSQL_HOST
     try:
+        audit_db = os.getenv("audit_db_name")
+        audit_db_user = os.getenv("audit_db_user")
+        audit_db_password = os.getenv("audit_db_password")
         db = MySQLdb.connect(host=MYSQL_HOST, user=audit_db_user, passwd=audit_db_password, db=audit_db)
     except MySQLdb.Error, e:
      exceptnMsg =  "Error %d: %s" % (e.args[0], e.args[1])
@@ -271,14 +294,23 @@ def check_mysql_audit_user_password():
         log("Checking Argus Audit Table owner password DONE", "info")
 
 def upgrade_db():
+    global MYSQL_HOST
+    db_user = os.getenv("db_user")
+    db_password = os.getenv("db_password")
+    db_name = os.getenv("db_name")
     log("Starting upgradedb ... ", "debug")
     try:
-        DBVERSION_CATALOG_CREATION="db/create_dbversion_catalog.sql"
+        DBVERSION_CATALOG_CREATION=PWD + "/db/create_dbversion_catalog.sql"
         db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password, db=db_name)
         if db and os.path.isfile(DBVERSION_CATALOG_CREATION): 
-            #execute each line from sql file 
-            for line in open(DBVERSION_CATALOG_CREATION).read().split(';\n'):
-                cursor.execute(line)
+            cursor = db.cursor()
+            #import sql file 
+            proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--password=%s" % db_password, db_name],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE)
+            out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
+            print out
+            log("Baseline DB upgraded successfully", "info")
         #Logic to apply patches 
         #first get all patches 
         #then sort all patches by number 
@@ -290,24 +322,47 @@ def upgrade_db():
         sys.exit (1)
     
 def import_db ():
-    log("Verifying Database: db_name","debug")
     try:
-        DBVERSION_CATALOG_CREATION="db/create_dbversion_catalog.sql"
-        db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password, db=db_name)
-        cursor.execute("show databases like " + db_name)
-        dbRow = cursor.fetchone();
+        global MYSQL_HOST
 
-        if dbRow[0] == db_name: 
-            log("database db_name already exists. Ignoring import_db ...","info")
+        db_user = os.getenv("db_user")
+        db_password = os.getenv("db_password")
+        db_name = os.getenv("db_name")
+        db_core_file = os.getenv("db_core_file")
+        db_core_file = PWD + "/db/xa_core_db.sql"
+        db_asset_file = os.getenv("db_asset_file")
+        db_asset_file = PWD + "/db/reset_asset.sql"
+        log("Verifying Database: db_name","debug")
+        DBVERSION_CATALOG_CREATION="db/create_dbversion_catalog.sql"
+        db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password)
+        cursor = db.cursor()
+        cursor.execute("show databases like '" + db_name +"'")
+        dbRow = cursor.fetchone();
+        if (dbRow) and dbRow[0] == db_name: 
+            log("database "+db_name + " already exists. Ignoring import_db ...","info")
         else:   
             cursor.execute("create database  " + db_name)
+            cursor.execute("USE " + db_name)
             #execute each line from sql file to import DB
+            print os.path.isfile(db_core_file)
+            print "import script path : "+ db_core_file 
             if os.path.isfile(db_core_file):
-                for line in open(db_core_file).read().split(';\n'):
-                    cursor.execute(line)
+                proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--password=%s" % db_password, db_name],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
+                out, err = proc.communicate(file(db_core_file).read())
+                print out
+            else:
+                log("Import sql file not found","exception")
             if os.path.isfile(db_asset_file):
-                for line in open(db_asset_file).read().split(';\n'):
-                    cursor.execute(line)
+                proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--password=%s" % db_password, db_name],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
+                out, err = proc.communicate(file(db_asset_file).read())
+                print out
+                log("Audit file Imported successfully","info")
+            else:
+                log("Import asset sql file not found","exception")
     except MySQLdb.Error, e:
         exceptnMsg =  "Error %d: %s" % (e.args[0], e.args[1])
         log("Import DB function failed:\n*******************************************\n" + exceptnMsg + "\n*******************************************\n", "exception")
