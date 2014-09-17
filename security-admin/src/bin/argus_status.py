@@ -14,9 +14,9 @@
 
 import os
 import sys
-import argus_config as ac
+import argus_install as ai
 import subprocess
 cmd = sys.argv[0]
-prg, base_dir = ac.resolve_sym_link(os.path.abspath(cmd))
-service_status_cmd = os.path.join(base_dir, 'bin', 'service_status.py')
-subprocess.call(['python', service_status_cmd, 'argus'])
+prg, base_dir = ai.resolve_sym_link(os.path.abspath(cmd))
+#service_status_cmd = os.path.join(base_dir, 'bin', 'service_status.py')
+#subprocess.call(['python', service_status_cmd, 'argus'])

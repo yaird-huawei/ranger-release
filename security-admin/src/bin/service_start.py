@@ -17,7 +17,6 @@ import sys
 import os
 import subprocess
 import time
-import argus_config as ac
 import argus_install
 
 
@@ -71,8 +70,7 @@ service_entry = '--service' in sys.argv
 
 #ac.mkdir_p(ac.log_dir)
 
-jdk_options =  [  ac.options, 
-                  os.getenv('ARGUS_PROPERTIES', ''), 
+jdk_options =  [os.getenv('ARGUS_PROPERTIES', ''),
                   '-Dcatalina.base=' + argus_install.EWS_ROOT ]
 
 # Add all the JVM command line options

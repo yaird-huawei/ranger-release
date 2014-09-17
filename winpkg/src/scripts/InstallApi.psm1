@@ -61,12 +61,18 @@ function Install(
 
         ### $argusInstallPath: the name of the folder containing the application, after unzipping
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
-        #$argusAdminInstallToBin = Join-Path "$argusInstallPath" "bin"
-        #$argusUgsyncInstallToBin = Join-Path "$argusInstallPath" "bin"
-
+        $argusAdmin = $FinalName + "-admin"
+        $argusAdminInstallPath = Join-Path "$argusInstallPath" "$argusAdmin" 
+        $argusInstallToBin = Join-Path "$argusAdminInstallPath" "bin"
         InstallBinaries $nodeInstallRoot $serviceCredential
 
-        $argusAdmin = Join-Path "$argusInstallPath" "$FinalName"
+
+        ###
+        ### Set ARGUS_ADMIN_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_ADMIN_HOME environment variable at machine scope to `"$argusInstallPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_ADMIN_HOME", $argusAdminInstallPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_ADMIN_HOME = "$argusAdminInstallPath"
 
 		if ($roles) {
 
@@ -83,8 +89,6 @@ function Install(
 	        Write-Log "Role : $roles"
 	        foreach( $service in empty-null ($roles -Split('\s+')))
 	        {
-                $argusAdmin = $FinalName + "-admin"
-                $argusInstallToBin = Join-Path "$argusInstallPath" "$argusAdmin" "bin"
 	            CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
                 ###
                 ### Setup argus service config
@@ -197,6 +201,7 @@ function InstallBinaries(
         Write-Log "Setting the ARGUS_HOME environment variable at machine scope to `"$argusInstallPath`""
         [Environment]::SetEnvironmentVariable("ARGUS_HOME", $argusInstallPath, [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HOME = "$argusInstallPath"
+
 
 }
 
