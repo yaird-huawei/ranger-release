@@ -136,7 +136,7 @@
 		<fileMode>444</fileMode>
 	</fileSet>
    <fileSet>
-        <directory>src/bin</directory>
+        <directory>security-admin/src/bin</directory>
         <outputDirectory>bin</outputDirectory>
         <fileMode>0755</fileMode>
         <directoryMode>0755</directoryMode>

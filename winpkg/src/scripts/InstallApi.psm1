@@ -84,7 +84,8 @@ function Install(
 	        foreach( $service in empty-null ($roles -Split('\s+')))
 	        {
                 $argusAdmin = $FinalName + "-admin"
-                $argusInstallToBin = Join-Path "$argusInstallPath" "$argusAdmin" "bin"
+                $argusAdminInstallPath = Join-Path "$argusInstallPath" "$argusAdmin" 
+                $argusInstallToBin = Join-Path "$argusAdminInstallPath" "bin"
 	            CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
                 ###
                 ### Setup argus service config

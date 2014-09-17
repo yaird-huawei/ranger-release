@@ -20,7 +20,7 @@ import ConfigParser
 import StringIO
 import subprocess
 import fileinput
-import MySQLdb
+#import MySQLdb
 import zipfile
 import re
 import shutil
@@ -782,10 +782,10 @@ def run_setup(cmd, app_type):
     log("hostname=`hostname`", "info")
     init_variables()
     #check_mysql_connector()
-    #setup_install_files()
+    setup_install_files()
     #sanity_check_files()
     # create_mysql_user()
-    #extract_war()
+    extract_war()
     # copy_mysql_connector()
     # import_db()
     # upgrade_db()
