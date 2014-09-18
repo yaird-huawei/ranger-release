@@ -58,19 +58,66 @@ ARGUS_HOME=''
 conf_dict={}
 
 
+def ModConfig(File, Variable, Setting):
+    """
+    Modify Config file variable with new setting
+    """
+    VarFound = False
+    AlreadySet = False
+    V=str(Variable)
+    S=str(Setting)
+    # use quotes if setting has spaces #
+    if ' ' in S:
+        S = '"%s"' % S
+ 
+    for line in fileinput.input(File, inplace = 1):
+        # process lines that look like config settings #
+        if not line.lstrip(' ').startswith('#') and '=' in line:
+            _infile_var = str(line.split('=')[0].rstrip(' '))
+            _infile_set = str(line.split('=')[1].lstrip(' ').rstrip())
+            # only change the first matching occurrence #
+            if VarFound == False and _infile_var.rstrip(' ') == V:
+                VarFound = True
+                # don't change it if it is already set #
+                if _infile_set.lstrip(' ') == S:
+                    AlreadySet = True
+                else:
+                    line = "%s = %s\n" % (V, S)
+ 
+        sys.stdout.write(line)
+ 
+ 
+    # Append the variable if it wasn't found #
+    if not VarFound:
+        print "Variable '%s' not found.  Adding it to %s" % (V, File)
+        with open(File, "a") as f:
+            f.write("%s = %s\n" % (V, S))
+    elif AlreadySet == True:
+        print "Variable '%s' unchanged" % (V)
+    else:
+        print "Variable '%s' modified to '%s'" % (V, S)
+ 
+    return
+
 # TODO
 def populate_config_dict():
     global config_dict
     conf_dict['MYSQL_HOST'] = 'localhost'
+    conf_dict['ARGUS_ADMIN_DB_USERNAME'] = os.getenv("ARGUS_ADMIN_DB_USERNAME")
+    conf_dict['ARGUS_ADMIN_DB_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_PASSWORD")
+    conf_dict['ARGUS_ADMIN_DB_NAME'] = os.getenv("ARGUS_ADMIN_DB_NAME")
+    conf_dict['ARGUS_AUDIT_DB_USERNAME'] = os.getenv("ARGUS_AUDIT_DB_USERNAME")
+    conf_dict['ARGUS_AUDIT_DB_PASSWORD'] = os.getenv("ARGUS_AUDIT_DB_PASSWORD")
+    conf_dict['ARGUS_AUDIT_DB_NAME'] = os.getenv("ARGUS_AUDIT_DB_NAME")
 
 def init_variables():
     global VERSION, INSTALL_DIR, EWS_ROOT, ARGUS_HOME, WEBAPP_ROOT, war_file, db_core_file
     global db_create_user, db_audit_file, db_asset_file
     global conf_dict
 
-    populate_config_dict()
 
     # These are set from the Monarch
+    HDP_RESOURCES_DIR = os.getenv("HDP_RESOURCES_DIR")
     ARGUS_HOME = os.getenv("ARGUS_HOME")
     ARGUS_CONF_DIR = os.getenv("ARGUS_CONF_DIR")
     ARGUS_LOG_DIR = os.getenv("ARGUS_LOG_DIR")
@@ -91,6 +138,10 @@ def init_variables():
     EWS_ROOT = os.path.join(INSTALL_DIR , "ews")
     WEBAPP_ROOT= os.path.join(INSTALL_DIR , "ews" , "webapp")
 
+    populate_config_dict()
+    conf_dict['EWS_ROOT'] = EWS_ROOT
+
+    log("ARGUS_HOME is : " + ARGUS_HOME, "debug")
     log("INSTALL_DIR is : " + INSTALL_DIR, "debug")
     log("EWS_ROOT is : " + EWS_ROOT, "debug")
     log("WEBAPP_ROOT is : " + WEBAPP_ROOT, "debug")
@@ -129,6 +180,9 @@ def setup_install_files():
 
     copy_files(os.path.join(ARGUS_HOME,"ews","lib"), EWS_LIB_DIR)
 
+    log("copying xapolicymgr.properties file  ARGUS_HOME dir : " + ARGUS_HOME, "debug")
+    shutil.copyfile(os.path.join(ARGUS_HOME,"ews","xapolicymgr.properties"), os.path.join(EWS_ROOT,"xapolicymgr.properties"))
+
     #os.makedirs(os.path.join(base_dir,EWS_ROOT,"lib"))
     #copy_files(os.path.join(base_dir,INSTALL_DIR) , "lib", EWS_ROOT)
 
@@ -152,9 +206,9 @@ def parse_config_file():
     options = cObj.options('dummysection')
     for option in options:
         value = cObj.get('dummysection', option)
-        #os.environ[option] = value
         conf_dict[option] = value
         #print "Properties : %s=%s ::: \n", (option,value)
+
     # with open("install.properties", 'r') as f:
     # 
     #     config_string = '[dummy_section]\n' + f.read()
@@ -402,6 +456,7 @@ def copy_files(source_dir,dest_dir):
                     os.mkdir(target_dir)
                 src_file = os.path.join(dir_path, file_name)
                 dest_file = os.path.join(target_dir, file_name)
+                log("copying src: " + src_file + " dest: " + dest_file, "debug")
                 shutil.copyfile(src_file, dest_file)
 
 #TODO this is not required now 
@@ -437,22 +492,37 @@ def updatePropertyToFile(propertyName, newPropertyValue, fileName):
     log(successMsg, "info")
 pass
 
+def update_xapolicymgr_properties():
+    global conf_dict
+    EWS_ROOT = conf_dict['EWS_ROOT']
+    xapolicymgr_properties = os.path.join(EWS_ROOT, "xapolicymgr.properties")
+    log("xapolicymgr_properties: " + xapolicymgr_properties, "debug")
+    ModConfig(xapolicymgr_properties,"xa.webapp.dir",'webapp')
+
+    
 def update_properties():
-    global MYSQL_HOST
+    global MYSQL_HOST, conf_dict
     sys_conf_dict={}
-    db_name = os.getenv("db_name")
-    db_user = os.getenv("db_user")
-    db_password = os.getenv("db_password")
-    audit_db_name = os.getenv("audit_db_name")
-    audit_db_user = os.getenv("audit_db_user")
-    audit_db_password = os.getenv("audit_db_password")
+
+    #MYSQL_HOST = conf_dict["MYSQL_HOST"]
+    db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
+    db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
+    db_name = conf_dict["ARGUS_ADMIN_DB_NAME"]
+
+    audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
+    audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
+    audit_db_name = conf_dict["ARGUS_AUDIT_DB_NAME"]
+
+    update_xapolicymgr_properties()
+
     newPropertyValue=''
-    to_file=PWD + "/WEB-INF/resources/xa_system.properties"
+    to_file = os.path.join(WEBAPP_ROOT, "WEB-INF", "classes", "xa_system.properties")
 
     if os.path.isfile(to_file):
-        log(to_file + " file found", "info")
+        log("to_file: " + to_file + " file found", "info")
     else:
-        log(to_file + " does not exists", "warning")
+        log("to_file: " + to_file + " does not exists", "warning")
+
     config = StringIO.StringIO()
     config.write('[dummysection]\n')
     config.write(open(to_file).read())
@@ -466,35 +536,37 @@ def update_properties():
         value = cObj.get('dummysection', option)
         sys_conf_dict[option] = value
         cObj.set("dummysection",option, value)
-    ##########
+
+    log("MYSQL_HOST is : " + MYSQL_HOST,"debug")
     propertyName="jdbc.url"
-    newPropertyValue="jdbc:log4jdbc:mysql://" + MYSQL_HOST+":3306/"+db_name
+    newPropertyValue="jdbc:log4jdbc:mysql://" + MYSQL_HOST + ":3306/" + db_name
     cObj.set('dummysection',propertyName,newPropertyValue)
-    ##########
+
     propertyName="xa.webapp.url.root"
     newPropertyValue=os.getenv("policymgr_external_url")
     cObj.set('dummysection',propertyName,newPropertyValue)
-    ##########
+
     propertyName="http.enabled"
     newPropertyValue=os.getenv("policymgr_http_enabled")
     cObj.set('dummysection',propertyName,newPropertyValue)
-    ##########
+
     propertyName="auditDB.jdbc.url"
     newPropertyValue="jdbc:log4jdbc:mysql://"+MYSQL_HOST+":3306/"+audit_db_name
     cObj.set('dummysection',propertyName,newPropertyValue)
-    ##########
+
     propertyName="jdbc.user"
     newPropertyValue=db_user
     cObj.set('dummysection',propertyName,newPropertyValue)
-    ##########
+
     propertyName="auditDB.jdbc.user"
     newPropertyValue=audit_db_user
     cObj.set('dummysection',propertyName,newPropertyValue)
-    ##########
+
     keystore=os.getenv("cred_keystore_filename")
     log("Starting configuration for Argus DB credentials:","info")
     db_password_alias="policyDB.jdbc.password"
-    if keystore != "":
+
+    if keystore is not None:
         #os.makedirs(keystore)
         commands.getstatusoutput("java -cp cred/lib/* com.hortonworks.credentialapi.buildks create " + db_password_alias + "-value " + db_password + " -provider jceks://file" + keystore)
         propertyName="xaDB.jdbc.credential.alias"
@@ -508,33 +580,29 @@ def update_properties():
         propertyName="jdbc.password"
         newPropertyValue="_"    
         cObj.set('dummysection',propertyName,newPropertyValue)
+
+        # TODO:WINDOWS Not running chown as it is not used 
+        # commands.getstatusoutput("chown -R " + unix_user + ":" + unix_group+" "+ keystore)
+
     else:    
         propertyName="jdbc.password"
         newPropertyValue=db_password
         cObj.set('dummysection',propertyName,newPropertyValue)
-    if os.path.isfile(keystore):
-        log("keystore found.", "info")
-        # Not running chown as it is not used 
-        # commands.getstatusoutput("chown -R " + unix_user + ":" + unix_group+" "+ keystore)
-    else:
-        #echo "keystore not found. so clear text password"
-        propertyName="jdbc.password"
-        newPropertyValue=db_password
-        cObj.set('dummysection',propertyName,newPropertyValue)
-    ###########
+
     audit_db_password_alias="auditDB.jdbc.password"
     log("Starting configuration for Audit DB credentials:", "info")
-    if keystore != "":
+
+    if keystore is not None :
         commands.getstatusoutput("java -cp 'cred/lib/*' com.hortonworks.credentialapi.buildks create "+audit_db_password_alias + " -value " + audit_db_password + " -provider jceks://file"+ keystore)
-        ###########
+
         propertyName="auditDB.jdbc.credential.alias"
         newPropertyValue=audit_db_password_alias
         cObj.set('dummysection',propertyName,newPropertyValue)
-        ###########        
+
         propertyName="auditDB.jdbc.credential.provider.path"
         newPropertyValue=keystore
         cObj.set('dummysection',propertyName,newPropertyValue)
-        ###########
+
         propertyName="auditDB.jdbc.password"
         newPropertyValue="_"    
         cObj.set('dummysection',propertyName,newPropertyValue)
@@ -542,17 +610,12 @@ def update_properties():
         propertyName="auditDB.jdbc.password"
         newPropertyValue=audit_db_password
         cObj.set('dummysection',propertyName,newPropertyValue)
-    if os.path.isfile(keystore):
-        # Not running chown as it is not used 
-        # commands.getstatusoutput("chown -R " + unix_user + ":" + unix_group+" "+ keystore)
-        log("Skipped chown statement as it is not needed","info")
-    else:
-        #echo "keystore not found. so use clear text password"
-        propertyName="auditDB.jdbc.password"
-        newPropertyValue=audit_db_password
-        cObj.set('dummysection',propertyName,newPropertyValue)
+
     with open(to_file, 'wb') as configfile:
         cObj.write(configfile)
+
+
+
 def setup_authentication(authentication_method, xmlPath):
     if authentication_method == "UNIX":
         log("Setting up UNIX authentication for : " + xmlPath,"debug")
@@ -786,7 +849,7 @@ def run_setup(cmd, app_type):
     # import_db()
     # upgrade_db()
     # create_audit_mysql_user()
-    #update_properties()
+    update_properties()
     # do_authentication_setup()
     # copy_to_webapps()
     #print "Setup of Argus PolicyManager Web Application is COMPLETED."
