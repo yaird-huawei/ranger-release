@@ -137,11 +137,16 @@ function InstallBinaries(
         # setup path variables
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
         $argusInstallToBin = Join-Path "$argusInstallPath" "bin"
+
         $argusAdminFile = $FinalName + "-admin"
+        $argusAdminPath = Join-Path $argusInstallPath $argusAdminFile 
+
+        $argusHdfsAgentFile = $FinalName + "-hdfs-agent"
+        $argusHdfsAgentPath = Join-Path $argusInstallPath $argusHdfsAgentFile 
+
         $argusHbaseAgentFile = $FinalName + "-hbase-agent"
         $argusHiveAgentFile = $FinalName + "-hive-agent"
         $argusKnoxAgentFile = $FinalName + "-knox-agent"
-        $argusHdfsAgentFile = $FinalName + "-hdfs-agent"
         $argusStormAgentFile = $FinalName +"-storm-agent"
         $argusUgsyncFile = $FinalName + "-ugsync"
 
@@ -201,6 +206,46 @@ function InstallBinaries(
         Write-Log "Setting the ARGUS_HOME environment variable at machine scope to `"$argusInstallPath`""
         [Environment]::SetEnvironmentVariable("ARGUS_HOME", $argusInstallPath, [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HOME = "$argusInstallPath"
+
+
+        ###
+        ### Set ARGUS_ADMIN_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_ADMIN_HOME environment variable at machine scope to `"$argusAdminPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_ADMIN_HOME", $argusAdminPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_ADMIN_HOME = "$argusAdminPath"
+
+
+        ###
+        ###  Unzip Argus HDFS Agent from compressed archive
+        ###
+
+        Write-Log "Extracting $argusHbaseAgentFile.zip to $argusInstallPath"
+
+        if ( Test-Path ENV:UNZIP_CMD )
+        {
+            ### Use external unzip command if given
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusHbaseAgentFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            ### We ignore the error code of the unzip command for now to be
+            ### consistent with prior behavior.
+            Invoke-Ps $unzipExpr
+        }
+        else
+        {
+            $shellApplication = new-object -com shell.application
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusHbaseAgentFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $destinationFolder.CopyHere($zipPackage.Items(), 20)
+        }
+
+        ###
+        ### Set ARGUS_HDFS_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_HDFS_HOME environment variable at machine scope to `"$argusHdfsAgentPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_HDFS_HOME", $argusHdfsAgentPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_HDFS_HOME = "$argusHdfsAgentPath"
+
 
 
 }
