@@ -20,7 +20,7 @@ import ConfigParser
 import StringIO
 import subprocess
 import fileinput
-import pymysql as MySQLdb
+#import MySQLdb
 import zipfile
 import re
 import shutil
@@ -110,7 +110,6 @@ def populate_config_dict():
     conf_dict['ARGUS_AUDIT_DB_PASSWORD'] = os.getenv("ARGUS_AUDIT_DB_PASSWORD")
     conf_dict['ARGUS_AUDIT_DB_NAME'] = os.getenv("ARGUS_AUDIT_DB_NAME")
     conf_dict['ARGUS_ADMIN_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_ROOT_PASSWORD")
-    conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
 
 def init_variables():
     global VERSION, INSTALL_DIR, EWS_ROOT, ARGUS_HOME, WEBAPP_ROOT, war_file, db_core_file
@@ -299,28 +298,26 @@ def create_mysql_user():
     ### From properties file 
     log(" Creating MySQL user "+db_user+" (using root priviledges)", 'debug')
     count=0
-    db = MySQLdb.connect(host=MYSQL_HOST, user="root", passwd=db_root_password)
-    cursor = db.cursor ()
-    cursor.execute("select count(*) from mysql.user where user='"+ db_user+"' and host='"+MYSQL_HOST+"'")
-    row = cursor.fetchone()
-    if row[0]: 
-        log ("MYSQL user: " + db_user + " found", "debug")
+    cmdStr = MYSQL_BIN +' -B -u root --password='+db_root_password +' -h '+MYSQL_HOST + ' --skip-column-names -e \'select count(*) from mysql.user where user ="'+db_user + '" and host = "'+MYSQL_HOST+'"\''
+    status, output = commands.getstatusoutput(cmdStr)
+    if output == 1: 
+        print "user found"
     else:
         if db_password == "":
-            log ("Creating MYSQL user: " + db_user + " with no password", "debug")
-            cursor.execute("create user '" + db_user + "'@'"+ MYSQL_HOST +"'")
-        else:
-            cursor.execute("create user '" + db_user + "'@'"+ MYSQL_HOST +"' identified by '" + db_password + "'")
-        if cursor: 
-            mysqlquery="GRANT ALL ON *.* TO '" + db_user + "'@'" + MYSQL_HOST+"';\
-            grant all privileges on *.* to '" + db_user + "'@'" + MYSQL_HOST + "' with grant option;\
+            cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+db_user+'\'@\''+MYSQL_HOST+'\'"'
+        else: 
+            cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+db_user+'\'@\''+MYSQL_HOST+'\' identified by '+db_password+';"'
+        status, output = commands.getstatusoutput(cmdStr)
+        if status == 0: 
+            #mysqlquery="GRANT ALL ON *.* TO '" + db_user + "'@'" + MYSQL_HOST+"'; grant all privileges on *.* to '" + db_user + "'@'" + MYSQL_HOST + "' with grant option; FLUSH PRIVILEGES;"
+            mysqlquery="GRANT ALL ON *.* TO '"+db_user+"'@'"+MYSQL_HOST+"';\
+            grant all privileges on *.* to '"+db_user+"'@'"+MYSQL_HOST+"' with grant option;\
             FLUSH PRIVILEGES;"
-            cursor.execute(mysqlquery)
-            if cursor: 
+            status, output = commands.getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
+            if status == 0: 
                 log("Creating MySQL user '" + db_user + "' (using root priviledges) DONE", "info")
             else:
                 log("MySQL create user failed", "exception")
-
 
 def create_audit_mysql_user(): 
     global MYSQL_HOST, conf_dict
@@ -339,62 +336,58 @@ def create_audit_mysql_user():
     db_core_file =  conf_dict['db_core_file'] 
     db_audit_file =  conf_dict['db_audit_file']
     db_asset_file = conf_dict['db_asset_file']
-
-    MYSQL_BIN = conf_dict['MYSQL_BIN']
  
     check_mysql_audit_user_password()
     
     log("Verifying Database: "+audit_db_name, "info")
-
-    db = MySQLdb.connect(host=MYSQL_HOST, user="root", passwd=db_root_password)
-    cursor = db.cursor()
-    cursor.execute("show databases like '" + audit_db_name+"'")
-    dbRow = cursor.fetchone();
-    if (dbRow) and dbRow[0] == audit_db_name: 
+    cmdStr=MYSQL_BIN+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show databases like '"+audit_db_name+"'\""
+    status, output = commands.getstatusoutput(cmdStr)
+    if output == audit_db_name: 
         log("database " + audit_db_name + " already exists.","info")
     else:   
         log("Creating Database " + audit_db_name, "info")
-        cursor.execute("create database  '" + audit_db_name + "'")
-        if cursor: 
+        cmdStr = MYSQL_BIN+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -e \"create database "+audit_db_name+"\""
+        status, output = commands.getstatusoutput(cmdStr)
+        if status == 0: 
             log("Creating database "+audit_db_name+" Succeeded..", "info")
         else:
             log("Creating database "+audit_db_name+" Failed..", "warning")
     ##Check for user 
-    cursor.execute("select count(*) from mysql.user where user = '"+ audit_db_user+"' and host = '"+MYSQL_HOST+"'")
-    row = cursor.fetchone()
-    if row[0]: 
+    cmdStr=MYSQL_BIN+" -B -u root --password="+db_root_password+" -h "+MYSQL_HOST+" --skip-column-names -e \"select count(*) from mysql.user where user = '"+audit_db_user+"' and host = '"+MYSQL_HOST+"';\""
+    status, output = commands.getstatusoutput(cmdStr)
+    if output == 1: 
         log("Mysql User found","info")
     else:
-        cursor.execute("create user '" + audit_db_user + "'@'"+ MYSQL_HOST +"'")
-        if cursor: 
-            mysqlquery="GRANT ALL ON " + audit_db_name + ".* TO '" + audit_db_user + "'@'" + MYSQL_HOST+"';\
-            grant all privileges ON " + audit_db_name + ".* to '" + audit_db_user + "'@'" + MYSQL_HOST + "' with grant option;\
+        if audit_db_password == "":
+            cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+audit_db_user+'\'@\''+MYSQL_HOST+'\'"'
+        else: 
+            cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+audit_db_user+'\'@\''+MYSQL_HOST+'\' identified by '+audit_db_password+';"'
+        status, output = commands.getstatusoutput(cmdStr)
+        if status == 0: 
+            mysqlquery="GRANT ALL ON "+audit_db_name+".* TO \'"+audit_db_user+"'@'"+MYSQL_HOST+"' ;\
+            grant all privileges on "+audit_db_name+".* to '"+audit_db_user+"'@'"+MYSQL_HOST+"' with grant option;\
             FLUSH PRIVILEGES;"
-            cursor.execute(mysqlquery)
-            if cursor: 
+            status, output = commands.getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
+            if status == 0: 
                 log("Creating MySQL user '" + audit_db_user + "' (using root priviledges) DONE", "info")
             else:
                 log("MySQL create user failed", "exception")
             # try:
             AUDIT_TABLE="xa_access_audit"
             log("Verifying table "+AUDIT_TABLE+" in audit database "+audit_db_name, "debug")
-            print cursor
-            cursor.close()
-            cursor = db.cursor()
-            cursor.execute("USE " + audit_db_name)
-            cursor.execute("show tables like '" + AUDIT_TABLE+"'")
-            row = cursor.fetchall()
-            if len(row) != 1:
+
+            cmdStr=MYSQL_BIN+" -u "+audit_db_user+" --password="+audit_db_password+" -D "+audit_db_name+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show tables like '"+AUDIT_TABLE+"' ;\""
+            status, output = commands.getstatusoutput(cmdStr)
+            if output != 1:
                 log("Importing Audit Database file: " + db_audit_file,"debug")
                 if os.path.isfile(db_audit_file):
-                    proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % audit_db_user, "--password=%s" % audit_db_paassword, audit_db_name],
+                    proc = subprocess.Popen(["mysql", "--user=%s" % audit_db_user, "--password=%s" % audit_db_paassword, audit_db_name],
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE)
                     out, err = proc.communicate(file(db_audit_file).read())
                     print out
             else:
                 log("table "+AUDIT_TABLE+" already exists in audit database "+audit_db_name,"info")
-
 
 def check_mysql_password ():
     global conf_dict, MYSQL_HOST
@@ -404,12 +397,12 @@ def check_mysql_password ():
 
     log("Checking MYSQL root password : " + db_root_password,"debug")
     # connect
-    db = MySQLdb.connect(host=MYSQL_HOST, user="root", passwd=db_root_password)
-    if db:
+    cmdStr = MYSQL_BIN+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -s -e \"select version();\""
+    status, output = commands.getstatusoutput(cmdStr)
+    if status == 0:
         log("Checking MYSQL root password DONE", "info")
     else:  
-        log("COMMAND: mysql -u root --password=..... -h " + MYSQL_HOST + " : FAILED with error message:\n*******************************************\n" + {msg} + "\n*******************************************\n", "exception")
-        os.exit(1)
+        log("COMMAND: mysql -u root --password=..... -h " + MYSQL_HOST + " : FAILED with error message:\n*******************************************\n" + output + "\n*******************************************\n", "exception")
     
 
 def check_mysql_user_password(): 
@@ -464,43 +457,33 @@ def upgrade_db():
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
     db_name = conf_dict["ARGUS_ADMIN_DB_NAME"]
-    MYSQL_BIN = conf_dict['MYSQL_BIN']
 
     log("Starting upgradedb ... ", "debug")
-    try:
-        DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
-        PATCHES_PATH = os.path.join(conf_dict['ARGUS_DB_DIR'], 'patches') 
-        db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password, db=db_name)
-        if db and os.path.isfile(DBVERSION_CATALOG_CREATION): 
-            cursor = db.cursor()
-            #import sql file 
-            #exec_sql_file(cursor,DBVERSION_CATALOG_CREATION)
-            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE)
-            out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
-            print out
-            log("Baseline DB upgraded successfully", "info")
-            #Logic to apply patches
-            #first get all patches and then apply each patch 
-            files = os.listdir(PATCHES_PATH)
-            # files: coming from os.listdir() sorted alphabetically, thus not numerically
-            sorted_files = sorted(files, key=lambda x: str(x.split('.')[0]))
-            for filename in sorted_files: 
-                currentPatch = PATCHES_PATH + "/"+filename
-                if os.path.isfile(currentPatch):
-                    #exec_sql_file(cursor,currentPatch)
-                    proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE)
-                    out, err = proc.communicate(file(currentPatch).read())
-                    print out + "Patch applied: "+  currentPatch
-
-        log("upgradedb DONE... ", "debug")
-    except MySQLdb.Error, e:
-        exceptnMsg =  "Error %d: %s" % (e.args[0], e.args[1])
-        log("Upgrade DB function failed:\n*******************************************\n" + exceptnMsg + "\n*******************************************\n", "exception")
-        sys.exit (1)
+    DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
+    PATCHES_PATH = os.path.join(conf_dict['ARGUS_DB_DIR'], 'patches') 
+    if os.path.isfile(DBVERSION_CATALOG_CREATION): 
+        #import sql file 
+        #exec_sql_file(cursor,DBVERSION_CATALOG_CREATION)
+        proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE)
+        out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
+        
+        log("Baseline DB upgraded successfully", "info")
+    #Logic to apply patches
+    #first get all patches and then apply each patch 
+    files = os.listdir(PATCHES_PATH)
+    # files: coming from os.listdir() sorted alphabetically, thus not numerically
+    sorted_files = sorted(files, key=lambda x: str(x.split('.')[0]))
+    for filename in sorted_files: 
+        currentPatch = PATCHES_PATH + "/"+filename
+        if os.path.isfile(currentPatch):
+            #apply_patches(cursor,currentPatch)
+            proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE)
+            out, err = proc.communicate(file(currentPatch).read())
+            print "Patch applied: "+  currentPatch
     
 def import_db ():
 
@@ -519,49 +502,42 @@ def import_db ():
     db_core_file =  conf_dict['db_core_file'] 
     db_audit_file =  conf_dict['db_audit_file']
     db_asset_file = conf_dict['db_asset_file']
-    MYSQL_BIN = conf_dict['MYSQL_BIN']
     log ("[I] Importing to Database: " + db_name,"debug");
 
-    try:
-        global MYSQL_HOST
+    global MYSQL_HOST
 
-        log("Verifying Database: db_name","debug")
-        DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
-        db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password)
-        cursor = db.cursor()
-        cursor.execute("show databases like '" + db_name +"'")
-        dbRow = cursor.fetchone();
-        if (dbRow) and dbRow[0] == db_name: 
-            log("database "+db_name + " already exists. Ignoring import_db ...","info")
-        else:   
-            cursor.execute("create database  " + db_name)
-            cursor.execute("USE " + db_name)
-            #execute each line from sql file to import DB
-            print os.path.isfile(db_core_file)
-            print "import script path : "+ db_core_file 
-            if os.path.isfile(db_core_file):
-                #exec_sql_file(cursor,db_core_file)
-                proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE)
-                out, err = proc.communicate(file(db_core_file).read())
-                print out
-            else:
-                log("Import sql file not found","exception")
-            if os.path.isfile(db_asset_file):
-                #exec_sql_file(cursor,db_asset_file)
-                proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE)
-                out, err = proc.communicate(file(db_asset_file).read())
-                print out
-                log("Audit file Imported successfully","info")
-            else:
-                log("Import asset sql file not found","exception")
-    except MySQLdb.Error, e:
-        exceptnMsg =  "Error %d: %s" % (e.args[0], e.args[1])
-        log("Import DB function failed:\n*******************************************\n" + exceptnMsg + "\n*******************************************\n", "exception")
-        sys.exit (1)
+    log("Verifying Database: db_name","debug")
+    DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
+    cmdStr=MYSQL_BIN+" -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show databases like '"+db_name+"' ;\""
+    status,output = commands.getstatusoutput(cmdStr)
+    if output == db_name: 
+        log("database "+db_name + " already exists. Ignoring import_db ...","info")
+    else:   
+        cmdStr=MYSQL_BIN+" -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -e  \"create database "+db_name+"\""
+        status,output = commands.getstatusoutput(cmdStr)
+        #execute each line from sql file to import DB
+        print os.path.isfile(db_core_file)
+        print "import script path : "+ db_core_file 
+        if os.path.isfile(db_core_file):
+            #exec_sql_file(cursor,db_core_file)
+            log("db core file Imported successfully","info")
+            proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE)
+            out, err = proc.communicate(file(db_core_file).read())
+            print out
+        else:
+            log("Import sql file not found","exception")
+        if os.path.isfile(db_asset_file):
+            #exec_sql_file(cursor,db_asset_file)
+            proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE)
+            out, err = proc.communicate(file(db_asset_file).read())
+            print out
+            log("Audit file Imported successfully","info")
+        else:
+            log("Import asset sql file not found","exception")
 
 def extract_war(): 
     global war_file
