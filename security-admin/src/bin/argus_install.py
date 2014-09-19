@@ -439,6 +439,24 @@ def check_mysql_audit_user_password():
     if db:
         log("Checking Argus Audit Table owner password DONE", "info")
 
+def exec_sql_file(cursor, sql_file):
+    print "\n[INFO] Executing SQL script file: '%s'" % (sql_file)
+    statement = ""
+    for line in open(sql_file):
+        if re.match(r'--', line):  # ignore sql comment lines
+            continue
+        if not re.search(r'[^-;]+;', line):  # keep appending lines that don't end in ';'
+            statement = statement + line
+        else:  # when you get a line ending in ';' then exec statement and reset for next statement
+            statement = statement + line
+            #print "\n\n[DEBUG] Executing SQL statement:\n%s" % (statement)
+            try:
+                cursor.execute(statement)
+                print cursor
+            except MySQLdb.Error, e:
+                print "\n[WARN] MySQLError during execute statement \n\tArgs: '%s'" % (str(e.args))
+            statement = ""
+
 def upgrade_db():
     global config_dict, MYSQL_HOST
 
@@ -456,7 +474,8 @@ def upgrade_db():
         if db and os.path.isfile(DBVERSION_CATALOG_CREATION): 
             cursor = db.cursor()
             #import sql file 
-            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--password=%s" % db_password, db_name],
+            #exec_sql_file(cursor,DBVERSION_CATALOG_CREATION)
+            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE)
             out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
@@ -470,7 +489,8 @@ def upgrade_db():
             for filename in sorted_files: 
                 currentPatch = PATCHES_PATH + "/"+filename
                 if os.path.isfile(currentPatch):
-                    proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--password=%s" % db_password, db_name],
+                    #exec_sql_file(cursor,currentPatch)
+                    proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE)
                     out, err = proc.communicate(file(currentPatch).read())
@@ -520,7 +540,8 @@ def import_db ():
             print os.path.isfile(db_core_file)
             print "import script path : "+ db_core_file 
             if os.path.isfile(db_core_file):
-                proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--password=%s" % db_password, db_name],
+                #exec_sql_file(cursor,db_core_file)
+                proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
                 out, err = proc.communicate(file(db_core_file).read())
@@ -528,7 +549,8 @@ def import_db ():
             else:
                 log("Import sql file not found","exception")
             if os.path.isfile(db_asset_file):
-                proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--password=%s" % db_password, db_name],
+                #exec_sql_file(cursor,db_asset_file)
+                proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
                 out, err = proc.communicate(file(db_asset_file).read())
