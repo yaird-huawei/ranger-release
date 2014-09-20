@@ -75,44 +75,63 @@ function Install(
         $ENV:ARGUS_ADMIN_HOME = "$argusAdminInstallPath"
 
 		if ($roles) {
-
 			###
 			### Create Argus Windows Services and grant user ACLS to start/stop
 			###
 			### TODO
 			Write-Log "argus Role Services: $roles"
-	
+
 			### Verify that roles are in the supported set
 			### TODO
 			CheckRole $roles @("argus")
-	
-	        Write-Log "Role : $roles"
-	        foreach( $service in empty-null ($roles -Split('\s+')))
-	        {
-	            CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
-                ###
-                ### Setup argus service config
-                ###
-                $ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
-                Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
-                $cmd = "python $argusInstallToBin\argus_start.py --service > `"$argusInstallToBin\$service.xml`""
-                Invoke-CmdChk $cmd    
 
-	            #$cmd="$ENV:WINDIR\system32\sc.exe config $service start= demand"
-	            #Invoke-CmdChk $cmd
-	
-	        }
-	
+			Write-Log "Role : $roles"
+			foreach( $service in empty-null ($roles -Split('\s+')))
+			{
+				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
+				###
+				### Setup argus service config
+				###
+				$ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
+				Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
+				$cmd = "python $argusInstallToBin\argus_start.py --service > `"$argusInstallToBin\$service.xml`""
+				Invoke-CmdChk $cmd    
+
+			}
 	        ### end of roles loop
         }
-        Write-Log "Finished installing argus"
-    }
+        Write-Log "Finished installing Argus Admin Tool"
+    } 
+	elseif ( $component -eq "argus-hdfs" )
+	{
+		# This if will work on the assumption that $component ="argus" is installed
+		# so we have the ARGUS_HDFS_HOME properly set
+
+		# setup path variables
+        $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
+
+        Write-Log "Copying argus-hdfs config files "
+
+		# TODO:WINDOWS check if the path HADOOP_CONF_DIR is set or not
+
+        $xcopy_cmd = "xcopy /EIYF `"$ARGUS_ADMIN_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ARGUS_ADMIN_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ARGUS_ADMIN_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ARGUS_ADMIN_HOME\conf\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR`""
+        Invoke-CmdChk $xcopy_cmd
+
+	}
     else
     {
         throw "Install: Unsupported component argument."
     }
 }
-
 
 ###############################################################################
 ###
@@ -306,7 +325,7 @@ function Uninstall(
     }
     else
     {
-        throw "Uninstall: Unsupported compoment argument."
+        throw "Uninstall: Unsupported component argument."
     }
 }
 
@@ -395,7 +414,7 @@ function StopService(
     }
     else
     {
-        throw "StartService: Unsupported compoment argument."
+        throw "StartService: Unsupported component argument."
     }
 }
 
@@ -434,14 +453,65 @@ function Configure(
     {
         Write-Log "Configure: argus does not have any configurations"
 		### TODO
-
+    }
+	elseif ( $component -eq "argus-hdfs" )
+    {
+        ConfigureArgusHdfs $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
     else
     {
-        throw "Configure: Unsupported compoment argument."
+        throw "Configure: Unsupported component argument."
     }
 }
 
+###############################################################################
+###
+### Alters the configuration of the Hadoop HDFS component for Argus.
+###
+### Arguments:
+###   See Configure
+###############################################################################
+function ConfigureArgusHdfs(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [hashtable]
+    [parameter( Position=2 )]
+    $configs = @{},
+    [bool]
+    [parameter( Position=3 )]
+    $aclAllFolders = $True
+    )
+{
+
+    $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $ScriptDir "hadoop-$HadoopCoreVersion.winpkg.log" $ENV:WINPKG_BIN
+    $hadoopInstallToDir = Join-Path "$nodeInstallRoot" "hadoop-$HadoopCoreVersion"
+
+	#TODO:WINDOWS Check if appropriate dirs are present and env set
+    #if( -not (Test-Path $hadoopInstallToDir ))
+    #{
+    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
+    #}
+
+	# Add line to invoce the xasecure-hadoop-env.cmd
+	# set HADOOP_NAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_NAMENODE_OPTS% 
+	# set HADOOP_SECONDARYNAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_SECONDARYNAMENODE_OPTS%
+    
+	Write-Log "Modifying hadoop-env.cmd to invoke xasecure-hadoop-env.cmd"
+    $file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
+
+    $line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
+	#TODO:WINDOWS Should we guard against option already being present?
+    Add-Content $file $line
+
+    $line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
+	#TODO:WINDOWS Should we guard against option already being present?
+    Add-Content $file $line
+
+ }
 
 ### Helper routing that converts a $null object to nothing. Otherwise, iterating over
 ### a $null object with foreach results in a loop with one $null element.
