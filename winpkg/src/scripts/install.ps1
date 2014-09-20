@@ -110,12 +110,12 @@ function Main( $scriptDir )
 
     $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-audit.xml"
 	$argusHdfsAuditChanges = @{
-		"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "$ENV:XAAUDIT.DB.JDBC_URL"
-		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "$ENV:XAAUDIT.DB.USER_NAME"
+		"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "$ENV:ARGUS_AUDIT_DB_HOST"
+		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "$ENV:ARGUS_AUDIT_DB_USERNAME"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
-		"xasecure.audit.repository.name"						= "$ENV:REPOSITORY_NAME"
-		"xasecure.audit.credential.provider.file"				= "jceks://file$ENV:CREDENTIAL_PROVIDER_FILE"
-		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "$ENV:XAAUDIT.DB.JDBC_DRIVER"
+		"xasecure.audit.repository.name"						= "$ENV:ARGUS_HDFS_REPO"
+		"xasecure.audit.credential.provider.file"				= "jceks://file$ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE"
+		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "$ENV:ARGUS_AUDIT_JDBC_DRIVER"
 	}
     UpdateXmlConfig $xmlFile @argusHdfsConfigs
 	
@@ -123,9 +123,9 @@ function Main( $scriptDir )
     $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-hdfs-security.xml"
 	$argusHdfsSecurityChanges = @{
 		"hdfs.authorization.verifier.classname"					= "com.xasecure.pdp.hdfs.XASecureAuthorizer"
-		"xasecure.hdfs.policymgr.url"							= "$ENV:POLICY_MGR_URL/service/assets/policyList/$ENV:REPOSITORY_NAME"
-		"xasecure.hdfs.policymgr.url.saveAsFile"				= "/tmp/hadoop_$ENV:REPOSITORY_NAME_json"
-		"xasecure.hdfs.policymgr.url.laststoredfile"			= "%POLICY_CACHE_FILE_PATH%/hadoop_$ENV:REPOSITORY_NAME_json"
+		"xasecure.hdfs.policymgr.url"							= "$ENV:ARGUS_HOST/service/assets/policyList/$ENV:ARGUS_HDFS_REPO"
+		"xasecure.hdfs.policymgr.url.saveAsFile"				= "/tmp/hadoop_$ENV:ARGUS_HDFS_REPO"
+		"xasecure.hdfs.policymgr.url.laststoredfile"			= "$ENV:ARGUS_HDFS_CACHE_FILE/hadoop_$ENV:ARGUS_HDFS_REPO_json"
 		"xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"
 		"xasecure.hdfs.policymgr.ssl.config"					= Join-Path $ENV:HADOOP_CONF_DIR "xasecure-policymgr-ssl.xml"
 	}

@@ -66,14 +66,6 @@ function Install(
         $argusInstallToBin = Join-Path "$argusAdminInstallPath" "bin"
         InstallBinaries $nodeInstallRoot $serviceCredential
 
-
-        ###
-        ### Set ARGUS_ADMIN_HOME environment variable
-        ###
-        Write-Log "Setting the ARGUS_ADMIN_HOME environment variable at machine scope to `"$argusInstallPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_ADMIN_HOME", $argusAdminInstallPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_ADMIN_HOME = "$argusAdminInstallPath"
-
 		if ($roles) {
 			###
 			### Create Argus Windows Services and grant user ACLS to start/stop
@@ -94,6 +86,7 @@ function Install(
 				###
 				$ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
 				Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
+				# TODO:WINDOWS take python from `which` or `where`
 				$cmd = "python $argusInstallToBin\argus_start.py --service > `"$argusInstallToBin\$service.xml`""
 				Invoke-CmdChk $cmd    
 
@@ -114,16 +107,16 @@ function Install(
 
 		# TODO:WINDOWS check if the path HADOOP_CONF_DIR is set or not
 
-        $xcopy_cmd = "xcopy /EIYF `"$ARGUS_ADMIN_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ARGUS_ADMIN_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ARGUS_ADMIN_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ARGUS_ADMIN_HOME\conf\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\conf\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
 	}
