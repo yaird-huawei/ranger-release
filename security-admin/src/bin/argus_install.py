@@ -32,23 +32,8 @@ import glob
 
 base_dir = ' '
 PWD = os.path.dirname(os.path.realpath(__file__))
-webapp_dir = ''
-java_bin = ''
-jar_bin = ''
-conf = ''
-options = ''
-class_path = ''
-log_dir = ''
-home_dir = ''
-data_dir = ''
-app_dir = './'
-LOGFILES = ''
-VERSION = ''
 INSTALL_DIR=''
 WEBAPP_ROOT=''
-XAPOLICYMGR_DIR=''
-MYSQL_HOST = "127.0.0.1"
-MYSQL_CONNECTOR_JAR=''
 war_file=''
 db_core_file=''
 db_audit_file=''
@@ -103,6 +88,7 @@ def ModConfig(File, Variable, Setting):
 def populate_config_dict():
     global config_dict
     conf_dict['MYSQL_HOST'] = 'localhost'
+    conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
     conf_dict['ARGUS_ADMIN_DB_USERNAME'] = os.getenv("ARGUS_ADMIN_DB_USERNAME")
     conf_dict['ARGUS_ADMIN_DB_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_PASSWORD")
     conf_dict['ARGUS_ADMIN_DB_NAME'] = os.getenv("ARGUS_ADMIN_DB_NAME")
@@ -112,7 +98,7 @@ def populate_config_dict():
     conf_dict['ARGUS_ADMIN_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_ROOT_PASSWORD")
 
 def init_variables():
-    global VERSION, INSTALL_DIR, EWS_ROOT, ARGUS_HOME, WEBAPP_ROOT, war_file, db_core_file
+    global  INSTALL_DIR, EWS_ROOT, ARGUS_HOME, WEBAPP_ROOT, war_file, db_core_file
     global db_create_user, db_audit_file, db_asset_file
     global conf_dict
 
@@ -158,10 +144,9 @@ def setup_install_files():
 
     EWS_LIB_DIR = os.path.join(EWS_ROOT,"lib")
     EWS_LOG_DIR = os.path.join(EWS_ROOT,"logs")
+    ARGUS_HOME = os.getenv("ARGUS_HOME")
 
     log("Setting up installation files and directory", "debug")
-    log("os.join.path(base_dir,INSTALL_DIR) : " + os.path.join(base_dir,INSTALL_DIR), "debug")
-
 
     if not os.path.isdir(INSTALL_DIR):
         log("creating Install dir : " + INSTALL_DIR, "debug")
@@ -336,6 +321,8 @@ def create_audit_mysql_user():
     db_core_file =  conf_dict['db_core_file'] 
     db_audit_file =  conf_dict['db_audit_file']
     db_asset_file = conf_dict['db_asset_file']
+    MYSQL_BIN = conf_dict['MYSQL_BIN']
+
  
     check_mysql_audit_user_password()
     
@@ -381,7 +368,7 @@ def create_audit_mysql_user():
             if output != 1:
                 log("Importing Audit Database file: " + db_audit_file,"debug")
                 if os.path.isfile(db_audit_file):
-                    proc = subprocess.Popen(["mysql", "--user=%s" % audit_db_user, "--password=%s" % audit_db_paassword, audit_db_name],
+                    proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % audit_db_user, "--password=%s" % audit_db_paassword, audit_db_name],
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE)
                     out, err = proc.communicate(file(db_audit_file).read())
@@ -457,6 +444,8 @@ def upgrade_db():
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
     db_name = conf_dict["ARGUS_ADMIN_DB_NAME"]
+    MYSQL_BIN = conf_dict['MYSQL_BIN']
+
 
     log("Starting upgradedb ... ", "debug")
     DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
@@ -479,7 +468,7 @@ def upgrade_db():
         currentPatch = PATCHES_PATH + "/"+filename
         if os.path.isfile(currentPatch):
             #apply_patches(cursor,currentPatch)
-            proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE)
             out, err = proc.communicate(file(currentPatch).read())
@@ -502,6 +491,7 @@ def import_db ():
     db_core_file =  conf_dict['db_core_file'] 
     db_audit_file =  conf_dict['db_audit_file']
     db_asset_file = conf_dict['db_asset_file']
+    MYSQL_BIN = conf_dict['MYSQL_BIN']
     log ("[I] Importing to Database: " + db_name,"debug");
 
     global MYSQL_HOST
@@ -516,21 +506,18 @@ def import_db ():
         cmdStr=MYSQL_BIN+" -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -e  \"create database "+db_name+"\""
         status,output = commands.getstatusoutput(cmdStr)
         #execute each line from sql file to import DB
-        print os.path.isfile(db_core_file)
-        print "import script path : "+ db_core_file 
         if os.path.isfile(db_core_file):
             #exec_sql_file(cursor,db_core_file)
-            log("db core file Imported successfully","info")
-            proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE)
             out, err = proc.communicate(file(db_core_file).read())
-            print out
+            log("db core file Imported successfully","info")
         else:
             log("Import sql file not found","exception")
         if os.path.isfile(db_asset_file):
             #exec_sql_file(cursor,db_asset_file)
-            proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE)
             out, err = proc.communicate(file(db_asset_file).read())
@@ -904,7 +891,6 @@ def resolve_sym_link(path):
 
 
 def get_java_env():
-    global java_bin, jar_bin
     JAVA_HOME = os.getenv('JAVA_HOME')
     if JAVA_HOME:
         return os.path.join(JAVA_HOME, 'bin', 'java')
