@@ -97,39 +97,39 @@ function Main( $scriptDir )
     $roles = ' '
     Install "argus-hdfs" $nodeInstallRoot $serviceCredential $roles
     Configure "argus-hdfs" $nodeInstallRoot $serviceCredential $argusHdfsConfigs
-	###
+        ###
     ### Apply configuration changes to hdfs-site.xml
     ###
     $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "hdfs-site.xml"
-	$argusHdfsConfigs = @{
-		"dfs.permissions.enabled" = "true";
-		"dfs.permissions" = "true" 
-	}
-    UpdateXmlConfig $xmlFile @argusHdfsConfigs
+        $argusHdfsConfigs = @{
+        	"dfs.permissions.enabled" = "true";
+        	"dfs.permissions" = "true" 
+        }
+    UpdateXmlConfig $xmlFile $argusHdfsConfigs
 
 
     $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-audit.xml"
-	$argusHdfsAuditChanges = @{
-		"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "$ENV:ARGUS_AUDIT_DB_HOST"
-		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "$ENV:ARGUS_AUDIT_DB_USERNAME"
-		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
-		"xasecure.audit.repository.name"						= "$ENV:ARGUS_HDFS_REPO"
-		"xasecure.audit.credential.provider.file"				= "jceks://file$ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE"
-		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "$ENV:ARGUS_AUDIT_JDBC_DRIVER"
-	}
-    UpdateXmlConfig $xmlFile @argusHdfsConfigs
-	
+        $argusHdfsAuditChanges = @{
+        	"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "$ENV:ARGUS_AUDIT_DB_HOST"
+        	"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "$ENV:ARGUS_AUDIT_DB_USERNAME"
+        	"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
+        	"xasecure.audit.repository.name"						= "$ENV:ARGUS_HDFS_REPO"
+        	"xasecure.audit.credential.provider.file"				= "jceks://file$ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE"
+        	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "$ENV:ARGUS_AUDIT_JDBC_DRIVER"
+        }
+    UpdateXmlConfig $xmlFile $argusHdfsAuditChanges
+        
 
     $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-hdfs-security.xml"
-	$argusHdfsSecurityChanges = @{
-		"hdfs.authorization.verifier.classname"					= "com.xasecure.pdp.hdfs.XASecureAuthorizer"
-		"xasecure.hdfs.policymgr.url"							= "$ENV:ARGUS_HOST/service/assets/policyList/$ENV:ARGUS_HDFS_REPO"
-		"xasecure.hdfs.policymgr.url.saveAsFile"				= "/tmp/hadoop_$ENV:ARGUS_HDFS_REPO"
-		"xasecure.hdfs.policymgr.url.laststoredfile"			= "$ENV:ARGUS_HDFS_CACHE_FILE/hadoop_$ENV:ARGUS_HDFS_REPO_json"
-		"xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"
-		"xasecure.hdfs.policymgr.ssl.config"					= Join-Path $ENV:HADOOP_CONF_DIR "xasecure-policymgr-ssl.xml"
-	}
-    UpdateXmlConfig $xmlFile @argusHdfsConfigs
+        $argusHdfsSecurityChanges = @{
+        	"hdfs.authorization.verifier.classname"					= "com.xasecure.pdp.hdfs.XASecureAuthorizer"
+        	"xasecure.hdfs.policymgr.url"							= "$ENV:ARGUS_HOST/service/assets/policyList/$ENV:ARGUS_HDFS_REPO"
+        	"xasecure.hdfs.policymgr.url.saveAsFile"				= "/tmp/hadoop_$ENV:ARGUS_HDFS_REPO"
+        	"xasecure.hdfs.policymgr.url.laststoredfile"			= "$ENV:ARGUS_HDFS_CACHE_FILE/hadoop_$ENV:ARGUS_HDFS_REPO_json"
+        	"xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"
+        	"xasecure.hdfs.policymgr.ssl.config"					= Join-Path $ENV:HADOOP_CONF_DIR "xasecure-policymgr-ssl.xml"
+        }
+    UpdateXmlConfig $xmlFile $argusHdfsSecurityChanges
 
     Write-Log "Installation of argus-hdfs completed successfully"
 }

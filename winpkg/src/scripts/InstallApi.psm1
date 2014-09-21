@@ -107,17 +107,17 @@ function Install(
 
 		# TODO:WINDOWS check if the path HADOOP_CONF_DIR is set or not
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\conf\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR`""
-        Invoke-CmdChk $xcopy_cmd
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\conf\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR`""
+        #Invoke-CmdChk $xcopy_cmd
 
 	}
     else
@@ -156,7 +156,7 @@ function InstallBinaries(
         $argusHdfsAgentFile = $FinalName + "-hdfs-agent"
         $argusHdfsAgentPath = Join-Path $argusInstallPath $argusHdfsAgentFile 
 
-        $argusHbaseAgentFile = $FinalName + "-hbase-agent"
+        $argusHBaseAgentFile = $FinalName + "-hbase-agent"
         $argusHiveAgentFile = $FinalName + "-hive-agent"
         $argusKnoxAgentFile = $FinalName + "-knox-agent"
         $argusStormAgentFile = $FinalName +"-storm-agent"
@@ -228,16 +228,17 @@ function InstallBinaries(
         $ENV:ARGUS_ADMIN_HOME = "$argusAdminPath"
 
 
+
         ###
         ###  Unzip Argus HDFS Agent from compressed archive
         ###
 
-        Write-Log "Extracting $argusHbaseAgentFile.zip to $argusInstallPath"
+        Write-Log "Extracting $argusHdfsAgentFile.zip to $argusInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusHbaseAgentFile.zip`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusHdfsAgentFile.zip`"")
             $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
@@ -246,7 +247,7 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusHbaseAgentFile.zip")
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusHdfsAgentFile.zip")
             $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
@@ -257,6 +258,38 @@ function InstallBinaries(
         Write-Log "Setting the ARGUS_HDFS_HOME environment variable at machine scope to `"$argusHdfsAgentPath`""
         [Environment]::SetEnvironmentVariable("ARGUS_HDFS_HOME", $argusHdfsAgentPath, [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HDFS_HOME = "$argusHdfsAgentPath"
+
+
+
+        ###
+        ###  Unzip Argus HBASE Agent from compressed archive
+        ###
+
+        Write-Log "Extracting $argusHBaseAgentFile.zip to $argusInstallPath"
+
+        if ( Test-Path ENV:UNZIP_CMD )
+        {
+            ### Use external unzip command if given
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusHBaseAgentFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            ### We ignore the error code of the unzip command for now to be
+            ### consistent with prior behavior.
+            Invoke-Ps $unzipExpr
+        }
+        else
+        {
+            $shellApplication = new-object -com shell.application
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusHBaseAgentFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $destinationFolder.CopyHere($zipPackage.Items(), 20)
+        }
+
+        ###
+        ### Set ARGUS_HBASE_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_HBASE_HOME environment variable at machine scope to `"$argusHBaseAgentPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_HBASE_HOME", $argusHBaseAgentPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_HBASE_HOME = "$argusHBaseAgentPath"
 
 
 
@@ -481,7 +514,6 @@ function ConfigureArgusHdfs(
 {
 
     $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $ScriptDir "hadoop-$HadoopCoreVersion.winpkg.log" $ENV:WINPKG_BIN
-    $hadoopInstallToDir = Join-Path "$nodeInstallRoot" "hadoop-$HadoopCoreVersion"
 
 	#TODO:WINDOWS Check if appropriate dirs are present and env set
     #if( -not (Test-Path $hadoopInstallToDir ))
@@ -651,7 +683,23 @@ function UpdateXmlConfig(
 
     foreach( $key in empty-null $config.Keys )
     {
-        ### TODO
+        $value = $config[$key]
+        $found = $False
+        $xml.SelectNodes('/configuration/property') | ? { $_.name -eq $key } | % { $_.value = $value; $found = $True }
+        if ( -not $found )
+        {
+            $xml["configuration"].AppendChild($xml.CreateWhitespace("`r`n  ")) | Out-Null
+            $newItem = $xml.CreateElement("property")
+            $newItem.AppendChild($xml.CreateWhitespace("`r`n    ")) | Out-Null
+            $newItem.AppendChild($xml.CreateElement("name")) | Out-Null
+            $newItem.AppendChild($xml.CreateWhitespace("`r`n    ")) | Out-Null
+            $newItem.AppendChild($xml.CreateElement("value")) | Out-Null
+            $newItem.AppendChild($xml.CreateWhitespace("`r`n  ")) | Out-Null
+            $newItem.name = $key
+            $newItem.value = $value
+            $xml["configuration"].AppendChild($newItem) | Out-Null
+            $xml["configuration"].AppendChild($xml.CreateWhitespace("`r`n")) | Out-Null
+        }
     }
 
     $xml.Save($fileName)
@@ -680,3 +728,7 @@ Export-ModuleMember -Function Uninstall
 Export-ModuleMember -Function Configure
 Export-ModuleMember -Function StartService
 Export-ModuleMember -Function StopService
+###
+### Private API (exposed for test only)
+###
+Export-ModuleMember -Function UpdateXmlConfig
