@@ -39,7 +39,7 @@ db_core_file=''
 db_audit_file=''
 db_asset_file=''
 db_create_user=''
-ARGUS_HOME=''
+ARGUS_ADMIN_HOME=''
 conf_dict={}
 
 
@@ -87,34 +87,34 @@ def ModConfig(File, Variable, Setting):
 # TODO
 def populate_config_dict():
     global config_dict
-    conf_dict['MYSQL_HOST'] = 'localhost'
+    conf_dict['MYSQL_HOST'] = os.getenv("ARGUS_ADMIN_DB_HOST")
     conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
     conf_dict['ARGUS_ADMIN_DB_USERNAME'] = os.getenv("ARGUS_ADMIN_DB_USERNAME")
     conf_dict['ARGUS_ADMIN_DB_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_PASSWORD")
-    conf_dict['ARGUS_ADMIN_DB_NAME'] = os.getenv("ARGUS_ADMIN_DB_NAME")
+    conf_dict['ARGUS_ADMIN_DB_NAME'] = os.getenv("ARGUS_ADMIN_DB_DBNAME")
     conf_dict['ARGUS_AUDIT_DB_USERNAME'] = os.getenv("ARGUS_AUDIT_DB_USERNAME")
     conf_dict['ARGUS_AUDIT_DB_PASSWORD'] = os.getenv("ARGUS_AUDIT_DB_PASSWORD")
-    conf_dict['ARGUS_AUDIT_DB_NAME'] = os.getenv("ARGUS_AUDIT_DB_NAME")
+    conf_dict['ARGUS_AUDIT_DB_NAME'] = os.getenv("ARGUS_AUDIT_DB_DBNAME")
     conf_dict['ARGUS_ADMIN_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_ROOT_PASSWORD")
 
 def init_variables():
-    global  INSTALL_DIR, EWS_ROOT, ARGUS_HOME, WEBAPP_ROOT, war_file, db_core_file
+    global  INSTALL_DIR, EWS_ROOT, ARGUS_ADMIN_HOME, WEBAPP_ROOT, war_file, db_core_file
     global db_create_user, db_audit_file, db_asset_file
     global conf_dict
 
 
     # These are set from the Monarch
     HDP_RESOURCES_DIR = os.getenv("HDP_RESOURCES_DIR")
-    ARGUS_HOME = os.getenv("ARGUS_HOME")
+    ARGUS_ADMIN_HOME = os.getenv("ARGUS_ADMIN_HOME")
     ARGUS_CONF_DIR = os.getenv("ARGUS_CONF_DIR")
     ARGUS_LOG_DIR = os.getenv("ARGUS_LOG_DIR")
-    ARGUS_DB_DIR = os.path.join(ARGUS_HOME , "db")
+    ARGUS_DB_DIR = os.path.join(ARGUS_ADMIN_HOME , "db")
 
 
-    INSTALL_DIR = os.path.join(os.getenv("ARGUS_HOME") , "app")
+    INSTALL_DIR = os.path.join(os.getenv("ARGUS_ADMIN_HOME") , "app")
 
     # TODO FIX THIS
-    war_file_path = os.path.join(ARGUS_HOME , "war", "security-admin-web-*.war")
+    war_file_path = os.path.join(ARGUS_ADMIN_HOME , "war", "security-admin-web-*.war")
     war_file_list = glob.glob(war_file_path)
     war_file = war_file_list[0]
 
@@ -132,10 +132,11 @@ def init_variables():
     conf_dict['EWS_ROOT'] = EWS_ROOT
     conf_dict['ARGUS_DB_DIR'] = ARGUS_DB_DIR
 
-    log("ARGUS_HOME is : " + ARGUS_HOME, "debug")
+    log("ARGUS_ADMIN_HOME is : " + ARGUS_ADMIN_HOME, "debug")
     log("INSTALL_DIR is : " + INSTALL_DIR, "debug")
     log("EWS_ROOT is : " + EWS_ROOT, "debug")
     log("WEBAPP_ROOT is : " + WEBAPP_ROOT, "debug")
+    log("config is : " + str(conf_dict), "debug")
 
 
 #TODO fix the base_dir part
@@ -144,7 +145,7 @@ def setup_install_files():
 
     EWS_LIB_DIR = os.path.join(EWS_ROOT,"lib")
     EWS_LOG_DIR = os.path.join(EWS_ROOT,"logs")
-    ARGUS_HOME = os.getenv("ARGUS_HOME")
+    ARGUS_ADMIN_HOME = os.getenv("ARGUS_ADMIN_HOME")
 
     log("Setting up installation files and directory", "debug")
 
@@ -168,10 +169,10 @@ def setup_install_files():
         log("creating EWS_LOG_DIR dir : " + EWS_LOG_DIR, "debug")
         os.makedirs(os.path.join(base_dir,EWS_LOG_DIR))
 
-    copy_files(os.path.join(ARGUS_HOME,"ews","lib"), EWS_LIB_DIR)
+    copy_files(os.path.join(ARGUS_ADMIN_HOME,"ews","lib"), EWS_LIB_DIR)
 
-    log("copying xapolicymgr.properties file  ARGUS_HOME dir : " + ARGUS_HOME, "debug")
-    shutil.copyfile(os.path.join(ARGUS_HOME,"ews","xapolicymgr.properties"), os.path.join(EWS_ROOT,"xapolicymgr.properties"))
+    log("copying xapolicymgr.properties file  ARGUS_ADMIN_HOME dir : " + ARGUS_ADMIN_HOME, "debug")
+    shutil.copyfile(os.path.join(ARGUS_ADMIN_HOME,"ews","xapolicymgr.properties"), os.path.join(EWS_ROOT,"xapolicymgr.properties"))
 
     #os.makedirs(os.path.join(base_dir,EWS_ROOT,"lib"))
     #copy_files(os.path.join(base_dir,INSTALL_DIR) , "lib", EWS_ROOT)
@@ -271,9 +272,10 @@ def sanity_check_files():
 #     cp "APP" "BAK_FILE"
 
 def create_mysql_user():
-    global MYSQL_HOST, conf_dict
+    global conf_dict
 
-    #MYSQL_HOST = conf_dict["MYSQL_HOST"]
+    MYSQL_HOST = conf_dict["MYSQL_HOST"]
+    MYSQL_BIN = conf_dict["MYSQL_BIN"]
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
@@ -283,7 +285,7 @@ def create_mysql_user():
     ### From properties file 
     log(" Creating MySQL user "+db_user+" (using root priviledges)", 'debug')
     count=0
-    cmdStr = MYSQL_BIN +' -B -u root --password='+db_root_password +' -h '+MYSQL_HOST + ' --skip-column-names -e \'select count(*) from mysql.user where user ="'+db_user + '" and host = "'+MYSQL_HOST+'"\''
+    cmdStr = '\"' + MYSQL_BIN + '\"' +' -B -u root --password='+db_root_password +' -h '+MYSQL_HOST + ' --skip-column-names -e \'select count(*) from mysql.user where user ="'+db_user + '" and host = "'+MYSQL_HOST+'"\''
     status, output = commands.getstatusoutput(cmdStr)
     if output == 1: 
         print "user found"
@@ -305,7 +307,7 @@ def create_mysql_user():
                 log("MySQL create user failed", "exception")
 
 def create_audit_mysql_user(): 
-    global MYSQL_HOST, conf_dict
+    global conf_dict
 
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
@@ -316,12 +318,12 @@ def create_audit_mysql_user():
     db_name = conf_dict['ARGUS_ADMIN_DB_NAME']
     audit_db_name = conf_dict['ARGUS_AUDIT_DB_NAME']
 
-    db_core_file = conf_dict['db_core_file'] 
     db_create_user_file = conf_dict['db_create_user_file']
     db_core_file =  conf_dict['db_core_file'] 
     db_audit_file =  conf_dict['db_audit_file']
     db_asset_file = conf_dict['db_asset_file']
     MYSQL_BIN = conf_dict['MYSQL_BIN']
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
 
  
     check_mysql_audit_user_password()
@@ -377,14 +379,23 @@ def create_audit_mysql_user():
                 log("table "+AUDIT_TABLE+" already exists in audit database "+audit_db_name,"info")
 
 def check_mysql_password ():
-    global conf_dict, MYSQL_HOST
+    global conf_dict
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
+    MYSQL_BIN = conf_dict['MYSQL_BIN']
 
     log("Checking MYSQL root password : " + db_root_password,"debug")
     # connect
-    cmdStr = MYSQL_BIN+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -s -e \"select version();\""
+    cmdStr = "\""+MYSQL_BIN+"\""+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -s -e \"select version();\""
+    log("sql : " + cmdStr,"debug")
+
+    proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE)
+out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
+
     status, output = commands.getstatusoutput(cmdStr)
     if status == 0:
         log("Checking MYSQL root password DONE", "info")
@@ -393,10 +404,11 @@ def check_mysql_password ():
     
 
 def check_mysql_user_password(): 
-    global conf_dict, MYSQL_HOST
+    global conf_dict 
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
 
     db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password)
     if db:
@@ -405,10 +417,11 @@ def check_mysql_user_password():
         log("COMMAND: mysql -u " + db_user + " --password=..... -h " + MYSQL_HOST + " : FAILED with error message:\n*******************************************\n" + {msg} + "\n*******************************************\n", "exception")
 
 def check_mysql_audit_user_password(): 
-    global conf_dict, MYSQL_HOST
+    global conf_dict
     audit_db = conf_dict["ARGUS_AUDIT_DB_NAME"]
     audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
     audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
 
     try:
         db = MySQLdb.connect(host=MYSQL_HOST, user=audit_db_user, passwd=audit_db_password, db=audit_db)
@@ -438,13 +451,14 @@ def exec_sql_file(cursor, sql_file):
             statement = ""
 
 def upgrade_db():
-    global config_dict, MYSQL_HOST
+    global config_dict 
 
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
     db_name = conf_dict["ARGUS_ADMIN_DB_NAME"]
     MYSQL_BIN = conf_dict['MYSQL_BIN']
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
 
 
     log("Starting upgradedb ... ", "debug")
@@ -476,7 +490,7 @@ def upgrade_db():
     
 def import_db ():
 
-    global conf_dict, MYSQL_HOST
+    global conf_dict
 
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
@@ -485,8 +499,8 @@ def import_db ():
     audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
     audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
     db_name = conf_dict['ARGUS_ADMIN_DB_NAME']
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
 
-    db_core_file = conf_dict['db_core_file'] 
     db_create_user_file = conf_dict['db_create_user_file']
     db_core_file =  conf_dict['db_core_file'] 
     db_audit_file =  conf_dict['db_audit_file']
@@ -494,11 +508,10 @@ def import_db ():
     MYSQL_BIN = conf_dict['MYSQL_BIN']
     log ("[I] Importing to Database: " + db_name,"debug");
 
-    global MYSQL_HOST
 
-    log("Verifying Database: db_name","debug")
+    log("Verifying Database: " + db_name,"debug")
     DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
-    cmdStr=MYSQL_BIN+" -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show databases like '"+db_name+"' ;\""
+    cmdStr="\"MYSQL_BIN\"" + " -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show databases like '"+db_name+"' ;\""
     status,output = commands.getstatusoutput(cmdStr)
     if output == db_name: 
         log("database "+db_name + " already exists. Ignoring import_db ...","info")
@@ -594,10 +607,10 @@ def update_xapolicymgr_properties():
 
     
 def update_properties():
-    global MYSQL_HOST, conf_dict
+    global conf_dict
     sys_conf_dict={}
 
-    #MYSQL_HOST = conf_dict["MYSQL_HOST"]
+    MYSQL_HOST = conf_dict["MYSQL_HOST"]
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_name = conf_dict["ARGUS_ADMIN_DB_NAME"]
@@ -935,13 +948,14 @@ def configure():
     parse_config_file()
     log(" --------- Running Argus PolicyManager Configure Script --------- ","info")
     init_variables()
+    #sanity_check_files()
     log(" --------- Creating mysql user --------- ","info")
     create_mysql_user()
     log(" --------- Importing DB --------- ","info")
     # copy_mysql_connector()
-    import_db()
+    #import_db()
     log(" --------- Upgrading DB --------- ","info")
-    upgrade_db()
+    #upgrade_db()
     log(" --------- Creatin Audit DB --------- ","info")
-    create_audit_mysql_user()
+    #create_audit_mysql_user()
 
