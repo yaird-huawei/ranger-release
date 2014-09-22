@@ -15,56 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.xasecure.audit.provider;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.xasecure.audit.model.AuditEventBase;
 
+public abstract class BufferedAuditProvider implements AuditProvider {
+	private LogBuffer<AuditEventBase>      mBuffer      = null;
+	private LogDestination<AuditEventBase> mDestination = null;
 
-public class Log4jAuditProvider implements AuditProvider {
-
-	private static final Log LOG      = LogFactory.getLog(Log4jAuditProvider.class);
-	private static final Log AUDITLOG = LogFactory.getLog("xaaudit." + Log4jAuditProvider.class.getName());
-
-
-	public Log4jAuditProvider() {
-		LOG.info("Log4jAuditProvider: creating..");
-	}
 
 	@Override
 	public void log(AuditEventBase event) {
-		if(! AUDITLOG.isInfoEnabled())
-			return;
-		Gson gson= new GsonBuilder().setPrettyPrinting().create();
-		String eventAsJson = gson.toJson(event.toString()) ;
-		AUDITLOG.info(eventAsJson);
+		mBuffer.add(event);
 	}
 
 	@Override
 	public void start() {
-		// intentionally left empty
+		mBuffer.start(mDestination);
 	}
 
 	@Override
 	public void stop() {
-		// intentionally left empty
+		mBuffer.stop();
 	}
 
 	@Override
-    public void waitToComplete() {
-		// intentionally left empty
+	public void waitToComplete() {
 	}
 
 	@Override
 	public boolean isFlushPending() {
 		return false;
 	}
-	
+
 	@Override
 	public long getLastFlushTime() {
 		return 0;
@@ -72,6 +55,11 @@ public class Log4jAuditProvider implements AuditProvider {
 
 	@Override
 	public void flush() {
-		// intentionally left empty
+	}
+
+	protected void setBufferAndDestination(LogBuffer<AuditEventBase>      buffer,
+										   LogDestination<AuditEventBase> destination) {
+		mBuffer      = buffer;
+		mDestination = destination;
 	}
 }
