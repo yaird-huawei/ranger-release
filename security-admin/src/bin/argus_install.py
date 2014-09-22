@@ -271,15 +271,6 @@ def sanity_check_files():
 #     log "Creating backup file : BAK_FILE"
 #     cp "APP" "BAK_FILE"
 
-def getstatusoutput(cmd): 
-    """Return (status, output) of executing cmd in a shell."""
-    """This new implementation should work on all platforms."""
-    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True)  
-    output = "".join(pipe.stdout.readlines()) 
-    sts = pipe.returncode
-    if sts is None: sts = 0
-    return sts, output
-
 def create_mysql_user():
     global conf_dict
 
@@ -295,7 +286,7 @@ def create_mysql_user():
     log(" Creating MySQL user "+db_user+" (using root priviledges)", 'debug')
     count=0
     cmdStr = '\"' + MYSQL_BIN + '\"' +' -B -u root --password='+db_root_password +' -h '+MYSQL_HOST + ' --skip-column-names -e \'select count(*) from mysql.user where user ="'+db_user + '" and host = "'+MYSQL_HOST+'"\''
-    status, output = getstatusoutput(cmdStr)
+    status, output = commands.getstatusoutput(cmdStr)
     if output == 1: 
         print "user found"
     else:
@@ -303,13 +294,13 @@ def create_mysql_user():
             cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+db_user+'\'@\''+MYSQL_HOST+'\'"'
         else: 
             cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+db_user+'\'@\''+MYSQL_HOST+'\' identified by '+db_password+';"'
-        status, output = getstatusoutput(cmdStr)
+        status, output = commands.getstatusoutput(cmdStr)
         if status == 0: 
             #mysqlquery="GRANT ALL ON *.* TO '" + db_user + "'@'" + MYSQL_HOST+"'; grant all privileges on *.* to '" + db_user + "'@'" + MYSQL_HOST + "' with grant option; FLUSH PRIVILEGES;"
             mysqlquery="GRANT ALL ON *.* TO '"+db_user+"'@'"+MYSQL_HOST+"';\
             grant all privileges on *.* to '"+db_user+"'@'"+MYSQL_HOST+"' with grant option;\
             FLUSH PRIVILEGES;"
-            status, output = getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
+            status, output = commands.getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
             if status == 0: 
                 log("Creating MySQL user '" + db_user + "' (using root priviledges) DONE", "info")
             else:
@@ -339,20 +330,20 @@ def create_audit_mysql_user():
     
     log("Verifying Database: "+audit_db_name, "info")
     cmdStr=MYSQL_BIN+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show databases like '"+audit_db_name+"'\""
-    status, output = getstatusoutput(cmdStr)
-    if output != "": 
+    status, output = commands.getstatusoutput(cmdStr)
+    if output == audit_db_name: 
         log("database " + audit_db_name + " already exists.","info")
     else:   
         log("Creating Database " + audit_db_name, "info")
         cmdStr = MYSQL_BIN+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -e \"create database "+audit_db_name+"\""
-        status, output = getstatusoutput(cmdStr)
+        status, output = commands.getstatusoutput(cmdStr)
         if status == 0: 
             log("Creating database "+audit_db_name+" Succeeded..", "info")
         else:
             log("Creating database "+audit_db_name+" Failed..", "warning")
     ##Check for user 
     cmdStr=MYSQL_BIN+" -B -u root --password="+db_root_password+" -h "+MYSQL_HOST+" --skip-column-names -e \"select count(*) from mysql.user where user = '"+audit_db_user+"' and host = '"+MYSQL_HOST+"';\""
-    status, output = getstatusoutput(cmdStr)
+    status, output = commands.getstatusoutput(cmdStr)
     if output == 1: 
         log("Mysql User found","info")
     else:
@@ -360,12 +351,12 @@ def create_audit_mysql_user():
             cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+audit_db_user+'\'@\''+MYSQL_HOST+'\'"'
         else: 
             cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+audit_db_user+'\'@\''+MYSQL_HOST+'\' identified by '+audit_db_password+';"'
-        status, output = getstatusoutput(cmdStr)
+        status, output = commands.getstatusoutput(cmdStr)
         if status == 0: 
             mysqlquery="GRANT ALL ON "+audit_db_name+".* TO \'"+audit_db_user+"'@'"+MYSQL_HOST+"' ;\
             grant all privileges on "+audit_db_name+".* to '"+audit_db_user+"'@'"+MYSQL_HOST+"' with grant option;\
             FLUSH PRIVILEGES;"
-            status, output = getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
+            status, output = commands.getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
             if status == 0: 
                 log("Creating MySQL user '" + audit_db_user + "' (using root priviledges) DONE", "info")
             else:
@@ -375,7 +366,7 @@ def create_audit_mysql_user():
             log("Verifying table "+AUDIT_TABLE+" in audit database "+audit_db_name, "debug")
 
             cmdStr=MYSQL_BIN+" -u "+audit_db_user+" --password="+audit_db_password+" -D "+audit_db_name+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show tables like '"+AUDIT_TABLE+"' ;\""
-            status, output = getstatusoutput(cmdStr)
+            status, output = commands.getstatusoutput(cmdStr)
             if output != 1:
                 log("Importing Audit Database file: " + db_audit_file,"debug")
                 if os.path.isfile(db_audit_file):
@@ -405,7 +396,7 @@ def check_mysql_password ():
             stdout=subprocess.PIPE)
 out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
 
-    status, output = getstatusoutput(cmdStr)
+    status, output = commands.getstatusoutput(cmdStr)
     if status == 0:
         log("Checking MYSQL root password DONE", "info")
     else:  
@@ -476,11 +467,15 @@ def upgrade_db():
     if os.path.isfile(DBVERSION_CATALOG_CREATION): 
         #import sql file 
         #exec_sql_file(cursor,DBVERSION_CATALOG_CREATION)
-        proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE)
+        # proc = subprocess.Popen(["mysql", "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+        #     stdin=subprocess.PIPE,
+        #     stdout=subprocess.PIPE)
+        # out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
+        mysqlexec=MYSQL_BIN+' -u '+db_user+' --password='+db_password+' -h '+MYSQL_HOST+' '+db_name
+        proc = subprocess.Popen(mysqlexec,  stdin=subprocess.PIPE,stdout=subprocess.PIPE, shell=True, universal_newlines=True)  
         out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
-        
+        print out
+        print err
         log("Baseline DB upgraded successfully", "info")
     #Logic to apply patches
     #first get all patches and then apply each patch 
@@ -491,10 +486,15 @@ def upgrade_db():
         currentPatch = PATCHES_PATH + "/"+filename
         if os.path.isfile(currentPatch):
             #apply_patches(cursor,currentPatch)
-            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-                        stdin=subprocess.PIPE,
-                        stdout=subprocess.PIPE)
+            # proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+            #             stdin=subprocess.PIPE,
+            #             stdout=subprocess.PIPE)
+            # out, err = proc.communicate(file(currentPatch).read())
+            mysqlexec=MYSQL_BIN+' -u '+db_user+' --password='+db_password+' -h '+MYSQL_HOST+' '+db_name
+            proc = subprocess.Popen(mysqlexec,  stdin=subprocess.PIPE,stdout=subprocess.PIPE, shell=True, universal_newlines=True)  
             out, err = proc.communicate(file(currentPatch).read())
+            print out
+            print err
             print "Patch applied: "+  currentPatch
     
 def import_db ():
@@ -521,29 +521,37 @@ def import_db ():
     log("Verifying Database: " + db_name,"debug")
     DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
     cmdStr="\"MYSQL_BIN\"" + " -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show databases like '"+db_name+"' ;\""
-    status,output = getstatusoutput(cmdStr)
+    status,output = commands.getstatusoutput(cmdStr)
     if output == db_name: 
         log("database "+db_name + " already exists. Ignoring import_db ...","info")
     else:   
         cmdStr=MYSQL_BIN+" -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -e  \"create database "+db_name+"\""
-        status,output = getstatusoutput(cmdStr)
+        status,output = commands.getstatusoutput(cmdStr)
         #execute each line from sql file to import DB
         if os.path.isfile(db_core_file):
-            #exec_sql_file(cursor,db_core_file)
-            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-                        stdin=subprocess.PIPE,
-                        stdout=subprocess.PIPE)
+            # proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+            #             stdin=subprocess.PIPE,
+            #             stdout=subprocess.PIPE)
+            # out, err = proc.communicate(file(db_core_file).read())
+            mysqlexec=MYSQL_BIN+" -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" "+db_name
+            proc = subprocess.Popen(mysqlexec,  stdin=subprocess.PIPE,stdout=subprocess.PIPE, shell=True, universal_newlines=True)  
             out, err = proc.communicate(file(db_core_file).read())
+            print out
+            print err
             log("db core file Imported successfully","info")
         else:
             log("Import sql file not found","exception")
         if os.path.isfile(db_asset_file):
             #exec_sql_file(cursor,db_asset_file)
-            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-                        stdin=subprocess.PIPE,
-                        stdout=subprocess.PIPE)
+            # proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
+            #             stdin=subprocess.PIPE,
+            #             stdout=subprocess.PIPE)
+            # out, err = proc.communicate(file(db_asset_file).read())
+            mysqlexec=MYSQL_BIN+' -u '+db_user+' --password='+db_password+' -h '+MYSQL_HOST+' '+db_name
+            proc = subprocess.Popen(mysqlexec,  stdin=subprocess.PIPE,stdout=subprocess.PIPE, shell=True, universal_newlines=True)  
             out, err = proc.communicate(file(db_asset_file).read())
             print out
+            print err
             log("Audit file Imported successfully","info")
         else:
             log("Import asset sql file not found","exception")
@@ -683,7 +691,7 @@ def update_properties():
 
     if keystore is not None:
         #os.makedirs(keystore)
-        getstatusoutput("java -cp cred/lib/* com.hortonworks.credentialapi.buildks create " + db_password_alias + "-value " + db_password + " -provider jceks://file" + keystore)
+        commands.getstatusoutput("java -cp cred/lib/* com.hortonworks.credentialapi.buildks create " + db_password_alias + "-value " + db_password + " -provider jceks://file" + keystore)
         propertyName="xaDB.jdbc.credential.alias"
         newPropertyValue=db_password_alias
         cObj.set('dummysection',propertyName,newPropertyValue)
@@ -697,7 +705,7 @@ def update_properties():
         cObj.set('dummysection',propertyName,newPropertyValue)
 
         # TODO:WINDOWS Not running chown as it is not used 
-        # getstatusoutput("chown -R " + unix_user + ":" + unix_group+" "+ keystore)
+        # commands.getstatusoutput("chown -R " + unix_user + ":" + unix_group+" "+ keystore)
 
     else:    
         propertyName="jdbc.password"
