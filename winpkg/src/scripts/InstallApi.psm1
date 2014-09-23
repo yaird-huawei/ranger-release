@@ -142,7 +142,27 @@ function Install(
         Invoke-CmdChk $xcopy_cmd
 
 	}
+    elseif ( $component -eq "argus-ugsync" )
+    {
+        # This if will work on the assumption that $component ="argus" is installed
+        # so we have the ARGUS_HDFS_HOME properly set
 
+        # setup path variables
+        $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
+
+        Write-Log "Copying argus-hdfs config files "
+
+        # TODO:WINDOWS check if the path HADOOP_CONF_DIR is set or not
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib\`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib\`""
+        Invoke-CmdChk $xcopy_cmd
+    }
     else
     {
         throw "Install: Unsupported component argument."
@@ -186,8 +206,13 @@ function InstallBinaries(
         $argusHiveAgentPath = Join-Path $argusInstallPath $argusHiveAgentFile 
 
         $argusKnoxAgentFile = $FinalName + "-knox-agent"
+        $argusKnoxAgentPath = Join-Path $argusInstallPath $argusKnoxAgentFile 
+
         $argusStormAgentFile = $FinalName +"-storm-agent"
+        $argusStormAgentPath = Join-Path $argusInstallPath $argusStormAgentFile 
+
         $argusUgsyncFile = $FinalName + "-ugsync"
+        $argusUgsyncPath = Join-Path $argusInstallPath $argusUgsyncFile 
 
         Write-Log "Installing $FinalName to $argusInstallPath"
         #argus: Installing argus-0.1.0.2.1.1.0-1111 to D:\HDP\\argus-0.1.0.2.1.1.0-1111
@@ -350,7 +375,95 @@ function InstallBinaries(
         [Environment]::SetEnvironmentVariable("ARGUS_HBASE_HOME", $argusHBaseAgentPath, [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HBASE_HOME = "$argusHBaseAgentPath"
 
+        ###
+        ###  Unzip Argus Knox Agent from compressed archive
+        ###
 
+        Write-Log "Extracting $argusKnoxAgentFile.zip to $argusInstallPath"
+
+        if ( Test-Path ENV:UNZIP_CMD )
+        {
+            ### Use external unzip command if given
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusKnoxAgentFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            ### We ignore the error code of the unzip command for now to be
+            ### consistent with prior behavior.
+            Invoke-Ps $unzipExpr
+        }
+        else
+        {
+            $shellApplication = new-object -com shell.application
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusKnoxAgentFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $destinationFolder.CopyHere($zipPackage.Items(), 20)
+        }
+
+        ###
+        ### Set ARGUS_KNOX_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_KNOX_HOME environment variable at machine scope to `"$argusKnoxAgentFile`""
+        [Environment]::SetEnvironmentVariable("ARGUS_KNOX_HOME", $argusKnoxAgentFile, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_KNOX_HOME = "$argusKnoxAgentFile"
+
+        ###
+        ###  Unzip Argus Storm Agent from compressed archive
+        ###
+
+        Write-Log "Extracting $argusStormAgentFile.zip to $argusInstallPath"
+
+        if ( Test-Path ENV:UNZIP_CMD )
+        {
+            ### Use external unzip command if given
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusStormAgentFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            ### We ignore the error code of the unzip command for now to be
+            ### consistent with prior behavior.
+            Invoke-Ps $unzipExpr
+        }
+        else
+        {
+            $shellApplication = new-object -com shell.application
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusStormAgentFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $destinationFolder.CopyHere($zipPackage.Items(), 20)
+        }
+
+        ###
+        ### Set ARGUS_STORM_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_STORM_HOME environment variable at machine scope to `"$argusStormAgentFile`""
+        [Environment]::SetEnvironmentVariable("ARGUS_STORM_HOME", $argusStormAgentFile, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_STORM_HOME = "$argusStormAgentFile"
+
+        ###
+        ###  Unzip Argus Ugsync from compressed archive
+        ###
+
+        Write-Log "Extracting $argusUgsyncAgentFile.zip to $argusInstallPath"
+
+        if ( Test-Path ENV:UNZIP_CMD )
+        {
+            ### Use external unzip command if given
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusUgsyncAgentFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            ### We ignore the error code of the unzip command for now to be
+            ### consistent with prior behavior.
+            Invoke-Ps $unzipExpr
+        }
+        else
+        {
+            $shellApplication = new-object -com shell.application
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusUgsyncAgentFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $destinationFolder.CopyHere($zipPackage.Items(), 20)
+        }
+
+        ###
+        ### Set ARGUS_UGSYNC_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_UGSYNC_HOME environment variable at machine scope to `"$argusUgsyncAgentFile`""
+        [Environment]::SetEnvironmentVariable("ARGUS_UGSYNC_HOME", $argusUgsyncAgentFile, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_STORM_HOME = "$argusUgsyncAgentFile"
 
 }
 
@@ -543,6 +656,10 @@ function Configure(
     {
         ConfigureArgusHdfs $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
+    elseif ( $component -eq "argus-ugsync" )
+    {
+        ConfigureArgusUgsync $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+    }
     else
     {
         throw "Configure: Unsupported component argument."
@@ -593,6 +710,54 @@ function ConfigureArgusHdfs(
 
     $line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
 	#TODO:WINDOWS Should we guard against option already being present?
+    Add-Content $file $line
+
+ }
+
+###############################################################################
+###
+### Alters the configuration of the Hadoop Ugsync service for Argus.
+###
+### Arguments:
+###   See Configure
+###############################################################################
+function ConfigureArgusUgsync(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [hashtable]
+    [parameter( Position=2 )]
+    $configs = @{},
+    [bool]
+    [parameter( Position=3 )]
+    $aclAllFolders = $True
+    )
+{
+
+    $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $ScriptDir "hadoop-$HadoopCoreVersion.winpkg.log" $ENV:WINPKG_BIN
+
+    #TODO:WINDOWS Check if appropriate dirs are present and env set
+    #if( -not (Test-Path $hadoopInstallToDir ))
+    #{
+    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
+    #}
+
+    # Add line to invoke the xasecure-hadoop-env.cmd
+    # set HADOOP_NAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_NAMENODE_OPTS% 
+    # set HADOOP_SECONDARYNAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_SECONDARYNAMENODE_OPTS%
+    
+    Write-Log "Modifying hadoop-env.cmd to invoke xasecure-hadoop-env.cmd"
+    $file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
+
+    $line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
+    #TODO:WINDOWS Should we guard against option already being present?
+    Add-Content $file $line
+
+    $line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
+    #TODO:WINDOWS Should we guard against option already being present?
     Add-Content $file $line
 
  }

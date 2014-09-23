@@ -261,6 +261,16 @@ function Main( $scriptDir )
 		"xasecure.policymgr.url"								= "$ENV:ARGUS_HOST"
 	}
 
+    ####################################################################
+    ###         Install and Configure argus-ugsync service              ###
+    ####################################################################
+    
+ 
+    $roles = ' '
+    Install "argus-ugsync" $nodeInstallRoot $serviceCredential $roles
+    Configure "argus-ugsync" $nodeInstallRoot $serviceCredential 
+
+
     Write-Log "Installation of argus-hbase completed successfully"
 
 
