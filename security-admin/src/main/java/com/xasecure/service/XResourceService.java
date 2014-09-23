@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 
 import com.xasecure.common.ContextUtil;
 import com.xasecure.common.MessageEnums;
+import com.xasecure.common.PropertiesUtil;
 import com.xasecure.common.SearchCriteria;
 import com.xasecure.common.SearchField;
 import com.xasecure.common.SearchField.DATA_TYPE;
@@ -78,6 +79,10 @@ public class XResourceService extends
 	XAEnumUtil xaEnumUtil;
 
 	static HashMap<String, VTrxLogAttr> trxLogAttrs = new HashMap<String, VTrxLogAttr>();
+	
+	static String fileSeparator = PropertiesUtil.getProperty(
+			"xa.file.separator", "/");
+	
 	static {
 		trxLogAttrs.put("name", new VTrxLogAttr("name", "Resource Path", false));
 		trxLogAttrs.put("description", new VTrxLogAttr("description", "Policy Description", false));
@@ -105,6 +110,8 @@ public class XResourceService extends
 				SearchField.DATA_TYPE.STRING, SearchField.SEARCH_TYPE.FULL));
 		searchFields.add(new SearchField("policyName", "obj.policyName",
 				SearchField.DATA_TYPE.STRING, SearchField.SEARCH_TYPE.PARTIAL));
+		searchFields.add(new SearchField("fullPolicyName", "obj.policyName",
+				SearchField.DATA_TYPE.STRING, SearchField.SEARCH_TYPE.FULL));
 		searchFields.add(new SearchField("columns", "obj.columns", 
 				SearchField.DATA_TYPE.STRING, SearchField.SEARCH_TYPE.PARTIAL));
 		searchFields.add(new SearchField("columnFamilies",
@@ -486,15 +493,15 @@ public class XResourceService extends
 		
 		for (String resourceName : resourceList) {
 			String policyPath = resourceName;
-			String[] policyPathParts = policyPath.split(File.separator);
+			String[] policyPathParts = policyPath.split(fileSeparator);
 			
 			if(policyPathParts.length>1){
-				pathList.add(File.separator);
+				pathList.add(fileSeparator);
 			}
 			
 			StringBuffer path = new StringBuffer();
 			for (int i = 1; i < policyPathParts.length - 1; i++) {
-				path.append(File.separator + policyPathParts[i]);
+				path.append(fileSeparator + policyPathParts[i]);
 				pathList.add(path.toString());
 			}
 			if(path!=null){
