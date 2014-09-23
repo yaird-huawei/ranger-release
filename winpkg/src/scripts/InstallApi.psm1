@@ -110,16 +110,39 @@ function Install(
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\conf\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
 	}
+	elseif ( $component -eq "argus-hive" )
+	{
+		# This if will work on the assumption that $component ="argus" is installed
+		# so we have the ARGUS_HIVE_HOME properly set
+
+        Write-Log "Copying argus-hive config files "
+
+		# TODO:WINDOWS check if the path HADOOP_CONF_DIR is set or not
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        Invoke-CmdChk $xcopy_cmd
+
+	}
+
     else
     {
         throw "Install: Unsupported component argument."
@@ -157,7 +180,11 @@ function InstallBinaries(
         $argusHdfsAgentPath = Join-Path $argusInstallPath $argusHdfsAgentFile 
 
         $argusHBaseAgentFile = $FinalName + "-hbase-agent"
+        $argusHBaseAgentPath = Join-Path $argusInstallPath $argusHBaseAgentFile 
+
         $argusHiveAgentFile = $FinalName + "-hive-agent"
+        $argusHiveAgentPath = Join-Path $argusInstallPath $argusHiveAgentFile 
+
         $argusKnoxAgentFile = $FinalName + "-knox-agent"
         $argusStormAgentFile = $FinalName +"-storm-agent"
         $argusUgsyncFile = $FinalName + "-ugsync"
@@ -258,6 +285,38 @@ function InstallBinaries(
         Write-Log "Setting the ARGUS_HDFS_HOME environment variable at machine scope to `"$argusHdfsAgentPath`""
         [Environment]::SetEnvironmentVariable("ARGUS_HDFS_HOME", $argusHdfsAgentPath, [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HDFS_HOME = "$argusHdfsAgentPath"
+
+
+
+        ###
+        ###  Unzip Argus HIVE Agent from compressed archive
+        ###
+
+        Write-Log "Extracting $argusHiveAgentFile.zip to $argusInstallPath"
+
+        if ( Test-Path ENV:UNZIP_CMD )
+        {
+            ### Use external unzip command if given
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusHiveAgentFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            ### We ignore the error code of the unzip command for now to be
+            ### consistent with prior behavior.
+            Invoke-Ps $unzipExpr
+        }
+        else
+        {
+            $shellApplication = new-object -com shell.application
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusHiveAgentFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $destinationFolder.CopyHere($zipPackage.Items(), 20)
+        }
+
+        ###
+        ### Set ARGUS_HIVE_HOME environment variable
+        ###
+        Write-Log "Setting the ARGUS_HIVE_HOME environment variable at machine scope to `"$argusHiveAgentPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_HIVE_HOME", $argusHiveAgentPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_HIVE_HOME = "$argusHiveAgentPath"
 
 
 
@@ -521,7 +580,7 @@ function ConfigureArgusHdfs(
     #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
     #}
 
-	# Add line to invoce the xasecure-hadoop-env.cmd
+	# Add line to invoke the xasecure-hadoop-env.cmd
 	# set HADOOP_NAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_NAMENODE_OPTS% 
 	# set HADOOP_SECONDARYNAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_SECONDARYNAMENODE_OPTS%
     
