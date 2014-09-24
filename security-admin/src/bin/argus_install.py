@@ -74,13 +74,13 @@ def ModConfig(File, Variable, Setting):
  
     # Append the variable if it wasn't found #
     if not VarFound:
-        print "Variable '%s' not found.  Adding it to %s" % (V, File)
+        log( "Variable '%s' not found.  Adding it to %s" % (V, File), "debug")
         with open(File, "a") as f:
             f.write("%s = %s\n" % (V, S))
     elif AlreadySet == True:
-        print "Variable '%s' unchanged" % (V)
+        log( "Variable '%s' unchanged" % (V) , "debug")
     else:
-        print "Variable '%s' modified to '%s'" % (V, S)
+        log( "Variable '%s' modified to '%s'" % (V, S) , "debug")
  
     return
 
@@ -394,7 +394,7 @@ def check_mysql_password ():
     proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE)
-out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
+    out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
 
     status, output = commands.getstatusoutput(cmdStr)
     if status == 0:
@@ -666,11 +666,12 @@ def update_properties():
     cObj.set('dummysection',propertyName,newPropertyValue)
 
     propertyName="xa.webapp.url.root"
-    newPropertyValue=os.getenv("policymgr_external_url")
+    newPropertyValue= "http://" + os.getenv("ARGUS_HOST") + ":6080" 
     cObj.set('dummysection',propertyName,newPropertyValue)
 
+    #TODO hardcoding for now
     propertyName="http.enabled"
-    newPropertyValue=os.getenv("policymgr_http_enabled")
+    newPropertyValue="true"
     cObj.set('dummysection',propertyName,newPropertyValue)
 
     propertyName="auditDB.jdbc.url"
@@ -943,7 +944,6 @@ def get_argus_classpath():
 
 # Entry point to script using --service
 def run_setup(cmd, app_type):
-    print(" --------- Running Argus PolicyManager Install Script --------- ")
     parse_config_file()
     init_logfiles()
     log(" --------- Running Argus PolicyManager Install Script --------- ","debug")

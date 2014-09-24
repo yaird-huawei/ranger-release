@@ -227,9 +227,9 @@ function Main( $scriptDir )
 		"hbase.security.authorization.enabled"	= "true"
 		"hbase.security.authorization.manager"	= "com.xasecure.authorization.hbase.authorizer.XaSecureHbaseAuthorizerFactory"
 		"hbase.security.authenticator.manager"	= "org.apache.hadoop.hbase.ql.security.SessionStateUserAuthenticator"
-		"hbase.conf.restricted.list"				= "hbase.security.authorization.enabled"
-		"hbase.conf.restricted.list"				= "hbase.security.authorization.manager"
-		"hbase.conf.restricted.list"				= "hbase.security.authenticator.manager"
+		"hbase.conf.restricted.list"			= "hbase.security.authorization.enabled"
+		"hbase.conf.restricted.list"			= "hbase.security.authorization.manager"
+		"hbase.conf.restricted.list"			= "hbase.security.authenticator.manager"
 	}
 
     ###
