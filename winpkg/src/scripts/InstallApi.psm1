@@ -401,9 +401,9 @@ function InstallBinaries(
         ###
         ### Set ARGUS_KNOX_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_KNOX_HOME environment variable at machine scope to `"$argusKnoxAgentFile`""
-        [Environment]::SetEnvironmentVariable("ARGUS_KNOX_HOME", $argusKnoxAgentFile, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_KNOX_HOME = "$argusKnoxAgentFile"
+        Write-Log "Setting the ARGUS_KNOX_HOME environment variable at machine scope to `"$argusKnoxAgentPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_KNOX_HOME", $argusKnoxAgentPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_KNOX_HOME = "$argusKnoxAgentPath"
 
         ###
         ###  Unzip Argus Storm Agent from compressed archive
@@ -431,20 +431,20 @@ function InstallBinaries(
         ###
         ### Set ARGUS_STORM_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_STORM_HOME environment variable at machine scope to `"$argusStormAgentFile`""
-        [Environment]::SetEnvironmentVariable("ARGUS_STORM_HOME", $argusStormAgentFile, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_STORM_HOME = "$argusStormAgentFile"
+        Write-Log "Setting the ARGUS_STORM_HOME environment variable at machine scope to `"$argusStormAgentPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_STORM_HOME", $argusStormAgentPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_STORM_HOME = "$argusStormAgentPath"
 
         ###
         ###  Unzip Argus Ugsync from compressed archive
         ###
 
-        Write-Log "Extracting $argusUgsyncAgentFile.zip to $argusInstallPath"
+        Write-Log "Extracting $argusUgsyncFile.zip to $argusInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusUgsyncAgentFile.zip`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusUgsyncFile.zip`"")
             $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
@@ -453,7 +453,7 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusUgsyncAgentFile.zip")
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusUgsyncFile.zip")
             $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
@@ -461,9 +461,9 @@ function InstallBinaries(
         ###
         ### Set ARGUS_UGSYNC_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_UGSYNC_HOME environment variable at machine scope to `"$argusUgsyncAgentFile`""
-        [Environment]::SetEnvironmentVariable("ARGUS_UGSYNC_HOME", $argusUgsyncAgentFile, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_STORM_HOME = "$argusUgsyncAgentFile"
+        Write-Log "Setting the ARGUS_UGSYNC_HOME environment variable at machine scope to `"$argusUgsyncPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_UGSYNC_HOME", $argusUgsyncPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_UGSYNC_HOME = "$argusUgsyncPath"
 
 }
 
