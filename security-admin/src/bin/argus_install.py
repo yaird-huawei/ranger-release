@@ -130,6 +130,7 @@ def init_variables():
     conf_dict['db_asset_file'] = os.path.join(ARGUS_DB_DIR, "reset_asset.sql")
 
     conf_dict['EWS_ROOT'] = EWS_ROOT
+    conf_dict['WEBAPP_ROOT'] = WEBAPP_ROOT
     conf_dict['ARGUS_DB_DIR'] = ARGUS_DB_DIR
 
     log("ARGUS_ADMIN_HOME is : " + ARGUS_ADMIN_HOME, "debug")
@@ -615,9 +616,11 @@ pass
 def update_xapolicymgr_properties():
     global conf_dict
     EWS_ROOT = conf_dict['EWS_ROOT']
+    WEBAPP_ROOT = conf_dict['WEBAPP_ROOT']
     xapolicymgr_properties = os.path.join(EWS_ROOT, "xapolicymgr.properties")
     log("xapolicymgr_properties: " + xapolicymgr_properties, "debug")
-    ModConfig(xapolicymgr_properties,"xa.webapp.dir",'webapp')
+    to_file = os.path.join(WEBAPP_ROOT, "WEB-INF", "classes", "xa_system.properties")
+    ModConfig(xapolicymgr_properties,"xa.webapp.dir", WEBAPP_ROOT )
 
     
 def update_properties():
