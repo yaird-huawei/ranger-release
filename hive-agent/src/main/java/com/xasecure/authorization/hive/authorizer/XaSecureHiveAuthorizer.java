@@ -399,10 +399,14 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 		HiveAccessType           accessType       = HiveAccessType.NONE;
 		HivePrivObjectActionType objectActionType = hiveObj.getActionType();
 		
-		if(objectActionType == HivePrivObjectActionType.INSERT ||
-		   objectActionType == HivePrivObjectActionType.INSERT_OVERWRITE) {
-			accessType = HiveAccessType.INSERT;
-		} else {
+		switch(objectActionType) {
+			case INSERT:
+			case INSERT_OVERWRITE:
+			case UPDATE:
+			case DELETE:
+				accessType = HiveAccessType.UPDATE;
+			break;
+			case OTHER:
 			switch(hiveOpType) {
 				case CREATEDATABASE:
 					if(hiveObj.getType() == HivePrivilegeObjectType.DATABASE) {
@@ -460,13 +464,13 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 				case ALTERTABLE_UPDATEPARTSTATS:
 				case ALTERTABLE_UPDATETABLESTATS:
 				case ALTERTBLPART_SKEWED_LOCATION:
+				case ALTERVIEW_AS:
 				case ALTERVIEW_PROPERTIES:
 				case ALTERVIEW_RENAME:
 				case DROPVIEW_PROPERTIES:
 					accessType = HiveAccessType.ALTER;
 				break;
 
-				case DELETE:
 				case DROPFUNCTION:
 				case DROPINDEX:
 				case DROPTABLE:
@@ -482,7 +486,7 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 				case IMPORT:
 				case EXPORT:
 				case LOAD:
-					accessType = isInput ? HiveAccessType.SELECT : HiveAccessType.INSERT;
+					accessType = isInput ? HiveAccessType.SELECT : HiveAccessType.UPDATE;
 				break;
 
 				case LOCKDB:
@@ -495,6 +499,7 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 				case QUERY:
 				case SHOW_TABLESTATUS:
 				case SHOW_CREATETABLE:
+				case SHOWCOLUMNS:
 				case SHOWINDEXES:
 				case SHOWPARTITIONS:
 				case SHOW_TBLPROPERTIES:
@@ -518,6 +523,7 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 				break;
 
 				case ADD:
+				case DELETE:
 				case COMPILE:
 				case CREATEMACRO:
 				case CREATEROLE:
@@ -531,7 +537,6 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 				case REVOKE_ROLE:
 				case RESET:
 				case SET:
-				case SHOWCOLUMNS:
 				case SHOWCONF:
 				case SHOWDATABASES:
 				case SHOWFUNCTIONS:
@@ -545,6 +550,7 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 				case SHOW_TRANSACTIONS:
 				break;
 			}
+			break;
 		}
 		
 		return accessType;
@@ -561,7 +567,6 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
             case UPDATE:
             case DROP:
             case INDEX:
-            case INSERT:
             case LOCK:
             case ADMIN:
     		case ALL:
@@ -675,8 +680,6 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 				permMap.addPerm(HiveAccessType.DROP.name());
 			} else if(StringUtil.equalsIgnoreCase(privName, HiveAccessType.INDEX.name())) {
 				permMap.addPerm(HiveAccessType.INDEX.name());
-			} else if(StringUtil.equalsIgnoreCase(privName, HiveAccessType.INSERT.name())) {
-				permMap.addPerm(HiveAccessType.INSERT.name());
 			} else if(StringUtil.equalsIgnoreCase(privName, HiveAccessType.LOCK.name())) {
 				permMap.addPerm(HiveAccessType.LOCK.name());
 			} else if(StringUtil.equalsIgnoreCase(privName, HiveAccessType.SELECT.name())) {
