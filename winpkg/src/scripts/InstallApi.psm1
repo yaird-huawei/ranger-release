@@ -71,7 +71,7 @@ function Install(
 			### Create Argus Windows Services and grant user ACLS to start/stop
 			###
 			### TODO
-			Write-Log "argus Role Services: $roles"
+			Write-Log "Argus Role Services: $roles"
 
 			### Verify that roles are in the supported set
 			### TODO
@@ -106,14 +106,22 @@ function Install(
         Write-Log "Copying argus-hdfs config files "
 
 		# TODO:WINDOWS check if the path HADOOP_CONF_DIR is set or not
+		Write-Log "Checking the HADOOP_CONF_DIR Installation."
+        if( -not (Test-Path $ENV:HADOOP_CONF_DIR))
+        {
+          Write-Log "HADOOP_CONF_DIR not set properly; $ENV:HADOOP_CONF_DIR does not exist" "Failure"
+          throw "Install: HADOOP_CONF_DIR not set properly; $ENV:HADOOP_CONF_DIR does not exist."
+        }
+
+
 
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib\`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\dist\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib\`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\conf\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR`""
@@ -127,19 +135,25 @@ function Install(
 
         Write-Log "Copying argus-hive config files "
 
-		# TODO:WINDOWS check if the path HADOOP_CONF_DIR is set or not
+		# TODO:WINDOWS check if the path HIVE_CONF_DIR is set or not
+		Write-Log "Checking the HIVE_CONF_DIR Installation."
+        if( -not (Test-Path $ENV:HIVE_CONF_DIR))
+        {
+          Write-Log "HIVE_CONF_DIR not set properly; $ENV:HIVE_CONF_DIR does not exist" "Failure"
+          throw "Install: HIVE_CONF_DIR not set properly; $ENV:HIVE_CONF_DIR does not exist."
+        }
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\conf\*`" `"$ENV:HIVE_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\dist\*.jar`" `"$ENV:HIVE_LIB_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\lib\*.jar`" `"$ENV:HIVE_LIB_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
-        Invoke-CmdChk $xcopy_cmd
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        #Invoke-CmdChk $xcopy_cmd
 
 	}
     elseif ( $component -eq "argus-ugsync" )
@@ -150,18 +164,24 @@ function Install(
         # setup path variables
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
 
-        Write-Log "Copying argus-hdfs config files "
+        Write-Log "Copying argus-ugsync config files "
 
-        # TODO:WINDOWS check if the path HADOOP_CONF_DIR is set or not
+		## TODO:WINDOWS check if the path HBASE_CONF_DIR is set or not
+		#Write-Log "Checking the HBASE_CONF_DIR Installation."
+        #if( -not (Test-Path $ENV:HBASE_CONF_DIR))
+        #{
+        #  Write-Log "HBASE_CONF_DIR not set properly; $ENV:HBASE_CONF_DIR does not exist" "Failure"
+        #  throw "Install: HBASE_CONF_DIR not set properly; $ENV:HBASE_CONF_DIR does not exist."
+        #}
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
-        Invoke-CmdChk $xcopy_cmd
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\conf\*`" `"$ENV:HBASE_CONF_DIR`""
+        #Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\dist\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib\`""
-        Invoke-CmdChk $xcopy_cmd
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\dist\*.jar`" `"$HBASE_HOME\lib`""
+        #Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\lib\*.jar`" `"$HADOOP_HOME\share\hadoop\common\lib\`""
-        Invoke-CmdChk $xcopy_cmd
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\lib\*.jar`" `"$HBASE_HOME\lib`""
+        #Invoke-CmdChk $xcopy_cmd
     }
     else
     {
