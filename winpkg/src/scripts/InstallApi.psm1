@@ -77,10 +77,28 @@ function Install(
 			### TODO
 			CheckRole $roles @("argus")
 
+
+
 			Write-Log "Role : $roles"
 			foreach( $service in empty-null ($roles -Split('\s+')))
 			{
 				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
+				if ( $service -eq "argus" )
+				{
+					$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+				    ### Create Credential Store  directory
+					if( -not (Test-Path "$credStorePath"))
+					{
+						Write-Log "Creating Credential Store directory: `"$credStorePath`""
+						$cmd = "mkdir `"$credStorePath`""
+						Invoke-CmdChk $cmd
+					}
+
+					CreateJCEKS "policyDB.jdbc.password" "${ENV:ARGUS_ADMIN_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath\xapolicymgr.jceks"
+					CreateJCEKS "auditDb.jdbc.password" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath\xapolicymgr.jceks"
+					
+				}
+				
 				###
 				### Setup argus service config
 				###
@@ -124,8 +142,10 @@ function Install(
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
-        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_ADMIN_HOME\conf\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR`""
-        #Invoke-CmdChk $xcopy_cmd
+		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath\Repo_{$ENV:ARGUS_HDFS_REPO}.jceks"
+		
+        [Environment]::SetEnvironmentVariable("ARGUS_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_{$ENV:ARGUS_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath\Repo_{$ENV:ARGUS_HDFS_REPO}.jceks"
 
 	}
 	elseif ( $component -eq "argus-hive" )
@@ -732,6 +752,30 @@ function ConfigureArgusHdfs(
 	#TODO:WINDOWS Should we guard against option already being present?
     Add-Content $file $line
 
+	$configs.Add("hdfsChanges",$hdfsChanges)
+	$configs.Add("hdfsAuditChanges",$hdfsAuditChanges)
+	$configs.Add("hdfsSecurityChanges",$hdfsSecurityChanges)
+
+    ###
+    ### Apply configuration changes to hdfs-site.xml
+    ###
+	$xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "hdfs-site.xml" 
+    UpdateXmlConfig $xmlFile $configs["hdfsChanges"]
+
+    ###
+    ### Apply configuration changes to xasecure-audit.xml
+    ###
+    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-audit.xml" 
+    UpdateXmlConfig $xmlFile $configs["hdfsAuditChanges"]
+
+    ###
+    ### Apply configuration changes to xasecure-hdfs-security.xml
+    ###
+    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-hdfs-security.xml" 
+    UpdateXmlConfig $xmlFile $configs["hdfsSecurityChanges"]
+
+
+
  }
 
 ###############################################################################
@@ -963,6 +1007,26 @@ function ReplaceString($file,$find,$replace)
     }
     Set-Content -Value $content -Path $file -Force
 }
+
+### Function to create jceks credential file store using hortonworks credentialapi
+function CreateJCEKS (
+    [String]
+    $alias,
+    [String]
+    $password,
+	[String]
+	$libPath,
+    [String]
+    $jceksFile
+	)
+{
+	
+	Write-Log "Creating alias $alias in jceks file : $jceksFile"
+    $cmd = "java -cp `"${libPath}\*`" com.hortonworks.credentialapi.buildks create `"${alias}`" -value `"${password}`" -provider `"jceks://file/${jceksFile}`" "
+	Invoke-Cmd $cmd
+	
+}
+
 
 ###
 ### Public API
