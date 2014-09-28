@@ -136,7 +136,7 @@ function Install(
         }
 
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\install\conf.template\enable\*.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
