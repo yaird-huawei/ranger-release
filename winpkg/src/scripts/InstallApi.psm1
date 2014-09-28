@@ -86,6 +86,8 @@ function Install(
 				if ( $service -eq "argus" )
 				{
 					$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+					$credStorePath = $credStorePath -replace "\\", "/"
+					
 				    ### Create Credential Store  directory
 					if( -not (Test-Path "$credStorePath"))
 					{
@@ -94,8 +96,8 @@ function Install(
 						Invoke-CmdChk $cmd
 					}
 
-					CreateJCEKS "policyDB.jdbc.password" "${ENV:ARGUS_ADMIN_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath\xapolicymgr.jceks"
-					CreateJCEKS "auditDb.jdbc.password" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath\xapolicymgr.jceks"
+					CreateJCEKS "policyDB.jdbc.password" "${ENV:ARGUS_ADMIN_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+					CreateJCEKS "auditDb.jdbc.password" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
 					
 				}
 				
@@ -132,17 +134,13 @@ function Install(
         }
 
 
-
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\conf\*`" `"$ENV:HADOOP_CONF_DIR`""
-        Invoke-CmdChk $xcopy_cmd
-
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\dist\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\install\conf.template\enable\*.xml`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
-		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath\Repo_{$ENV:ARGUS_HDFS_REPO}.jceks"
+		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath/Repo_{$ENV:ARGUS_HDFS_REPO}.jceks"
 		
         [Environment]::SetEnvironmentVariable("ARGUS_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_{$ENV:ARGUS_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath\Repo_{$ENV:ARGUS_HDFS_REPO}.jceks"
@@ -163,14 +161,12 @@ function Install(
           throw "Install: HIVE_CONF_DIR not set properly; $ENV:HIVE_CONF_DIR does not exist."
         }
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\conf\*`" `"$ENV:HIVE_CONF_DIR`""
-        Invoke-CmdChk $xcopy_cmd
-
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\dist\*.jar`" `"$ENV:HIVE_LIB_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\install\conf.template\enable\*.xml`" `"$ENV:HIVE_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\lib\*.jar`" `"$ENV:HIVE_LIB_DIR`""
         Invoke-CmdChk $xcopy_cmd
+
 
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
