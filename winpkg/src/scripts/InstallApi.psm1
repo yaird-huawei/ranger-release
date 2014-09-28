@@ -119,6 +119,8 @@ function Install(
 	{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HDFS_HOME properly set
+		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		$credStorePath = $credStorePath -replace "\\", "/"
 
 		# setup path variables
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
@@ -140,10 +142,10 @@ function Install(
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
-		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath/Repo_{$ENV:ARGUS_HDFS_REPO}.jceks"
+		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
 		
-        [Environment]::SetEnvironmentVariable("ARGUS_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_{$ENV:ARGUS_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath\Repo_{$ENV:ARGUS_HDFS_REPO}.jceks"
+        [Environment]::SetEnvironmentVariable("ARGUS_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath\Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
 
 	}
 	elseif ( $component -eq "argus-hive" )
@@ -747,10 +749,6 @@ function ConfigureArgusHdfs(
     $line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
 	#TODO:WINDOWS Should we guard against option already being present?
     Add-Content $file $line
-
-	$configs.Add("hdfsChanges",$hdfsChanges)
-	$configs.Add("hdfsAuditChanges",$hdfsAuditChanges)
-	$configs.Add("hdfsSecurityChanges",$hdfsSecurityChanges)
 
     ###
     ### Apply configuration changes to hdfs-site.xml

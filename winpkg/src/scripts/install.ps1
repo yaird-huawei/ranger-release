@@ -112,7 +112,7 @@ function Main( $scriptDir )
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
 		"xasecure.audit.repository.name"						= "${ENV:ARGUS_HDFS_REPO}"
-		"xasecure.audit.credential.provider.file"				= "jceks://file${ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE}"
+		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
 	}
     ###
@@ -122,7 +122,7 @@ function Main( $scriptDir )
 		"hdfs.authorization.verifier.classname"					= "com.xasecure.pdp.hdfs.XASecureAuthorizer"
 		"xasecure.hdfs.policymgr.url"							= "${ENV:ARGUS_HOST}/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
 		"xasecure.hdfs.policymgr.url.saveAsFile"				= "${ENV:TEMP}\hadoop_${ENV:ARGUS_HDFS_REPO}"
-		"xasecure.hdfs.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HDFS_CACHE_FILE}/hadoop_${ENV:ARGUS_HDFS_REPO}_json"
+		"xasecure.hdfs.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HDFS_CACHE_FILE}\hadoop_${ENV:ARGUS_HDFS_REPO}_json"
 		"xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"
 	}
 

@@ -620,7 +620,7 @@ def update_xapolicymgr_properties():
     xapolicymgr_properties = os.path.join(EWS_ROOT, "xapolicymgr.properties")
     log("xapolicymgr_properties: " + xapolicymgr_properties, "debug")
     to_file = os.path.join(WEBAPP_ROOT, "WEB-INF", "classes", "xa_system.properties")
-    ModConfig(xapolicymgr_properties,"xa.webapp.dir", WEBAPP_ROOT )
+    ModConfig(xapolicymgr_properties,"xa.webapp.dir", WEBAPP_ROOT.replace('\\','/' )
 
     
 def update_properties():
