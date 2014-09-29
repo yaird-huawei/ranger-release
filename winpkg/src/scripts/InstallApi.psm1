@@ -113,6 +113,9 @@ function Install(
 			}
 	        ### end of roles loop
         }
+		$username = $serviceCredential.UserName
+		GiveFullPermissions $argusInstallToBin $username
+		
         Write-Log "Finished installing Argus Admin Tool"
     } 
 	elseif ( $component -eq "argus-hdfs" )

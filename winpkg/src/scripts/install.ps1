@@ -120,7 +120,7 @@ function Main( $scriptDir )
     ###
 	$hdfsSecurityChanges = @{
 		"hdfs.authorization.verifier.classname"					= "com.xasecure.pdp.hdfs.XASecureAuthorizer"
-		"xasecure.hdfs.policymgr.url"							= "${ENV:ARGUS_HOST}/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
+		"xasecure.hdfs.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
 		"xasecure.hdfs.policymgr.url.saveAsFile"				= "${ENV:TEMP}\hadoop_${ENV:ARGUS_HDFS_REPO}"
 		"xasecure.hdfs.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HDFS_CACHE_FILE}\hadoop_${ENV:ARGUS_HDFS_REPO}_json"
 		"xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"

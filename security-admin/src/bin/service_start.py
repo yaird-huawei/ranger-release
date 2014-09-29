@@ -33,7 +33,6 @@ if service_entry:
     class_path = argus_install.get_argus_classpath()
     java_class = 'com.xasecure.server.tomcat.EmbededServer'
     class_arguments = '' 
-    log_arguments = argus_install.get_argus_log_file()
 
     from xml.dom.minidom import getDOMImplementation
     dom = getDOMImplementation()

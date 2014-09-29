@@ -64,18 +64,32 @@ def log(msg,type):
 #pass
 
 
+
+def resolve_sym_link(path):
+    path = os.path.realpath(path)
+    base_dir = os.path.dirname(os.path.dirname(path))
+    return path, base_dir
+
 #prog = ["mysql", "-u", "ve", "--execute", 'insert into foo values ("snargle", 2)']
 
 def getstatusoutput(cmd): 
     """Return (status, output) of executing cmd in a shell."""
     """This new implementation should work on all platforms."""
-    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, close_fds=True, shell=True, universal_newlines=True)  
-    output, err = pipe.communicate()
-    sts = pipe.returncode
-    if sts is None: 
-        log("sts is None!!!! Manually setting to -1. PLEASE CHECK!!!!!!!!!!!!!!","info")
-        sts = -1
-    return sts, output
+    """pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, universal_newlines=True)  
+    "output, err = pipe.communicate()
+    "sts = pipe.returncode
+    """
+    ret = subprocess.call(cmd, shell=True)
+    print "------------------"
+    print " cmd: " + str(cmd)
+    #print " output: " + output
+    print " ret: " + str(ret)
+    print "------------------"
+    return ret, ret
+    #if sts is None: 
+    #    log("sts is None!!!! Manually setting to -1. PLEASE CHECK!!!!!!!!!!!!!!","info")
+    #    sts = -1
+    #return sts, output
 
 
 def copy_files(source_dir,dest_dir):
@@ -175,7 +189,8 @@ def get_argus_classpath():
 
 def populate_config_dict_from_env():
     global config_dict
-    conf_dict['MYSQL_HOST'] = os.getenv("ARGUS_ADMIN_DB_HOST")
+    conf_dict['ARGUS_ADMIN_DB_HOST'] = os.getenv("ARGUS_ADMIN_DB_HOST")
+    conf_dict['ARGUS_AUDIT_DB_HOST'] = os.getenv("ARGUS_AUDIT_DB_HOST")
     conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
     conf_dict['ARGUS_ADMIN_DB_USERNAME'] = os.getenv("ARGUS_ADMIN_DB_USERNAME")
     conf_dict['ARGUS_ADMIN_DB_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_PASSWORD")
@@ -184,6 +199,7 @@ def populate_config_dict_from_env():
     conf_dict['ARGUS_AUDIT_DB_PASSWORD'] = os.getenv("ARGUS_AUDIT_DB_PASSWORD")
     conf_dict['ARGUS_AUDIT_DB_NAME'] = os.getenv("ARGUS_AUDIT_DB_DBNAME")
     conf_dict['ARGUS_ADMIN_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_ROOT_PASSWORD")
+    conf_dict['ARGUS_AUDIT_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_AUDIT_DB_ROOT_PASSWORD")
     conf_dict['ARGUS_ADMIN_HOME'] = os.getenv("ARGUS_ADMIN_HOME")
 
 def init_variables(switch):
@@ -202,6 +218,7 @@ def init_variables(switch):
 
     conf_dict['EWS_ROOT']   = EWS_ROOT
     conf_dict['WEBAPP_ROOT']= WEBAPP_ROOT
+    conf_dict['INSTALL_DIR']= INSTALL_DIR
 
     db_dir = os.path.join(conf_dict['ARGUS_ADMIN_HOME'] , "db")
     conf_dict['ARGUS_DB_DIR']           = db_dir
@@ -210,9 +227,9 @@ def init_variables(switch):
     conf_dict['db_audit_file']          = os.path.join(db_dir, "xa_audit_db.sql")
     conf_dict['db_asset_file']          = os.path.join(db_dir, "reset_asset.sql")
 
-    log("config is : " , "debug")
-    for x in conf_dict:
-        log(x + " : " + conf_dict[x], "debug")
+    #log("config is : " , "debug")
+    #for x in conf_dict:
+    #    log(x + " : " + conf_dict[x], "debug")
 
 #TODO fix the base_dir part
 def setup_install_files():
@@ -288,9 +305,6 @@ def sanity_check_configure_files():
     db_audit_file = conf_dict['db_audit_file']
     db_asset_file = conf_dict['db_asset_file'] 
 
-    MYSQL_HOST = conf_dict["MYSQL_HOST"]
-    MYSQL_BIN = conf_dict["MYSQL_BIN"]
-
     #if os.path.isfile(MYSQL_BIN):
     #    log("MYSQL Client bin : " + MYSQL_BIN + " file found", 'info')
     #else:
@@ -316,33 +330,48 @@ def sanity_check_configure_files():
     else:
         os.sys.exit('db_asset_file: ' + db_asset_file + ' file does not exist')
 
-def create_mysql_user(db_name, db_user, db_password):
+def get_mysql_cmd(user, password, host):
     global conf_dict
-
-    MYSQL_HOST = conf_dict["MYSQL_HOST"]
     MYSQL_BIN = conf_dict["MYSQL_BIN"]
-    db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
+
+    cmdArr = [ MYSQL_BIN ,'-B' ,'--user=%s' %user, '--password=%s' %password, '--host=%s' %host , '--skip-column-names']
+    return cmdArr
+
+def create_mysql_user(db_name, db_user, db_password, db_host, db_root_password):
+    global conf_dict
+    cmdArr = []
+
+    MYSQL_BIN = conf_dict["MYSQL_BIN"]
 
     #check_mysql_password()
     ### From properties file 
     log("Creating MySQL user "+db_user+" (using root priviledges)", 'debug')
-    cmdStr = '"' + MYSQL_BIN + '"' +' -B -u root --password='+db_root_password +' -h '+MYSQL_HOST + ' --skip-column-names -e \'select count(*) from mysql.user where user ="'+db_user + '" and host = "'+MYSQL_HOST+'"\''
-    status, output = getstatusoutput(cmdStr)
+    cmdArr = get_mysql_cmd('root', db_root_password, db_host)
 
+    #subprocess.call(["mysql", "-u", username, "-p%s" % password, "-e", "SELECT @@hostname"]
+
+    cmdArr.extend(["-e", "select count(*) from mysql.user where user='%s' and host='%s'" %(db_user, db_host)])
+    output = subprocess.check_output(cmdArr)
     if output.strip("\n\r") is "1": 
         log( "MYSQL User already exists!", "debug")
     else:
+        cmdArr = get_mysql_cmd('root', db_root_password, db_host)
         if db_password == "":
-            cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e \'create user "'+db_user+'"@"'+MYSQL_HOST+'";\''
+            #cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'";\''
+            cmdArr.extend(["-e", "create user %s@%s" %(db_user, db_host)])
         else: 
-            cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e \'create user "'+db_user+'"@"'+MYSQL_HOST+'" identified by "'+db_password+'";\''
-        status, output = getstatusoutput(cmdStr)
-        if status == 0: 
-            mysqlquery="GRANT ALL ON "+db_name+".* TO \'"+db_user+"'@'"+MYSQL_HOST+"' ;\
-            grant all privileges on "+db_name+".* to '"+db_user+"'@'"+MYSQL_HOST+"' with grant option;\
-            FLUSH PRIVILEGES;"
-            status, output = getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
-            if status == 0: 
+            cmdArr.extend(["-e", "create user %s@%s identified by '%s' " %(db_user, db_host, db_password)])
+            #cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'" identified by "'+db_password+'";\''
+        ret = subprocess.check_call(cmdArr)
+        if ret == 0: 
+            #mysqlquery="GRANT ALL ON "+db_name+".* TO \'"+db_user+"'@'"+db_host+"' ;\
+            #grant all privileges on "+db_name+".* to '"+db_user+"'@'"+db_host+"' with grant option;\
+            #FLUSH PRIVILEGES;"
+            cmdArr = get_mysql_cmd('root', db_root_password, db_host)
+            cmdArr.extend(["-e", "GRANT ALL ON %s.* TO %s@%s; grant all privileges on %s.* to %s@%s with grant option; FLUSH PRIVILEGES" %(db_name,db_user,db_host,db_name, db_user, db_host)])
+
+            ret = subprocess.check_call(cmdArr)
+            if ret == 0: 
                 log("Creating MySQL user '" + db_user + "' (using root priviledges) DONE", "info")
             else:
                 log("Creating MySQL user '" + db_user + "' (using root priviledges) FAILED", "info")
@@ -423,7 +452,7 @@ def upgrade_db():
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
     db_name = conf_dict["ARGUS_ADMIN_DB_NAME"]
     MYSQL_BIN = conf_dict['MYSQL_BIN']
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
+    MYSQL_HOST = conf_dict['ARGUS_ADMIN_DB_HOST']
 
     log("Creating Baseline DB upgrade ... ", "debug")
     DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
@@ -451,15 +480,15 @@ def upgrade_db():
             log( "Patch applied: " +  currentPatch, "debug")
     
 
-def verify_db (db_user, db_password, db_name):
+def verify_db (db_user, db_password, db_name, db_host):
     global conf_dict
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
     MYSQL_BIN = conf_dict['MYSQL_BIN']
 
     log("Verifying Database: " + db_name,"debug")
-    cmdStr= '"' + MYSQL_BIN + '"' + ' -u '+db_user+' --password='+db_password+' -h '+MYSQL_HOST+' -B --skip-column-names -e  \'show databases like "' + db_name+ '"\''
-    status,output = getstatusoutput(cmdStr)
 
+    cmdArr = get_mysql_cmd(db_user, db_password, db_host)
+    cmdArr.extend(["-e", "show databases like '%s'" %(db_name)])
+    output = subprocess.check_output(cmdArr)
     if output.strip('\r\n') == db_name: 
         return True
     else:
@@ -473,20 +502,22 @@ def import_db ():
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
     db_name = conf_dict['ARGUS_ADMIN_DB_NAME']
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
+    MYSQL_HOST = conf_dict['ARGUS_ADMIN_DB_HOST']
 
     db_core_file =  conf_dict['db_core_file'] 
     db_asset_file = conf_dict['db_asset_file']
     MYSQL_BIN = conf_dict['MYSQL_BIN']
     log ("Importing to Database: " + db_name,"debug");
 
-    if verify_db(db_user, db_password, db_name): 
+    if verify_db(db_user, db_password, db_name, MYSQL_HOST): 
         log("Database "+db_name + " already exists. Ignoring import_db","info")
     else:   
         log("Database does not exist. Creating databse : " + db_name,"info")
-        cmdStr= '"' + MYSQL_BIN+ '"' + ' -B -u '+db_user+' --password='+db_password+' -h '+MYSQL_HOST+' -e \'create database '+db_name+'\';'
-        status,output = getstatusoutput(cmdStr)
-        if status != 0:
+
+        cmdArr = get_mysql_cmd('root', db_root_password, MYSQL_HOST)
+        cmdArr.extend(["-e", "create database %s" %(db_name)])
+        ret = subprocess.check_call(cmdArr)
+        if ret != 0:
             log("Database creation failed!!","error")
             sys.exit(1)
 
@@ -572,6 +603,7 @@ def update_properties():
     sys_conf_dict={}
 
     MYSQL_HOST = conf_dict["MYSQL_HOST"]
+    WEBAPP_ROOT = conf_dict["WEBAPP_ROOT"]
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_name = conf_dict["ARGUS_ADMIN_DB_NAME"]
@@ -829,9 +861,9 @@ def setup_audit_user_db():
     global conf_dict
 
     MYSQL_BIN = conf_dict['MYSQL_BIN']
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
+    MYSQL_HOST = conf_dict['ARGUS_AUDIT_DB_HOST']
 
-    db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
+    db_root_password = conf_dict["ARGUS_AUDIT_DB_ROOT_PASSWORD"]
     audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
     audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
     audit_db_name = conf_dict['ARGUS_AUDIT_DB_NAME']
@@ -839,21 +871,21 @@ def setup_audit_user_db():
 
     #check_mysql_audit_user_password()
     log("--------- Creating mysql audit user --------- ","info")
-    create_mysql_user(audit_db_name, audit_db_user, audit_db_password)
+    create_mysql_user(audit_db_name, audit_db_user, audit_db_password, MYSQL_HOST, db_root_password)
     log("--------- Creating mysql audit user DONE----- ","info")
 
     log("--------- Importing Audit Database --------- ","info")
 
     # Verify if audit db is present
-    if verify_db(audit_db_user, audit_db_password, audit_db_name): 
+    if verify_db(audit_db_user, audit_db_password, audit_db_name, MYSQL_HOST): 
         log("Database "+audit_db_name + " already exists. Ignoring import_db","info")
     else:   
         log("Creating Database " + audit_db_name, "info")
         # Create audit db is not present
-
-        cmdStr= '"' + MYSQL_BIN+ '"' + ' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e \'create database '+audit_db_name+'\';'
-        status,output = getstatusoutput(cmdStr)
-        if status != 0:
+        cmdArr = get_mysql_cmd('root', db_root_password, MYSQL_HOST)
+        cmdArr.extend(["-e", "create database %s" %(audit_db_name)])
+        ret = subprocess.check_call(cmdArr)
+        if ret != 0:
             log("Database creation failed!!","error")
             sys.exit(1)
         else:
@@ -862,8 +894,11 @@ def setup_audit_user_db():
     # Check if audit table exists 
     AUDIT_TABLE="xa_access_audit"
     log("Verifying table "+AUDIT_TABLE+" in audit database "+audit_db_name, "debug")
-    cmdStr= '"' + MYSQL_BIN+ '"' + ' -u '+audit_db_user+' --password='+audit_db_password+' -D '+audit_db_name+' -h '+MYSQL_HOST+' -B --skip-column-names -e  \'show tables like "'+AUDIT_TABLE+'" ;\''
-    status, output = getstatusoutput(cmdStr)
+
+    cmdArr = get_mysql_cmd(audit_db_user, audit_db_password, MYSQL_HOST)
+    cmdArr.extend([audit_db_name, "-e", "show tables like '%s'" %(AUDIT_TABLE)])
+    output = subprocess.check_output(cmdArr)
+
     if output.strip('\r\n') != "1":
         # Import audit table 
         log("Importing Audit Database file: " + db_audit_file,"debug")
@@ -889,23 +924,23 @@ def setup_audit_user_db():
 def setup_admin_db_user():
     global conf_dict
 
-    MYSQL_BIN = conf_dict['MYSQL_BIN']
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
+    MYSQL_HOST = conf_dict['ARGUS_ADMIN_DB_HOST']
 
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
+    db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
     db_name = conf_dict['ARGUS_ADMIN_DB_NAME']
 
     log("--------- Creating mysql user --------- ","info")
-    create_mysql_user(db_name, db_user, db_password)
-    log("--------- Creating mysql user DONE----- ","info")
+    create_mysql_user(db_name, db_user, db_password, MYSQL_HOST, db_root_password)
+    #log("--------- Creating mysql user DONE----- ","info")
 
-    log("--------- Importing Admin Database --------- ","info")
+    #log("--------- Importing Admin Database --------- ","info")
     import_db()
-    log("--------- Importing Admin Database DONE----- ","info")
-    log("--------- Applying patches --------------- ","info")
+    #log("--------- Importing Admin Database DONE----- ","info")
+    #log("--------- Applying patches --------------- ","info")
     upgrade_db()
-    log("--------- Applying patches DONE----------- ","info")
+    #log("--------- Applying patches DONE----------- ","info")
 
 
 ## Argus Functions Ends here --------------------
