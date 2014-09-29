@@ -27,20 +27,68 @@ import shutil
 import commands
 from datetime import date
 import getpass
-import subprocess
 import glob
+import pprint
 
-base_dir = ' '
-PWD = os.path.dirname(os.path.realpath(__file__))
-INSTALL_DIR=''
-WEBAPP_ROOT=''
-war_file=''
-db_core_file=''
-db_audit_file=''
-db_asset_file=''
-db_create_user=''
-ARGUS_ADMIN_HOME=''
 conf_dict={}
+
+
+"""
+################################################
+            Helper routines
+################################################
+"""
+
+def log(msg,type):
+    if type == 'info': 
+        logging.info(" %s",msg)
+    if type == 'debug': 
+        logging.debug(" %s",msg)
+    if type == 'warning':
+        logging.warning(" %s",msg)
+    if type == 'exception':
+        logging.exception(" %s",msg)
+
+#def check_mysql_connector(): 
+#    global MYSQL_CONNECTOR_JAR
+#    ### From properties file 
+#    MYSQL_CONNECTOR_JAR = os.getenv("MYSQL_CONNECTOR_JAR")
+#    debugMsg = "Checking MYSQL CONNECTOR FILE : " + MYSQL_CONNECTOR_JAR
+#    log(debugMsg, 'debug') 
+#    log( "Checking MYSQL CONNECTOR FILE : " + MYSQL_CONNECTOR_JAR, "debug")
+#    ### From properties file 
+#    if os.path.isfile(MYSQL_CONNECTOR_JAR):
+#        log(" MYSQL CONNECTOR FILE :" + MYSQL_CONNECTOR_JAR + "file found",'info')
+#    else:
+#      log(" MYSQL CONNECTOR FILE : "+MYSQL_CONNECTOR_JAR+" file does not exist",'info')
+#pass
+
+
+#prog = ["mysql", "-u", "ve", "--execute", 'insert into foo values ("snargle", 2)']
+
+def getstatusoutput(cmd): 
+    """Return (status, output) of executing cmd in a shell."""
+    """This new implementation should work on all platforms."""
+    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, close_fds=True, shell=True, universal_newlines=True)  
+    output, err = pipe.communicate()
+    sts = pipe.returncode
+    if sts is None: 
+        log("sts is None!!!! Manually setting to -1. PLEASE CHECK!!!!!!!!!!!!!!","info")
+        sts = -1
+    return sts, output
+
+
+def copy_files(source_dir,dest_dir):
+    for dir_path, dir_names, file_names in os.walk(source_dir):
+        for file_name in file_names:
+            target_dir = dir_path.replace(source_dir, dest_dir, 1)
+            if not os.path.exists(target_dir):
+                os.mkdir(target_dir)
+            src_file = os.path.join(dir_path, file_name)
+            dest_file = os.path.join(target_dir, file_name)
+            log("copying src: " + src_file + " dest: " + dest_file, "debug")
+            shutil.copyfile(src_file, dest_file)
+
 
 
 def ModConfig(File, Variable, Setting):
@@ -84,8 +132,48 @@ def ModConfig(File, Variable, Setting):
  
     return
 
-# TODO
-def populate_config_dict():
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
+def get_java_env():
+    JAVA_HOME = os.getenv('JAVA_HOME')
+    if JAVA_HOME:
+        return os.path.join(JAVA_HOME, 'bin', 'java')
+    else:
+        os.sys.exit('java and jar commands are not available. Please configure JAVA_HOME')
+
+def get_class_path(paths):
+    separator = ';' if sys.platform == 'win32' else ':';
+    return separator.join(paths)
+
+def get_jdk_options():
+    global conf_dict
+    return [os.getenv('ARGUS_PROPERTIES', ''),
+                  '-Dcatalina.base=' + conf_dict['EWS_ROOT'] ]
+
+
+"""
+################################################
+            Argus Policy Manager routines
+################################################
+"""
+
+def get_argus_classpath():
+    global conf_dict
+    EWS_ROOT = conf_dict['EWS_ROOT']
+
+    cp = [ os.path.join(EWS_ROOT,"lib","*"), os.path.join(os.getenv('JAVA_HOME'), 'lib', '*')]
+    class_path = get_class_path(cp)
+    return class_path
+
+def populate_config_dict_from_env():
     global config_dict
     conf_dict['MYSQL_HOST'] = os.getenv("ARGUS_ADMIN_DB_HOST")
     conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
@@ -96,319 +184,183 @@ def populate_config_dict():
     conf_dict['ARGUS_AUDIT_DB_PASSWORD'] = os.getenv("ARGUS_AUDIT_DB_PASSWORD")
     conf_dict['ARGUS_AUDIT_DB_NAME'] = os.getenv("ARGUS_AUDIT_DB_DBNAME")
     conf_dict['ARGUS_ADMIN_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_ROOT_PASSWORD")
+    conf_dict['ARGUS_ADMIN_HOME'] = os.getenv("ARGUS_ADMIN_HOME")
 
-def init_variables():
-    global  INSTALL_DIR, EWS_ROOT, ARGUS_ADMIN_HOME, WEBAPP_ROOT, war_file, db_core_file
-    global db_create_user, db_audit_file, db_asset_file
+def init_variables(switch):
     global conf_dict
 
+    populate_config_dict_from_env()
 
-    # These are set from the Monarch
-    HDP_RESOURCES_DIR = os.getenv("HDP_RESOURCES_DIR")
-    ARGUS_ADMIN_HOME = os.getenv("ARGUS_ADMIN_HOME")
-    ARGUS_CONF_DIR = os.getenv("ARGUS_CONF_DIR")
-    ARGUS_LOG_DIR = os.getenv("ARGUS_LOG_DIR")
-    ARGUS_DB_DIR = os.path.join(ARGUS_ADMIN_HOME , "db")
+    INSTALL_DIR = os.path.join(conf_dict['ARGUS_ADMIN_HOME'] , "app")
+    EWS_ROOT    = os.path.join(INSTALL_DIR , "ews")
+    WEBAPP_ROOT = os.path.join(INSTALL_DIR , "ews" , "webapp")
 
+    if switch == "service": 
+        war_file_path = os.path.join(conf_dict['ARGUS_ADMIN_HOME'] , "war", "security-admin-web-*.war")
+        war_file_list = glob.glob(war_file_path)
+        conf_dict['war_file']   = war_file_list[0]
 
-    INSTALL_DIR = os.path.join(os.getenv("ARGUS_ADMIN_HOME") , "app")
+    conf_dict['EWS_ROOT']   = EWS_ROOT
+    conf_dict['WEBAPP_ROOT']= WEBAPP_ROOT
 
-    # TODO FIX THIS
-    war_file_path = os.path.join(ARGUS_ADMIN_HOME , "war", "security-admin-web-*.war")
-    war_file_list = glob.glob(war_file_path)
-    war_file = war_file_list[0]
+    db_dir = os.path.join(conf_dict['ARGUS_ADMIN_HOME'] , "db")
+    conf_dict['ARGUS_DB_DIR']           = db_dir
+    conf_dict['db_core_file']           = os.path.join(db_dir, "xa_core_db.sql")
+    conf_dict['db_create_user_file']    = os.path.join(db_dir, "create_dev_user.sql")
+    conf_dict['db_audit_file']          = os.path.join(db_dir, "xa_audit_db.sql")
+    conf_dict['db_asset_file']          = os.path.join(db_dir, "reset_asset.sql")
 
-    EWS_ROOT = os.path.join(INSTALL_DIR , "ews")
-    WEBAPP_ROOT= os.path.join(INSTALL_DIR , "ews" , "webapp")
-
-    populate_config_dict()
-
-    conf_dict['db_core_file'] = os.path.join(ARGUS_DB_DIR, "xa_core_db.sql")
-    conf_dict['db_create_user_file'] = os.path.join(ARGUS_DB_DIR, "create_dev_user.sql")
-    conf_dict['db_core_file'] = os.path.join(ARGUS_DB_DIR, "xa_core_db.sql")
-    conf_dict['db_audit_file'] = os.path.join(ARGUS_DB_DIR, "xa_audit_db.sql")
-    conf_dict['db_asset_file'] = os.path.join(ARGUS_DB_DIR, "reset_asset.sql")
-
-    conf_dict['EWS_ROOT'] = EWS_ROOT
-    conf_dict['WEBAPP_ROOT'] = WEBAPP_ROOT
-    conf_dict['ARGUS_DB_DIR'] = ARGUS_DB_DIR
-
-    log("ARGUS_ADMIN_HOME is : " + ARGUS_ADMIN_HOME, "debug")
-    log("INSTALL_DIR is : " + INSTALL_DIR, "debug")
-    log("EWS_ROOT is : " + EWS_ROOT, "debug")
-    log("WEBAPP_ROOT is : " + WEBAPP_ROOT, "debug")
-    log("config is : " + str(conf_dict), "debug")
-
+    log("config is : " , "debug")
+    for x in conf_dict:
+        log(x + " : " + conf_dict[x], "debug")
 
 #TODO fix the base_dir part
 def setup_install_files():
-    global INSTALL_DIR, WEBAPP_ROOT, EWS_ROOT, EWS_LOG_DIR
+    global conf_dict
+
+    EWS_ROOT = conf_dict['EWS_ROOT']
+    INSTALL_DIR = conf_dict['INSTALL_DIR']
+    WEBAPP_ROOT = conf_dict['WEBAPP_ROOT']
 
     EWS_LIB_DIR = os.path.join(EWS_ROOT,"lib")
-    EWS_LOG_DIR = os.path.join(EWS_ROOT,"logs")
+    #EWS_LOG_DIR = os.path.join(EWS_ROOT,"logs")
     ARGUS_ADMIN_HOME = os.getenv("ARGUS_ADMIN_HOME")
 
     log("Setting up installation files and directory", "debug")
 
     if not os.path.isdir(INSTALL_DIR):
         log("creating Install dir : " + INSTALL_DIR, "debug")
-        os.makedirs(os.path.join(base_dir,INSTALL_DIR))
+        os.makedirs(INSTALL_DIR)
 
     if not os.path.isdir(EWS_ROOT):
         log("creating EWS dir : " + EWS_ROOT, "debug")
-        os.makedirs(os.path.join(base_dir,EWS_ROOT))
+        os.makedirs(EWS_ROOT)
 
     if not os.path.isdir(WEBAPP_ROOT):
         log("creating WEBAPP dir : " + WEBAPP_ROOT, "debug")
-        os.makedirs(os.path.join(base_dir,WEBAPP_ROOT))
+        os.makedirs(WEBAPP_ROOT)
 
     if not os.path.isdir(EWS_LIB_DIR):
         log("creating EWS_LIB_DIR dir : " + EWS_LIB_DIR, "debug")
-        os.makedirs(os.path.join(base_dir,EWS_LIB_DIR))
+        os.makedirs(EWS_LIB_DIR)
 
-    if not os.path.isdir(EWS_LOG_DIR):
-        log("creating EWS_LOG_DIR dir : " + EWS_LOG_DIR, "debug")
-        os.makedirs(os.path.join(base_dir,EWS_LOG_DIR))
+    #if not os.path.isdir(EWS_LOG_DIR):
+    #    log("creating EWS_LOG_DIR dir : " + EWS_LOG_DIR, "debug")
+    #    os.makedirs(EWS_LOG_DIR)
 
+    log("copying libraries ", "debug")
     copy_files(os.path.join(ARGUS_ADMIN_HOME,"ews","lib"), EWS_LIB_DIR)
 
-    log("copying xapolicymgr.properties file  ARGUS_ADMIN_HOME dir : " + ARGUS_ADMIN_HOME, "debug")
+    log("copying xapolicymgr.properties file", "debug")
     shutil.copyfile(os.path.join(ARGUS_ADMIN_HOME,"ews","xapolicymgr.properties"), os.path.join(EWS_ROOT,"xapolicymgr.properties"))
-
-    #os.makedirs(os.path.join(base_dir,EWS_ROOT,"lib"))
-    #copy_files(os.path.join(base_dir,INSTALL_DIR) , "lib", EWS_ROOT)
 
     log(" Setting up installation files and directory DONE", "info");
 pass
 
-def parse_config_file():
-    global PWD
-    global conf_dict
-    ##Logic to be written 
-    #ini_file = os.path.join(conf, 'install.properties')
-    ini_file = os.path.join(PWD,"install.properties")
-    config = StringIO.StringIO()
-    config.write('[dummysection]\n')
-    config.write(open(ini_file).read())
-    config.seek(0, os.SEEK_SET)
-    ##Now parse using configparser
-    cObj = ConfigParser.ConfigParser()
-    cObj.optionxform = str
-    cObj.readfp(config)
-    options = cObj.options('dummysection')
-    for option in options:
-        value = cObj.get('dummysection', option)
-        conf_dict[option] = value
-        #print "Properties : %s=%s ::: \n", (option,value)
-
-    # with open("install.properties", 'r') as f:
-    # 
-    #     config_string = '[dummy_section]\n' + f.read()
-    #     config = configparser.ConfigParser()
-    #     config.read_string(config_string)
-    #     print "Properties : %s",(config)
-
-def log(msg,type):
-    if type == 'info': 
-        logging.info(" %s",msg)
-    if type == 'debug': 
-        logging.debug(" %s",msg)
-    if type == 'warning':
-        logging.warning(" %s",msg)
-    if type == 'exception':
-        logging.exception(" %s",msg)
+#def parse_config_file():
+#    global conf_dict
+#    ini_file = os.path.join(conf_dict['ARGUS_ADMIN_HOME'],"install.properties")
+#    config = StringIO.StringIO()
+#    config.write('[dummysection]\n')
+#    config.write(open(ini_file).read())
+#    config.seek(0, os.SEEK_SET)
+#    ##Now parse using configparser
+#    cObj = ConfigParser.ConfigParser()
+#    cObj.optionxform = str
+#    cObj.readfp(config)
+#    options = cObj.options('dummysection')
+#    for option in options:
+#        value = cObj.get('dummysection', option)
+#        conf_dict[option] = value
+#        #print "Properties : %s=%s ::: \n", (option,value)
 
 def init_logfiles():
     FORMAT = '%(asctime)-15s %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 
-#TODO!! THIS IS NOT WORKING!! 
-#Get Properties from File
-#propName -> propertyName, fileName -> fileName
-def getPropertyFromFile(propName,fileName,varName):
-    retVal=''
-    propName = propName +"="
-    found = False
-    if os.path.isfile(fileName): 
-        datafile = file("%s",fileName) 
-        for line in datafile:
-            if propName in line:
-                found = True
-                retVal = line.replace(propName,'')
-                break
-        return retVal
-pass
 
-def check_mysql_connector(): 
-    global MYSQL_CONNECTOR_JAR
-    ### From properties file 
-    MYSQL_CONNECTOR_JAR = os.getenv("MYSQL_CONNECTOR_JAR")
-    debugMsg = "Checking MYSQL CONNECTOR FILE : " + MYSQL_CONNECTOR_JAR
-    log(debugMsg, 'debug') 
-    log( "Checking MYSQL CONNECTOR FILE : " + MYSQL_CONNECTOR_JAR, "debug")
-    ### From properties file 
-    if os.path.isfile(MYSQL_CONNECTOR_JAR):
-        log(" MYSQL CONNECTOR FILE :" + MYSQL_CONNECTOR_JAR + "file found",'info')
-    else:
-      log(" MYSQL CONNECTOR FILE : "+MYSQL_CONNECTOR_JAR+" file does not exist",'info')
-pass
+def sanity_check_configure_files():
+    global conf_dict
+    
+    log("Checking MYSQL executable and db files!!", 'debug') 
+    db_core_file = conf_dict['db_core_file'] 
+    db_create_user_file = conf_dict['db_create_user_file']
+    db_audit_file = conf_dict['db_audit_file']
+    db_asset_file = conf_dict['db_asset_file'] 
 
-def sanity_check_files():
-    log("Checking war file and core_db file!!", 'debug') 
-    ### From properties file 
-    if os.path.isfile(war_file):
-        log("war_file: " + war_file + " file found", 'info')
-    else:
-        os.sys.exit('war_file: ' + war_file + ' file does not exist')
+    MYSQL_HOST = conf_dict["MYSQL_HOST"]
+    MYSQL_BIN = conf_dict["MYSQL_BIN"]
+
+    #if os.path.isfile(MYSQL_BIN):
+    #    log("MYSQL Client bin : " + MYSQL_BIN + " file found", 'info')
+    #else:
+    #    os.sys.exit('MYSQL_BIN: ' + MYSQL_BIN + ' file does not exist')
 
     if os.path.isfile(db_core_file):
-        log(db_core_file + " file found", 'info')
+        log("DB core file " + db_core_file + " file found", 'info')
     else:
         os.sys.exit('db_core_file: ' + db_core_file + ' file does not exist')
         
-# def create_rollback_point():
-#     DATE=`date`
-#     BAK_FILE=APP-VERSION.DATE.bak
-#     log "Creating backup file : BAK_FILE"
-#     cp "APP" "BAK_FILE"
+    if os.path.isfile(db_create_user_file):
+        log("DB create user file " + db_create_user_file + " file found", 'info')
+    else:
+        os.sys.exit('db_create_user_file: ' + db_create_user_file + ' file does not exist')
 
-def getstatusoutput(cmd): 
-    """Return (status, output) of executing cmd in a shell."""
-    """This new implementation should work on all platforms."""
-    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True)  
-    output = "".join(pipe.stdout.readlines()) 
-    sts = pipe.returncode
-    if sts is None: sts = 0
-    return sts, output
+    if os.path.isfile(db_audit_file):
+        log("DB audit file " + db_audit_file + " file found", 'info')
+    else:
+        os.sys.exit('db_audit_file: ' + db_audit_file + ' file does not exist')
 
-def create_mysql_user():
+    if os.path.isfile(db_asset_file):
+        log("DB asset file " + db_asset_file + " file found", 'info')
+    else:
+        os.sys.exit('db_asset_file: ' + db_asset_file + ' file does not exist')
+
+def create_mysql_user(db_name, db_user, db_password):
     global conf_dict
 
     MYSQL_HOST = conf_dict["MYSQL_HOST"]
     MYSQL_BIN = conf_dict["MYSQL_BIN"]
-    db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
-    db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
 
-    check_mysql_password()
-    #check_mysql_user_password()
+    #check_mysql_password()
     ### From properties file 
-    log(" Creating MySQL user "+db_user+" (using root priviledges)", 'debug')
-    count=0
-    cmdStr = '\"' + MYSQL_BIN + '\"' +' -B -u root --password='+db_root_password +' -h '+MYSQL_HOST + ' --skip-column-names -e \'select count(*) from mysql.user where user ="'+db_user + '" and host = "'+MYSQL_HOST+'"\''
+    log("Creating MySQL user "+db_user+" (using root priviledges)", 'debug')
+    cmdStr = '"' + MYSQL_BIN + '"' +' -B -u root --password='+db_root_password +' -h '+MYSQL_HOST + ' --skip-column-names -e \'select count(*) from mysql.user where user ="'+db_user + '" and host = "'+MYSQL_HOST+'"\''
     status, output = getstatusoutput(cmdStr)
-    if output == 1: 
-        log( "MYSQL User found!", "debug")
+
+    if output.strip("\n\r") is "1": 
+        log( "MYSQL User already exists!", "debug")
     else:
         if db_password == "":
-            cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+db_user+'\'@\''+MYSQL_HOST+'\'"'
+            cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e \'create user "'+db_user+'"@"'+MYSQL_HOST+'";\''
         else: 
-            cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+db_user+'\'@\''+MYSQL_HOST+'\' identified by '+db_password+';"'
+            cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e \'create user "'+db_user+'"@"'+MYSQL_HOST+'" identified by "'+db_password+'";\''
         status, output = getstatusoutput(cmdStr)
         if status == 0: 
-            #mysqlquery="GRANT ALL ON *.* TO '" + db_user + "'@'" + MYSQL_HOST+"'; grant all privileges on *.* to '" + db_user + "'@'" + MYSQL_HOST + "' with grant option; FLUSH PRIVILEGES;"
-            mysqlquery="GRANT ALL ON *.* TO '"+db_user+"'@'"+MYSQL_HOST+"';\
-            grant all privileges on *.* to '"+db_user+"'@'"+MYSQL_HOST+"' with grant option;\
+            mysqlquery="GRANT ALL ON "+db_name+".* TO \'"+db_user+"'@'"+MYSQL_HOST+"' ;\
+            grant all privileges on "+db_name+".* to '"+db_user+"'@'"+MYSQL_HOST+"' with grant option;\
             FLUSH PRIVILEGES;"
             status, output = getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
             if status == 0: 
                 log("Creating MySQL user '" + db_user + "' (using root priviledges) DONE", "info")
             else:
-                log("MySQL create user failed", "exception")
+                log("Creating MySQL user '" + db_user + "' (using root priviledges) FAILED", "info")
                 sys.exit(1)
-
-def create_audit_mysql_user(): 
-    global conf_dict
-
-    db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
-    db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
-    db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
-    audit_db = conf_dict["ARGUS_AUDIT_DB_NAME"]
-    audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
-    audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
-    db_name = conf_dict['ARGUS_ADMIN_DB_NAME']
-    audit_db_name = conf_dict['ARGUS_AUDIT_DB_NAME']
-
-    db_create_user_file = conf_dict['db_create_user_file']
-    db_core_file =  conf_dict['db_core_file'] 
-    db_audit_file =  conf_dict['db_audit_file']
-    db_asset_file = conf_dict['db_asset_file']
-    MYSQL_BIN = conf_dict['MYSQL_BIN']
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
-
- 
-    check_mysql_audit_user_password()
-    
-    log("Verifying Database: "+audit_db_name, "info")
-    cmdStr=MYSQL_BIN+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show databases like '"+audit_db_name+"'\""
-    status, output = getstatusoutput(cmdStr)
-    if output != "": 
-        log("database " + audit_db_name + " already exists.","info")
-    else:   
-        log("Creating Database " + audit_db_name, "info")
-        cmdStr = MYSQL_BIN+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -e \"create database "+audit_db_name+"\""
-        status, output = getstatusoutput(cmdStr)
-        if status == 0: 
-            log("Creating database "+audit_db_name+" Succeeded..", "info")
-        else:
-			log("Creating database "+audit_db_name+" Failed..", "exception")
-    ##Check for user 
-    cmdStr=MYSQL_BIN+" -B -u root --password="+db_root_password+" -h "+MYSQL_HOST+" --skip-column-names -e \"select count(*) from mysql.user where user = '"+audit_db_user+"' and host = '"+MYSQL_HOST+"';\""
-    status, output = getstatusoutput(cmdStr)
-    if output == 1: 
-        log("Mysql User found","info")
-    else:
-        if audit_db_password == "":
-            cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+audit_db_user+'\'@\''+MYSQL_HOST+'\'"'
-        else: 
-            cmdStr = MYSQL_BIN+' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e "create user \''+audit_db_user+'\'@\''+MYSQL_HOST+'\' identified by '+audit_db_password+';"'
-        status, output = getstatusoutput(cmdStr)
-        if status == 0: 
-            mysqlquery="GRANT ALL ON "+audit_db_name+".* TO \'"+audit_db_user+"'@'"+MYSQL_HOST+"' ;\
-            grant all privileges on "+audit_db_name+".* to '"+audit_db_user+"'@'"+MYSQL_HOST+"' with grant option;\
-            FLUSH PRIVILEGES;"
-            status, output = getstatusoutput('echo "'+mysqlquery+'" | '+MYSQL_BIN+' -u root --password='+db_root_password+' -h '+MYSQL_HOST)
-            if status == 0: 
-                log("Creating MySQL user '" + audit_db_user + "' (using root priviledges) DONE", "info")
-            else:
-                log("MySQL create user failed", "exception")
-                sys.exit(1)
-            # try:
-            AUDIT_TABLE="xa_access_audit"
-            log("Verifying table "+AUDIT_TABLE+" in audit database "+audit_db_name, "debug")
-
-            cmdStr=MYSQL_BIN+" -u "+audit_db_user+" --password="+audit_db_password+" -D "+audit_db_name+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show tables like '"+AUDIT_TABLE+"' ;\""
-            status, output = getstatusoutput(cmdStr)
-            if output != 1:
-                log("Importing Audit Database file: " + db_audit_file,"debug")
-                if os.path.isfile(db_audit_file):
-                    proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % audit_db_user, "--password=%s" % audit_db_paassword, audit_db_name],
-                        stdin=subprocess.PIPE,
-                        stdout=subprocess.PIPE)
-                    out, err = proc.communicate(file(db_audit_file).read())
-                    print out
-            else:
-                log("table "+AUDIT_TABLE+" already exists in audit database "+audit_db_name,"info")
 
 def check_mysql_password ():
     global conf_dict
-    db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
-    db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
     MYSQL_HOST = conf_dict['MYSQL_HOST']
     MYSQL_BIN = conf_dict['MYSQL_BIN']
 
-    log("Checking MYSQL root password : " + db_root_password,"debug")
-    # connect
+    log("Checking MYSQL root password : **** ","debug")
+
     cmdStr = "\""+MYSQL_BIN+"\""+" -u root --password="+db_root_password+" -h "+MYSQL_HOST+" -s -e \"select version();\""
-    log("sql : " + cmdStr,"debug")
-
-    proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE)
-    out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
-
     status, output = getstatusoutput(cmdStr)
+    print "Status: " + str(status)
+    print "output: " + str(output)
+
     if status == 0:
         log("Checking MYSQL root password DONE", "info")
     else:  
@@ -416,52 +368,52 @@ def check_mysql_password ():
         sys.exit(1)
     
 
-def check_mysql_user_password(): 
-    global conf_dict 
-    db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
-    db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
-    db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
+#def check_mysql_user_password(): 
+#    global conf_dict 
+#    db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
+#    db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
+#    db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
+#    MYSQL_HOST = conf_dict['MYSQL_HOST']
+#
+#    db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password)
+#    if db:
+#        log("Checking MYSQL "+ db_user +" password DONE", "info")
+#    else:  
+#        log("COMMAND: mysql -u " + db_user + " --password=..... -h " + MYSQL_HOST + " : FAILED with error message:\n*********************************\n" + {msg} + "\n*********************************\n", "exception")
+#
+#def check_mysql_audit_user_password(): 
+#    global conf_dict
+#    audit_db = conf_dict["ARGUS_AUDIT_DB_NAME"]
+#    audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
+#    audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
+#    MYSQL_HOST = conf_dict['MYSQL_HOST']
+#
+#    try:
+#        db = MySQLdb.connect(host=MYSQL_HOST, user=audit_db_user, passwd=audit_db_password, db=audit_db)
+#    except MySQLdb.Error, e:
+#     exceptnMsg =  "Error %d: %s" % (e.args[0], e.args[1])
+#     log("COMMAND: mysql -u " + audit_db_user + " --password=..... -h " + MYSQL_HOST + " : FAILED with error message:\n*********************************\n" + exceptnMsg + "\n*********************************\n", "exception")
+#     sys.exit (1)
+#    if db:
+#        log("Checking Argus Audit Table owner password DONE", "info")
 
-    db = MySQLdb.connect(host=MYSQL_HOST, user=db_user, passwd=db_password)
-    if db:
-        log("Checking MYSQL "+ db_user +" password DONE", "info")
-    else:  
-        log("COMMAND: mysql -u " + db_user + " --password=..... -h " + MYSQL_HOST + " : FAILED with error message:\n*********************************\n" + {msg} + "\n*********************************\n", "exception")
-
-def check_mysql_audit_user_password(): 
-    global conf_dict
-    audit_db = conf_dict["ARGUS_AUDIT_DB_NAME"]
-    audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
-    audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
-    MYSQL_HOST = conf_dict['MYSQL_HOST']
-
-    try:
-        db = MySQLdb.connect(host=MYSQL_HOST, user=audit_db_user, passwd=audit_db_password, db=audit_db)
-    except MySQLdb.Error, e:
-     exceptnMsg =  "Error %d: %s" % (e.args[0], e.args[1])
-     log("COMMAND: mysql -u " + audit_db_user + " --password=..... -h " + MYSQL_HOST + " : FAILED with error message:\n*********************************\n" + exceptnMsg + "\n*********************************\n", "exception")
-     sys.exit (1)
-    if db:
-        log("Checking Argus Audit Table owner password DONE", "info")
-
-def exec_sql_file(cursor, sql_file):
-    log( "[INFO] Executing SQL script file: " + sql_file, "debug")
-    statement = ""
-    for line in open(sql_file):
-        if re.match(r'--', line):  # ignore sql comment lines
-            continue
-        if not re.search(r'[^-;]+;', line):  # keep appending lines that don't end in ';'
-            statement = statement + line
-        else:  # when you get a line ending in ';' then exec statement and reset for next statement
-            statement = statement + line
-            #print "\n\n[DEBUG] Executing SQL statement:\n%s" % (statement)
-            try:
-                cursor.execute(statement)
-                print cursor
-            except MySQLdb.Error, e:
-                log( "[WARN] MySQLError during execute statement \n\tArgs: " + str(e.args), "debug")
-            statement = ""
+#def exec_sql_file(cursor, sql_file):
+#    log( "[INFO] Executing SQL script file: " + sql_file, "debug")
+#    statement = ""
+#    for line in open(sql_file):
+#        if re.match(r'--', line):  # ignore sql comment lines
+#            continue
+#        if not re.search(r'[^-;]+;', line):  # keep appending lines that don't end in ';'
+#            statement = statement + line
+#        else:  # when you get a line ending in ';' then exec statement and reset for next statement
+#            statement = statement + line
+#            #print "\n\n[DEBUG] Executing SQL statement:\n%s" % (statement)
+#            try:
+#                cursor.execute(statement)
+#                print cursor
+#            except MySQLdb.Error, e:
+#                log( "[WARN] MySQLError during execute statement \n\tArgs: " + str(e.args), "debug")
+#            statement = ""
 
 def upgrade_db():
     global config_dict 
@@ -473,20 +425,17 @@ def upgrade_db():
     MYSQL_BIN = conf_dict['MYSQL_BIN']
     MYSQL_HOST = conf_dict['MYSQL_HOST']
 
-
-    log("Starting upgradedb ... ", "debug")
+    log("Creating Baseline DB upgrade ... ", "debug")
     DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
     PATCHES_PATH = os.path.join(conf_dict['ARGUS_DB_DIR'], 'patches') 
     if os.path.isfile(DBVERSION_CATALOG_CREATION): 
         #import sql file 
-        #exec_sql_file(cursor,DBVERSION_CATALOG_CREATION)
         proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE)
         out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
-
         log("Baseline DB upgraded successfully", "info")
-    #Logic to apply patches
+
     #first get all patches and then apply each patch 
     files = os.listdir(PATCHES_PATH)
     # files: coming from os.listdir() sorted alphabetically, thus not numerically
@@ -501,6 +450,21 @@ def upgrade_db():
             out, err = proc.communicate(file(currentPatch).read())
             log( "Patch applied: " +  currentPatch, "debug")
     
+
+def verify_db (db_user, db_password, db_name):
+    global conf_dict
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
+    MYSQL_BIN = conf_dict['MYSQL_BIN']
+
+    log("Verifying Database: " + db_name,"debug")
+    cmdStr= '"' + MYSQL_BIN + '"' + ' -u '+db_user+' --password='+db_password+' -h '+MYSQL_HOST+' -B --skip-column-names -e  \'show databases like "' + db_name+ '"\''
+    status,output = getstatusoutput(cmdStr)
+
+    if output.strip('\r\n') == db_name: 
+        return True
+    else:
+        return False
+
 def import_db ():
 
     global conf_dict
@@ -508,54 +472,58 @@ def import_db ():
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
-    audit_db = conf_dict["ARGUS_AUDIT_DB_NAME"]
-    audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
-    audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
     db_name = conf_dict['ARGUS_ADMIN_DB_NAME']
     MYSQL_HOST = conf_dict['MYSQL_HOST']
 
-    db_create_user_file = conf_dict['db_create_user_file']
     db_core_file =  conf_dict['db_core_file'] 
-    db_audit_file =  conf_dict['db_audit_file']
     db_asset_file = conf_dict['db_asset_file']
     MYSQL_BIN = conf_dict['MYSQL_BIN']
-    log ("[I] Importing to Database: " + db_name,"debug");
+    log ("Importing to Database: " + db_name,"debug");
 
-
-    log("Verifying Database: " + db_name,"debug")
-    DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
-    cmdStr="\"MYSQL_BIN\"" + " -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -B --skip-column-names -e  \"show databases like '"+db_name+"' ;\""
-    status,output = getstatusoutput(cmdStr)
-    if output == db_name: 
-        log("database "+db_name + " already exists. Ignoring import_db ...","info")
+    if verify_db(db_user, db_password, db_name): 
+        log("Database "+db_name + " already exists. Ignoring import_db","info")
     else:   
-        cmdStr=MYSQL_BIN+" -u "+db_user+" --password="+db_password+" -h "+MYSQL_HOST+" -e  \"create database "+db_name+"\""
+        log("Database does not exist. Creating databse : " + db_name,"info")
+        cmdStr= '"' + MYSQL_BIN+ '"' + ' -B -u '+db_user+' --password='+db_password+' -h '+MYSQL_HOST+' -e \'create database '+db_name+'\';'
         status,output = getstatusoutput(cmdStr)
-        #execute each line from sql file to import DB
+        if status != 0:
+            log("Database creation failed!!","error")
+            sys.exit(1)
+
+        ##execute each line from sql file to import DB
         if os.path.isfile(db_core_file):
-            #exec_sql_file(cursor,db_core_file)
+            log("Importing database : " + db_name + " from file: " + db_core_file,"info")
             proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE)
             out, err = proc.communicate(file(db_core_file).read())
-            log("db core file Imported successfully","info")
+            if (proc.returncode == 0):
+                log("Admin db file Imported successfully","info")
+            else:
+                log("Admin db file Import failed!","info")
+                sys.exit(1)
         else:
             log("Import sql file not found","exception")
             sys.exit(1)
+
         if os.path.isfile(db_asset_file):
-            #exec_sql_file(cursor,db_asset_file)
             proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % db_password, db_name],
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE)
             out, err = proc.communicate(file(db_asset_file).read())
-            print out
-            log("Audit file Imported successfully","info")
+            if (proc.returncode == 0):
+                log("Asset file Imported successfully","info")
+            else:
+                log("Asset file Import filed!","info")
+                sys.exit(1)
         else:
             log("Import asset sql file not found","exception")
             sys.exit(1)
 
 def extract_war(): 
-    global war_file
+    global conf_dict
+    war_file = conf_dict['war_file']
+    WEBAPP_ROOT = conf_dict['WEBAPP_ROOT']
 
     if os.path.isfile(war_file): 
         log("Extract War file " + war_file + " to " + WEBAPP_ROOT,"info")
@@ -567,30 +535,6 @@ def extract_war():
             z.extractall(WEBAPP_ROOT)
         log("Extract War file " + war_file + " to " + WEBAPP_ROOT + " DONE! ","info")
 
-
-
-def copy_files(source_dir,dest_dir):
-    for dir_path, dir_names, file_names in os.walk(source_dir):
-        for file_name in file_names:
-                target_dir = dir_path.replace(source_dir, dest_dir, 1)
-                if not os.path.exists(target_dir):
-                    os.mkdir(target_dir)
-                src_file = os.path.join(dir_path, file_name)
-                dest_file = os.path.join(target_dir, file_name)
-                log("copying src: " + src_file + " dest: " + dest_file, "debug")
-                shutil.copyfile(src_file, dest_file)
-
-#TODO this is not required now 
-def copy_to_webapps ():
-    log("Copying to " + WEBAPP_ROOT,"debug")
-
-    #TODO
-    """
-    if os.path.isfile(WEBAPP_ROOT + "/WEB-INF/log4j.xml.prod"):
-        os.rename(app_home + "/WEB-INF/log4j.xml.prod",app_home + "/WEB-INF/log4j.xml")
-        copy_files(app_home,WEBAPP_ROOT)        
-        log("Copying to " + WEBAPP_ROOT +" DONE","info");
-    """
 
 def copy_mysql_connector():
     log("Copying MYSQL Connector to "+app_home+"/WEB-INF/lib ","info")
@@ -686,293 +630,307 @@ def update_properties():
     newPropertyValue=audit_db_user
     cObj.set('dummysection',propertyName,newPropertyValue)
 
-    keystore=os.getenv("cred_keystore_filename")
-    log("Starting configuration for Argus DB credentials:","info")
-    db_password_alias="policyDB.jdbc.password"
+    #if keystore is not None:
+    #    #os.makedirs(keystore)
+    #    getstatusoutput("java -cp cred/lib/* com.hortonworks.credentialapi.buildks create " + db_password_alias + "-value " + db_password + " -provider jceks://file" + keystore)
+    #    propertyName="xaDB.jdbc.credential.alias"
+    #    newPropertyValue=db_password_alias
+    #    cObj.set('dummysection',propertyName,newPropertyValue)
+    #
+    #    propertyName="xaDB.jdbc.credential.provider.path"
+    #    newPropertyValue=keystore
+    #    cObj.set('dummysection',propertyName,newPropertyValue)
 
-    if keystore is not None:
-        #os.makedirs(keystore)
-        getstatusoutput("java -cp cred/lib/* com.hortonworks.credentialapi.buildks create " + db_password_alias + "-value " + db_password + " -provider jceks://file" + keystore)
-        propertyName="xaDB.jdbc.credential.alias"
-        newPropertyValue=db_password_alias
-        cObj.set('dummysection',propertyName,newPropertyValue)
-    
-        propertyName="xaDB.jdbc.credential.provider.path"
-        newPropertyValue=keystore
-        cObj.set('dummysection',propertyName,newPropertyValue)
+    #    propertyName="jdbc.password"
+    #    newPropertyValue="_"    
+    #    cObj.set('dummysection',propertyName,newPropertyValue)
 
-        propertyName="jdbc.password"
-        newPropertyValue="_"    
-        cObj.set('dummysection',propertyName,newPropertyValue)
+    #else:    
+    #    propertyName="jdbc.password"
+    #    newPropertyValue=db_password
+    #    cObj.set('dummysection',propertyName,newPropertyValue)
 
-        # TODO:WINDOWS Not running chown as it is not used 
-        # getstatusoutput("chown -R " + unix_user + ":" + unix_group+" "+ keystore)
+    #audit_db_password_alias="auditDB.jdbc.password"
 
-    else:    
-        propertyName="jdbc.password"
-        newPropertyValue=db_password
-        cObj.set('dummysection',propertyName,newPropertyValue)
+    #if keystore is not None :
+    #    commands.getstatusoutput("java -cp 'cred/lib/*' com.hortonworks.credentialapi.buildks create "+audit_db_password_alias + " -value " + audit_db_password + " -provider jceks://file"+ keystore)
 
-    audit_db_password_alias="auditDB.jdbc.password"
+    #    propertyName="auditDB.jdbc.credential.alias"
+    #    newPropertyValue=audit_db_password_alias
+    #    cObj.set('dummysection',propertyName,newPropertyValue)
 
-    if keystore is not None :
-        commands.getstatusoutput("java -cp 'cred/lib/*' com.hortonworks.credentialapi.buildks create "+audit_db_password_alias + " -value " + audit_db_password + " -provider jceks://file"+ keystore)
+    #    propertyName="auditDB.jdbc.credential.provider.path"
+    #    newPropertyValue=keystore
+    #    cObj.set('dummysection',propertyName,newPropertyValue)
 
-        propertyName="auditDB.jdbc.credential.alias"
-        newPropertyValue=audit_db_password_alias
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-        propertyName="auditDB.jdbc.credential.provider.path"
-        newPropertyValue=keystore
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-        propertyName="auditDB.jdbc.password"
-        newPropertyValue="_"    
-        cObj.set('dummysection',propertyName,newPropertyValue)
-    else: 
-        propertyName="auditDB.jdbc.password"
-        newPropertyValue=audit_db_password
-        cObj.set('dummysection',propertyName,newPropertyValue)
+    #    propertyName="auditDB.jdbc.password"
+    #    newPropertyValue="_"    
+    #    cObj.set('dummysection',propertyName,newPropertyValue)
+    #else: 
+    #    propertyName="auditDB.jdbc.password"
+    #    newPropertyValue=audit_db_password
+    #    cObj.set('dummysection',propertyName,newPropertyValue)
 
     with open(to_file, 'wb') as configfile:
         cObj.write(configfile)
 
 
 
-def setup_authentication(authentication_method, xmlPath):
-    if authentication_method == "UNIX":
-        log("Setting up UNIX authentication for : " + xmlPath,"debug")
-        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
-        beanSettingPath = xmlPath + "/META-INF/contextXML/unix_bean_settings.xml"
-        secSettingPath = xmlPath + "/META-INF/contextXML/unix_security_settings.xml"
-        ## Logic is to find UNIX_BEAN_SETTINGS_START,UNIX_SEC_SETTINGS_START  from appContext xml file and append 
-        ## the xml properties from unix bean settings file
-        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
-            beanStrToBeAppended =  open(beanSettingPath).read()
-            secStrToBeAppended =  open(secSettingPath).read()
-            fileObj = open(appContextPath)
-            for line in fileObj.read().split(';\n'):
-                beanLineToAppend = line.match("UNIX_BEAN_SETTINGS_START")
-                beanLineToAppend.apend(beanStrToBeAppended)
-                secLineToAppend = line.match("UNIX_SEC_SETTINGS_START")
-                secLineToAppend.append(secStrToBeAppended)
+#def setup_authentication(authentication_method, xmlPath):
+#    if authentication_method == "UNIX":
+#        log("Setting up UNIX authentication for : " + xmlPath,"debug")
+#        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
+#        beanSettingPath = xmlPath + "/META-INF/contextXML/unix_bean_settings.xml"
+#        secSettingPath = xmlPath + "/META-INF/contextXML/unix_security_settings.xml"
+#        ## Logic is to find UNIX_BEAN_SETTINGS_START,UNIX_SEC_SETTINGS_START  from appContext xml file and append 
+#        ## the xml properties from unix bean settings file
+#        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
+#            beanStrToBeAppended =  open(beanSettingPath).read()
+#            secStrToBeAppended =  open(secSettingPath).read()
+#            fileObj = open(appContextPath)
+#            for line in fileObj.read().split(';\n'):
+#                beanLineToAppend = line.match("UNIX_BEAN_SETTINGS_START")
+#                beanLineToAppend.apend(beanStrToBeAppended)
+#                secLineToAppend = line.match("UNIX_SEC_SETTINGS_START")
+#                secLineToAppend.append(secStrToBeAppended)
+#
+#            fileObj.close()    
+#            sys.exit(0);
+#    elif authentication_method == "LDAP":
+#        log("Setting up authentication for : " + xmlPath,"debug")
+#
+#        log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
+#        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
+#        beanSettingPath = xmlPath + "/META-INF/contextXML/ldap_bean_settings.xml"
+#        secSettingPath = xmlPath + "/META-INF/contextXML/ldap_security_settings.xml"
+#        ## Logic is to find LDAP_BEAN_SETTINGS_START,LDAP_SEC_SETTINGS_START  from appContext xml file and append 
+#        ## the xml properties from unix bean settings file
+#        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
+#            beanStrToBeAppended =  open(beanSettingPath).read()
+#            secStrToBeAppended =  open(secSettingPath).read()
+#            fileObj = open(appContextPath)
+#            for line in fileObj.read().split(';\n'):
+#                beanLineToAppend = line.match("LDAP_BEAN_SETTINGS_START")
+#                beanLineToAppend.apend(beanStrToBeAppended)
+#                secLineToAppend = line.match("LDAP_SEC_SETTINGS_START")
+#                secLineToAppend.append(secStrToBeAppended)
+#
+#            fileObj.close()    
+#            sys.exit(0);
+#    elif authentication_method == "ACTIVE_DIRECTORY":
+#        log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
+#        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
+#        beanSettingPath = xmlPath + "/META-INF/contextXML/ad_bean_settings.xml"
+#        secSettingPath = xmlPath + "/META-INF/contextXML/ad_security_settings.xml"
+#        ## Logic is to find AD_BEAN_SETTINGS_START,AD_SEC_SETTINGS_START  from appContext xml file and append 
+#        ## the xml properties from unix bean settings file
+#        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
+#            beanStrToBeAppended =  open(beanSettingPath).read()
+#            secStrToBeAppended =  open(secSettingPath).read()
+#            fileObj = open(appContextPath)
+#            for line in fileObj.read().split(';\n'):
+#                beanLineToAppend = line.match("AD_BEAN_SETTINGS_START")
+#                beanLineToAppend.apend(beanStrToBeAppended)
+#                secLineToAppend = line.match("AD_SEC_SETTINGS_START")
+#                secLineToAppend.append(secStrToBeAppended)
+#
+#            fileObj.close()    
+#            sys.exit(0);
+#        elif authentication_method == "NONE":
+#            log("Authentication Method: "+authentication_method+" authentication for : " + xmlPath,"debug")
+#            sys.exit(0);
+#pass
+#
+#def do_authentication_setup(): 
+#    global PWD
+#    sys_conf_dict={}
+#    log("Starting setup based on user authentication method=authentication_method","debug")
+#    ##Written new function to perform authentication setup for all  cases
+#    authentication_method = os.getenv("authentication_method")
+#    setup_authentication(authentication_method, PWD)
+#    ldap_file=PWD +"/WEB-INF/resources/xa_ldap.properties"
+#    if os.path.isfile(ldap_file):
+#        log(ldap_file + " file found", "info")
+#    else:
+#        log(ldap_file + " does not exists", "warning")
+#    config = StringIO.StringIO()
+#    config.write('[dummysection]\n')
+#    config.write(open(ldap_file).read())
+#    config.seek(0, os.SEEK_SET)
+#    ##Now parse using configparser
+#    cObj = ConfigParser.ConfigParser()
+#    cObj.optionxform = str
+#    cObj.readfp(config)
+#    options = cObj.options('dummysection')
+#    for option in options:
+#        value = cObj.get('dummysection', option)
+#        sys_conf_dict[option] = value
+#        cObj.set("dummysection",option, value)
+#    log("LDAP file : "+ ldap_file + " file found", "info")
+#
+#    if authentication_method == "LDAP":
+#        log("Loading LDAP attributes and properties", "debug");
+#        newPropertyValue='' 
+#        ##########
+#        propertyName="xa_ldap_url"
+#        newPropertyValue=xa_ldap_url
+#        cObj.set('dummysection',propertyName,newPropertyValue)        
+#        ###########            
+#        propertyName="xa_ldap_userDNpattern"
+#        newPropertyValue=xa_ldap_userDNpattern
+#        cObj.set('dummysection',propertyName,newPropertyValue)        
+#        ###########            
+#        propertyName="xa_ldap_groupSearchBase"
+#        newPropertyValue=xa_ldap_groupSearchBase
+#        cObj.set('dummysection',propertyName,newPropertyValue)        
+#        ###########            
+#        propertyName="xa_ldap_groupSearchFilter"
+#        newPropertyValue=xa_ldap_groupSearchFilter
+#        cObj.set('dummysection',propertyName,newPropertyValue)        
+#        ###########            
+#        propertyName="xa_ldap_groupRoleAttribute"
+#        newPropertyValue=xa_ldap_groupRoleAttribute
+#        cObj.set('dummysection',propertyName,newPropertyValue)        
+#        ###########            
+#        propertyName="authentication_method"
+#        newPropertyValue=authentication_method
+#        cObj.set('dummysection',propertyName,newPropertyValue)
+#    else:
+#        log( "LDAP file: "+ ldap_file +" does not exists","exception")
+#    if authentication_method == "ACTIVE_DIRECTORY":
+#        log("[I] Loading ACTIVE DIRECTORY attributes and properties", "debug")
+#        newPropertyValue=''
+#        ldap_file=app_home+"/WEB-INF/classes/xa_ldap.properties"
+#        if os.path.isfile(ldap_file):
+#            log("LDAP file : "+ ldap_file + " file found", "info")
+#            propertyName="xa_ldap_ad_url"
+#            newPropertyValue=xa_ldap_ad_url
+#            cObj.set('dummysection',propertyName,newPropertyValue)
+#            ###########        
+#            propertyName="xa_ldap_ad_domain"
+#            newPropertyValue=xa_ldap_ad_domain
+#            cObj.set('dummysection',propertyName,newPropertyValue)
+#            ###########            
+#            propertyName="authentication_method"
+#            newPropertyValue=authentication_method
+#            cObj.set('dummysection',propertyName,newPropertyValue)
+#        else:
+#            log(ldap_file + " does not exists", "exception")
+#    with open(ldap_file, 'wb') as configfile:
+#        cObj.write(configfile)        
+#
+#    #if authentication_method == "UNIX":
+#        ## I think it is not needed for Windows 
+#        ##do_unixauth_setup
+#    log("Finished setup based on user authentication method=authentication_method", "info") 
+#pass
 
-            fileObj.close()    
-            sys.exit(0);
-    elif authentication_method == "LDAP":
-        log("Setting up authentication for : " + xmlPath,"debug")
+def setup_audit_user_db(): 
+    global conf_dict
 
-        log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
-        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
-        beanSettingPath = xmlPath + "/META-INF/contextXML/ldap_bean_settings.xml"
-        secSettingPath = xmlPath + "/META-INF/contextXML/ldap_security_settings.xml"
-        ## Logic is to find LDAP_BEAN_SETTINGS_START,LDAP_SEC_SETTINGS_START  from appContext xml file and append 
-        ## the xml properties from unix bean settings file
-        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
-            beanStrToBeAppended =  open(beanSettingPath).read()
-            secStrToBeAppended =  open(secSettingPath).read()
-            fileObj = open(appContextPath)
-            for line in fileObj.read().split(';\n'):
-                beanLineToAppend = line.match("LDAP_BEAN_SETTINGS_START")
-                beanLineToAppend.apend(beanStrToBeAppended)
-                secLineToAppend = line.match("LDAP_SEC_SETTINGS_START")
-                secLineToAppend.append(secStrToBeAppended)
+    MYSQL_BIN = conf_dict['MYSQL_BIN']
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
 
-            fileObj.close()    
-            sys.exit(0);
-    elif authentication_method == "ACTIVE_DIRECTORY":
-        log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
-        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
-        beanSettingPath = xmlPath + "/META-INF/contextXML/ad_bean_settings.xml"
-        secSettingPath = xmlPath + "/META-INF/contextXML/ad_security_settings.xml"
-        ## Logic is to find AD_BEAN_SETTINGS_START,AD_SEC_SETTINGS_START  from appContext xml file and append 
-        ## the xml properties from unix bean settings file
-        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
-            beanStrToBeAppended =  open(beanSettingPath).read()
-            secStrToBeAppended =  open(secSettingPath).read()
-            fileObj = open(appContextPath)
-            for line in fileObj.read().split(';\n'):
-                beanLineToAppend = line.match("AD_BEAN_SETTINGS_START")
-                beanLineToAppend.apend(beanStrToBeAppended)
-                secLineToAppend = line.match("AD_SEC_SETTINGS_START")
-                secLineToAppend.append(secStrToBeAppended)
+    db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
+    audit_db_user = conf_dict["ARGUS_AUDIT_DB_USERNAME"]
+    audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
+    audit_db_name = conf_dict['ARGUS_AUDIT_DB_NAME']
+    db_audit_file =  conf_dict['db_audit_file']
 
-            fileObj.close()    
-            sys.exit(0);
-        elif authentication_method == "NONE":
-            log("Authentication Method: "+authentication_method+" authentication for : " + xmlPath,"debug")
-            sys.exit(0);
-pass
+    #check_mysql_audit_user_password()
+    log("--------- Creating mysql audit user --------- ","info")
+    create_mysql_user(audit_db_name, audit_db_user, audit_db_password)
+    log("--------- Creating mysql audit user DONE----- ","info")
 
-def do_authentication_setup(): 
-    global PWD
-    sys_conf_dict={}
-    log("Starting setup based on user authentication method=authentication_method","debug")
-    ##Written new function to perform authentication setup for all  cases
-    authentication_method = os.getenv("authentication_method")
-    setup_authentication(authentication_method, PWD)
-    ldap_file=PWD +"/WEB-INF/resources/xa_ldap.properties"
-    if os.path.isfile(ldap_file):
-        log(ldap_file + " file found", "info")
-    else:
-        log(ldap_file + " does not exists", "warning")
-    config = StringIO.StringIO()
-    config.write('[dummysection]\n')
-    config.write(open(ldap_file).read())
-    config.seek(0, os.SEEK_SET)
-    ##Now parse using configparser
-    cObj = ConfigParser.ConfigParser()
-    cObj.optionxform = str
-    cObj.readfp(config)
-    options = cObj.options('dummysection')
-    for option in options:
-        value = cObj.get('dummysection', option)
-        sys_conf_dict[option] = value
-        cObj.set("dummysection",option, value)
-    log("LDAP file : "+ ldap_file + " file found", "info")
+    log("--------- Importing Audit Database --------- ","info")
 
-    if authentication_method == "LDAP":
-        log("Loading LDAP attributes and properties", "debug");
-        newPropertyValue='' 
-        ##########
-        propertyName="xa_ldap_url"
-        newPropertyValue=xa_ldap_url
-        cObj.set('dummysection',propertyName,newPropertyValue)        
-        ###########            
-        propertyName="xa_ldap_userDNpattern"
-        newPropertyValue=xa_ldap_userDNpattern
-        cObj.set('dummysection',propertyName,newPropertyValue)        
-        ###########            
-        propertyName="xa_ldap_groupSearchBase"
-        newPropertyValue=xa_ldap_groupSearchBase
-        cObj.set('dummysection',propertyName,newPropertyValue)        
-        ###########            
-        propertyName="xa_ldap_groupSearchFilter"
-        newPropertyValue=xa_ldap_groupSearchFilter
-        cObj.set('dummysection',propertyName,newPropertyValue)        
-        ###########            
-        propertyName="xa_ldap_groupRoleAttribute"
-        newPropertyValue=xa_ldap_groupRoleAttribute
-        cObj.set('dummysection',propertyName,newPropertyValue)        
-        ###########            
-        propertyName="authentication_method"
-        newPropertyValue=authentication_method
-        cObj.set('dummysection',propertyName,newPropertyValue)
-    else:
-        log( "LDAP file: "+ ldap_file +" does not exists","exception")
-    if authentication_method == "ACTIVE_DIRECTORY":
-        log("[I] Loading ACTIVE DIRECTORY attributes and properties", "debug")
-        newPropertyValue=''
-        ldap_file=app_home+"/WEB-INF/classes/xa_ldap.properties"
-        if os.path.isfile(ldap_file):
-            log("LDAP file : "+ ldap_file + " file found", "info")
-            propertyName="xa_ldap_ad_url"
-            newPropertyValue=xa_ldap_ad_url
-            cObj.set('dummysection',propertyName,newPropertyValue)
-            ###########        
-            propertyName="xa_ldap_ad_domain"
-            newPropertyValue=xa_ldap_ad_domain
-            cObj.set('dummysection',propertyName,newPropertyValue)
-            ###########            
-            propertyName="authentication_method"
-            newPropertyValue=authentication_method
-            cObj.set('dummysection',propertyName,newPropertyValue)
+    # Verify if audit db is present
+    if verify_db(audit_db_user, audit_db_password, audit_db_name): 
+        log("Database "+audit_db_name + " already exists. Ignoring import_db","info")
+    else:   
+        log("Creating Database " + audit_db_name, "info")
+        # Create audit db is not present
+
+        cmdStr= '"' + MYSQL_BIN+ '"' + ' -B -u root --password='+db_root_password+' -h '+MYSQL_HOST+' -e \'create database '+audit_db_name+'\';'
+        status,output = getstatusoutput(cmdStr)
+        if status != 0:
+            log("Database creation failed!!","error")
+            sys.exit(1)
         else:
-            log(ldap_file + " does not exists", "exception")
-    with open(ldap_file, 'wb') as configfile:
-        cObj.write(configfile)        
+            log("Creating database "+audit_db_name+" succeeded", "info")
 
-    #if authentication_method == "UNIX":
-        ## I think it is not needed for Windows 
-        ##do_unixauth_setup
-    log("Finished setup based on user authentication method=authentication_method", "info") 
-pass
+    # Check if audit table exists 
+    AUDIT_TABLE="xa_access_audit"
+    log("Verifying table "+AUDIT_TABLE+" in audit database "+audit_db_name, "debug")
+    cmdStr= '"' + MYSQL_BIN+ '"' + ' -u '+audit_db_user+' --password='+audit_db_password+' -D '+audit_db_name+' -h '+MYSQL_HOST+' -B --skip-column-names -e  \'show tables like "'+AUDIT_TABLE+'" ;\''
+    status, output = getstatusoutput(cmdStr)
+    if output.strip('\r\n') != "1":
+        # Import audit table 
+        log("Importing Audit Database file: " + db_audit_file,"debug")
+        if os.path.isfile(db_audit_file):
+            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % audit_db_user, "--password=%s" % audit_db_password, audit_db_name],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE)
+            out, err = proc.communicate(file(db_audit_file).read())
+            if (proc.returncode == 0):
+                log("Audit file Imported successfully","info")
+            else:
+                log("Audit file Import failed!","info")
+                sys.exit(1)
+        else:
+            log("Audit file not found!","info")
 
+    else:
+        log("table "+AUDIT_TABLE+" already exists in audit database "+audit_db_name,"info")
+
+    log("--------- Importing Audit Database DONE----- ","info")
+
+
+def setup_admin_db_user():
+    global conf_dict
+
+    MYSQL_BIN = conf_dict['MYSQL_BIN']
+    MYSQL_HOST = conf_dict['MYSQL_HOST']
+
+    db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
+    db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
+    db_name = conf_dict['ARGUS_ADMIN_DB_NAME']
+
+    log("--------- Creating mysql user --------- ","info")
+    create_mysql_user(db_name, db_user, db_password)
+    log("--------- Creating mysql user DONE----- ","info")
+
+    log("--------- Importing Admin Database --------- ","info")
+    import_db()
+    log("--------- Importing Admin Database DONE----- ","info")
+    log("--------- Applying patches --------------- ","info")
+    upgrade_db()
+    log("--------- Applying patches DONE----------- ","info")
 
 
 ## Argus Functions Ends here --------------------
 
-def get_class_path(paths):
-    separator = ';' if sys.platform == 'win32' else ':';
-    return separator.join(paths)
-
-def get_jdk_options():
-    global EWS_ROOT
-    return [os.getenv('ARGUS_PROPERTIES', ''),
-                  '-Dcatalina.base=' + EWS_ROOT ]
-
-def get_argus_log_file():
-    global EWS_LOG_DIR
-    return os.path.join(EWS_LOG_DIR, "catalina.out")
-
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
-
-def resolve_sym_link(path):
-    path = os.path.realpath(path)
-    base_dir = os.path.dirname(os.path.dirname(path))
-    return path, base_dir
-
-
-def get_java_env():
-    JAVA_HOME = os.getenv('JAVA_HOME')
-    if JAVA_HOME:
-        return os.path.join(JAVA_HOME, 'bin', 'java')
-    else:
-        os.sys.exit('java and jar commands are not available. Please configure JAVA_HOME')
-
-
-def set_opts(opt, *env_vars):
-    for env_var in env_vars:
-        opt += ' ' + os.getenv(env_var, '')
-    return opt.strip()
-
-
-def get_argus_classpath():
-    global EWS_ROOT
-    cp = [ os.path.join(EWS_ROOT,"lib","*"), os.path.join(os.getenv('JAVA_HOME'), 'lib', '*')]
-    class_path = get_class_path(cp)
-    return class_path
-
-
 # Entry point to script using --service
 def run_setup(cmd, app_type):
-    parse_config_file()
     init_logfiles()
-    log(" --------- Running Argus PolicyManager Install Script --------- ","debug")
-    #logging.setLevel()
-    init_variables()
-    #check_mysql_connector()
+    log("--------- Running Argus PolicyManager Install Script --------- ","debug")
+    #parse_config_file()
+    init_variables("service")
     setup_install_files()
-    #sanity_check_files()
     extract_war()
     update_properties()
-    # do_authentication_setup()
-    # copy_to_webapps()
-    #print "Setup of Argus PolicyManager Web Application is COMPLETED."
     return
 
 # Entry point to script using --configure
 def configure():
     init_logfiles()
-    parse_config_file()
-    log(" --------- Running Argus PolicyManager Configure Script --------- ","info")
-    init_variables()
-    #sanity_check_files()
-    log(" --------- Creating mysql user --------- ","info")
-    create_mysql_user()
-    log(" --------- Importing DB --------- ","info")
+    log("--------- Running Argus PolicyManager Configure Script --------- ","info")
+    #parse_config_file()
+    init_variables("configure")
+    sanity_check_configure_files()
+    #log(" --------- Importing DB --------- ","info")
     # copy_mysql_connector()
-    #import_db()
-    log(" --------- Upgrading DB --------- ","info")
-    #upgrade_db()
-    log(" --------- Creatin Audit DB --------- ","info")
-    #create_audit_mysql_user()
+    #log(" --------- Creatin Audit DB --------- ","info")
+    setup_admin_db_user()
+    setup_audit_user_db()
 
