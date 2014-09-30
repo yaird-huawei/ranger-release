@@ -174,7 +174,7 @@ function Main( $scriptDir )
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
 		"xasecure.audit.repository.name"						= "${ENV:ARGUS_HIVE_REPO}"
-		"xasecure.audit.credential.provider.file"				= "jceks://file${ENV:ARGUS_HIVE_CRED_KEYSTORE_FILE}"
+		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_HIVE_CRED_KEYSTORE_FILE}"
        	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
 	}
 
@@ -186,9 +186,9 @@ function Main( $scriptDir )
 	#
     $hiveSecurityChanges = @{
 		"hive.authorization.verifier.classname"					= "com.xasecure.pdp.hive.XASecureAuthorizer"
-		"xasecure.hive.policymgr.url"							= "${ENV:ARGUS_HOST}/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
-		"xasecure.hive.policymgr.url.saveAsFile"				= "/tmp/hive_${ENV:ARGUS_HIVE_REPO}"
-		"xasecure.hive.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HIVE_CACHE_FILE}/hive_${ENV:ARGUS_HIVE_REPO}_json"
+		"xasecure.hive.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_HIVE_REPO}"
+		"xasecure.hive.policymgr.url.saveAsFile"				= "${ENV:TEMP}\hive_${ENV:ARGUS_HIVE_REPO}"
+		"xasecure.hive.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HIVE_CACHE_FILE}\hive_${ENV:ARGUS_HIVE_REPO}_json"
 		"xasecure.hive.policymgr.url.reloadIntervalInMillis"	= "30000"
 		"xasecure.hive.update.xapolicies.on.grant.revoke"		= "true"
 		"xasecure.policymgr.url"								= "$ENV:ARGUS_HOST"

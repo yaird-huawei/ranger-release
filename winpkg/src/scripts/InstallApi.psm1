@@ -182,6 +182,37 @@ function Install(
         #Invoke-CmdChk $xcopy_cmd
 
 	}
+	elseif ( $component -eq "argus-hbase" )
+	{
+		# This if will work on the assumption that $component ="argus" is installed
+		# so we have the ARGUS_HIVE_HOME properly set
+
+        Write-Log "Copying argus-hbase config files "
+
+		# TODO:WINDOWS check if the path HBASE_CONF_DIR is set or not
+		Write-Log "Checking the HBASE_CONF_DIR Installation."
+        if( -not (Test-Path $ENV:HBASE_CONF_DIR))
+        {
+          Write-Log "HBASE_CONF_DIR not set properly; $ENV:HBASE_CONF_DIR does not exist" "Failure"
+          throw "Install: HBASE_CONF_DIR not set properly; $ENV:HBASE_CONF_DIR does not exist."
+        }
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\install\conf.template\enable\*.xml`" `"$ENV:HBASE_CONF_DIR`""
+        Invoke-CmdChk $xcopy_cmd
+
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\lib\*.jar`" `"$ENV:HBASE_LIB_DIR`""
+        Invoke-CmdChk $xcopy_cmd
+
+		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HBASE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
+		
+        [Environment]::SetEnvironmentVariable("ARGUS_HBASE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HBASE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE = "$credStorePath\Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
+
+
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        #Invoke-CmdChk $xcopy_cmd
+
+	}
     elseif ( $component -eq "argus-ugsync" )
     {
         # This if will work on the assumption that $component ="argus" is installed
@@ -706,6 +737,10 @@ function Configure(
     {
         ConfigureArgusHive $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
+	elseif ( $component -eq "argus-hbase" )
+    {
+        ConfigureArgusHbase $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+    }
     elseif ( $component -eq "argus-ugsync" )
     {
         ConfigureArgusUgsync $nodeInstallRoot $serviceCredential $configs $aclAllFolders
@@ -834,6 +869,62 @@ function ConfigureArgusHive(
     ### Apply configuration changes to xasecure-audit.xml
     ###
     $xmlFile = Join-Path $ENV:HIVE_CONF_DIR "xasecure-audit.xml" 
+    UpdateXmlConfig $xmlFile $configs["hiveAuditChanges"]
+
+ }
+
+
+###############################################################################
+###
+### Alters the configuration of the Hadoop HBase component for Argus.
+###
+### Arguments:
+###   See Configure
+###############################################################################
+function ConfigureArgusHbase(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [hashtable]
+    [parameter( Position=2 )]
+    $configs = @{},
+    [bool]
+    [parameter( Position=3 )]
+    $aclAllFolders = $True
+    )
+{
+
+	#TODO:WINDOWS Check if appropriate dirs are present and env set
+    #if( -not (Test-Path $hadoopInstallToDir ))
+    #{
+    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
+    #}
+
+    ###
+    ### Apply configuration changes to hbase-site.xml
+    ###
+	$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "hbase-site.xml" 
+    UpdateXmlConfig $xmlFile $configs["hbaseChanges"]
+
+    ###
+    ### Apply configuration changes to hbaseserver2-site.xml
+    ###
+    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "hbaseserver2-site.xml" 
+    UpdateXmlConfig $xmlFile $configs["hbaseServerChanges"]
+
+    ###
+    ### Apply configuration changes to xasecure-hbase-security.xml
+    ###
+    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-hbase-security.xml" 
+    UpdateXmlConfig $xmlFile $configs["hbaseSecurityChanges"]
+
+    ###
+    ### Apply configuration changes to xasecure-audit.xml
+    ###
+    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml" 
     UpdateXmlConfig $xmlFile $configs["hiveAuditChanges"]
 
 
