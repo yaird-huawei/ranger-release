@@ -183,7 +183,7 @@ def get_argus_classpath():
     global conf_dict
     EWS_ROOT = conf_dict['EWS_ROOT']
 
-    cp = [ os.path.join(EWS_ROOT,"lib","*"), EWS_ROOT, os.path.join(os.getenv('JAVA_HOME'), 'lib', '*')]
+    cp = [ os.path.join(EWS_ROOT,"lib","*"), os.path.join(os.getenv('JAVA_HOME'), 'lib', '*')]
     class_path = get_class_path(cp)
     return class_path
 
@@ -209,7 +209,6 @@ def populate_config_dict_from_env():
     conf_dict['ARGUS_LDAP_GROUPSEARCHFILTER'] = os.getenv("ARGUS_LDAP_GROUPSEARCHFILTER")
     conf_dict['ARGUS_ldap_GROUPROLEATTRIBUTE'] = os.getenv("ARGUS_ldap_GROUPROLEATTRIBUTE")
     
-
     # AD Settings
     conf_dict['ARGUS_LDAP_AD_DOMAIN'] = os.getenv("ARGUS_LDAP_AD_DOMAIN")
     conf_dict['ARGUS_LDAP_AD_URL'] = os.getenv("ARGUS_LDAP_AD_URL")
@@ -561,13 +560,13 @@ def extract_war():
         if os.path.isfile ( os.path.join(WEBAPP_ROOT, "WEB-INF", "log4j.xml.prod")) :
             shutil.copyfile(os.path.join(WEBAPP_ROOT, "WEB-INF", "log4j.xml.prod"), os.path.join(WEBAPP_ROOT, "WEB-INF", "log4j.xml"))
 
-def copy_mysql_connector():
-    log("Copying MYSQL Connector to "+app_home+"/WEB-INF/lib ","info")
-    shutil.copyfile(MYSQL_CONNECTOR_JAR, app_home+"/WEB-INF/lib/"+MYSQL_CONNECTOR_JAR)
-    if os.path.isfile(app_home+"/WEB-INF/lib/"+MYSQL_CONNECTOR_JAR):
-        log("Copying MYSQL Connector to app_home/WEB-INF/lib DONE","info");
-    else:
-         log("Copying MYSQL Connector to "+app_home+"/WEB-INF/lib failed","exception")
+# def copy_mysql_connector():
+#     log("Copying MYSQL Connector to "+app_home+"/WEB-INF/lib ","info")
+#     shutil.copyfile(MYSQL_CONNECTOR_JAR, app_home+"/WEB-INF/lib/"+MYSQL_CONNECTOR_JAR)
+#     if os.path.isfile(app_home+"/WEB-INF/lib/"+MYSQL_CONNECTOR_JAR):
+#         log("Copying MYSQL Connector to app_home/WEB-INF/lib DONE","info");
+#     else:
+#          log("Copying MYSQL Connector to "+app_home+"/WEB-INF/lib failed","exception")
 
 
 #Update Properties to File
@@ -655,42 +654,6 @@ def update_properties():
     propertyName="auditDB.jdbc.user"
     newPropertyValue=audit_db_user
     cObj.set('dummysection',propertyName,newPropertyValue)
-
-    if (os.path.isfile(os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE"):
-        propertyName="xaDB.jdbc.credential.alias"
-        newPropertyValue="policyDB.jdbc.password"
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-        propertyName="xaDB.jdbc.credential.provider.path"
-        newPropertyValue= os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE")
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-        propertyName="jdbc.password"
-        newPropertyValue="_"    
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-        propertyName="auditDB.jdbc.credential.alias"
-        newPropertyValue="auditDB.jdbc.password"
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-        propertyName="auditDB.jdbc.credential.provider.path"
-        newPropertyValue= os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE")
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-        propertyName="auditDB.jdbc.password"
-        newPropertyValue="_"    
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-    else:
-
-        propertyName="jdbc.password"
-        newPropertyValue=os.getenv("ARGUS_ADMIN_DB_PASSWORD")    
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
-        propertyName="auditDB.jdbc.password"
-        newPropertyValue=os.getenv("ARGUS_AUDIT_DB_PASSWORD")    
-        cObj.set('dummysection',propertyName,newPropertyValue)
-
     with open(to_file, 'wb') as configfile:
         cObj.write(configfile)
 
@@ -839,7 +802,10 @@ def do_authentication_setup():
 #    with open(ldap_file, 'wb') as configfile:
 #        cObj.write(configfile)        
 #
-#    log("Finished setup based on user authentication method=authentication_method", "info") 
+#    #if authentication_method == "UNIX":
+#        ## I think it is not needed for Windows
+#        ##do_unixauth_setup
+#    log("Finished setup based on user authentication method=authentication_method", "info")
 #pass
 
 def setup_audit_user_db(): 
