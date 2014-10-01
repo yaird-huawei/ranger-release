@@ -201,6 +201,17 @@ def populate_config_dict_from_env():
     conf_dict['ARGUS_ADMIN_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_ROOT_PASSWORD")
     conf_dict['ARGUS_AUDIT_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_AUDIT_DB_ROOT_PASSWORD")
     conf_dict['ARGUS_ADMIN_HOME'] = os.getenv("ARGUS_ADMIN_HOME")
+    conf_dict['ARGUS_AUTHENTICATION_METHOD'] = os.getenv("ARGUS_AUTHENTICATION_METHOD")
+    # LDAP Settings
+    conf_dict['ARGUS_LDAP_URL'] = os.getenv("ARGUS_LDAP_URL")
+    conf_dict['ARGUS_LDAP_USERDNPATTERN'] = os.getenv("ARGUS_LDAP_USERDNPATTERN")
+    conf_dict['ARGUS_LDAP_GROUPSEARCHBASE'] = os.getenv("ARGUS_LDAP_GROUPSEARCHBASE")
+    conf_dict['ARGUS_LDAP_GROUPSEARCHFILTER'] = os.getenv("ARGUS_LDAP_GROUPSEARCHFILTER")
+    conf_dict['ARGUS_ldap_GROUPROLEATTRIBUTE'] = os.getenv("ARGUS_ldap_GROUPROLEATTRIBUTE")
+
+    # AD Settings
+    conf_dict['ARGUS_LDAP_AD_DOMAIN'] = os.getenv("ARGUS_LDAP_AD_DOMAIN")
+    conf_dict['ARGUS_LDAP_AD_URL'] = os.getenv("ARGUS_LDAP_AD_URL")
 
 def init_variables(switch):
     global conf_dict
@@ -334,25 +345,25 @@ def create_mysql_user(db_name, db_user, db_password, db_host, db_root_password):
 
 		cmdArr.extend(["-e", "select count(*) from mysql.user where user='%s' and host='%s'" %(db_user, host)])
 		output = subprocess.check_output(cmdArr)
-		if output.strip("\n\r") is "1": 
+		if output.strip("\n\r") is "1":
 			log( "\nMYSQL User already exists!\n", "debug")
 		else:
 			cmdArr = get_mysql_cmd('root', db_root_password, db_host)
 			if db_password == "":
 				#cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'";\''
 				cmdArr.extend(["-e", "create user %s@%s" %(db_user, host)])
-			else: 
+			else:
 				cmdArr.extend(["-e", "create user '%s'@'%s' identified by '%s' " %(db_user, host, db_password)])
 				#cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'" identified by "'+db_password+'";\''
 				ret = subprocess.check_call(cmdArr)
-			if ret == 0: 
+			if ret == 0:
 				#mysqlquery="GRANT ALL ON "+db_name+".* TO \'"+db_user+"'@'"+db_host+"' ;\
 				#grant all privileges on "+db_name+".* to '"+db_user+"'@'"+db_host+"' with grant option;\
 				#FLUSH PRIVILEGES;"
 				cmdArr = get_mysql_cmd('root', db_root_password, db_host)
 				cmdArr.extend(["-e", "GRANT ALL ON *.* TO '%s'@'%s'; grant all privileges on *.* to '%s'@'%s' with grant option; FLUSH PRIVILEGES" %(db_user,host,db_user,host)])
 				ret = subprocess.check_call(cmdArr)
-				if ret == 0: 
+				if ret == 0:
 					log("\nCreating MySQL user '" + db_user + "' (using root priviledges for % hosts ) DONE\n", "info")
 				else:
 					log("\nCreating MySQL user '" + db_user + "' (using root priviledges) FAILED\n", "info")
@@ -646,146 +657,148 @@ def update_properties():
     with open(to_file, 'wb') as configfile:
         cObj.write(configfile)
 
-#def setup_authentication(authentication_method, xmlPath):
-#    if authentication_method == "UNIX":
-#        log("Setting up UNIX authentication for : " + xmlPath,"debug")
-#        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
-#        beanSettingPath = xmlPath + "/META-INF/contextXML/unix_bean_settings.xml"
-#        secSettingPath = xmlPath + "/META-INF/contextXML/unix_security_settings.xml"
-#        ## Logic is to find UNIX_BEAN_SETTINGS_START,UNIX_SEC_SETTINGS_START  from appContext xml file and append 
-#        ## the xml properties from unix bean settings file
-#        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
-#            beanStrToBeAppended =  open(beanSettingPath).read()
-#            secStrToBeAppended =  open(secSettingPath).read()
-#            fileObj = open(appContextPath)
-#            for line in fileObj.read().split(';\n'):
-#                beanLineToAppend = line.match("UNIX_BEAN_SETTINGS_START")
-#                beanLineToAppend.apend(beanStrToBeAppended)
-#                secLineToAppend = line.match("UNIX_SEC_SETTINGS_START")
-#                secLineToAppend.append(secStrToBeAppended)
-#
-#            fileObj.close()    
-#            sys.exit(0);
-#    elif authentication_method == "LDAP":
-#        log("Setting up authentication for : " + xmlPath,"debug")
-#
-#        log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
-#        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
-#        beanSettingPath = xmlPath + "/META-INF/contextXML/ldap_bean_settings.xml"
-#        secSettingPath = xmlPath + "/META-INF/contextXML/ldap_security_settings.xml"
-#        ## Logic is to find LDAP_BEAN_SETTINGS_START,LDAP_SEC_SETTINGS_START  from appContext xml file and append 
-#        ## the xml properties from unix bean settings file
-#        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
-#            beanStrToBeAppended =  open(beanSettingPath).read()
-#            secStrToBeAppended =  open(secSettingPath).read()
-#            fileObj = open(appContextPath)
-#            for line in fileObj.read().split(';\n'):
-#                beanLineToAppend = line.match("LDAP_BEAN_SETTINGS_START")
-#                beanLineToAppend.apend(beanStrToBeAppended)
-#                secLineToAppend = line.match("LDAP_SEC_SETTINGS_START")
-#                secLineToAppend.append(secStrToBeAppended)
-#
-#            fileObj.close()    
-#            sys.exit(0);
-#    elif authentication_method == "ACTIVE_DIRECTORY":
-#        log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
-#        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
-#        beanSettingPath = xmlPath + "/META-INF/contextXML/ad_bean_settings.xml"
-#        secSettingPath = xmlPath + "/META-INF/contextXML/ad_security_settings.xml"
-#        ## Logic is to find AD_BEAN_SETTINGS_START,AD_SEC_SETTINGS_START  from appContext xml file and append 
-#        ## the xml properties from unix bean settings file
-#        if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
-#            beanStrToBeAppended =  open(beanSettingPath).read()
-#            secStrToBeAppended =  open(secSettingPath).read()
-#            fileObj = open(appContextPath)
-#            for line in fileObj.read().split(';\n'):
-#                beanLineToAppend = line.match("AD_BEAN_SETTINGS_START")
-#                beanLineToAppend.apend(beanStrToBeAppended)
-#                secLineToAppend = line.match("AD_SEC_SETTINGS_START")
-#                secLineToAppend.append(secStrToBeAppended)
-#
-#            fileObj.close()    
-#            sys.exit(0);
-#        elif authentication_method == "NONE":
-#            log("Authentication Method: "+authentication_method+" authentication for : " + xmlPath,"debug")
-#            sys.exit(0);
+def setup_authentication(authentication_method, xmlPath):
+   if authentication_method == "UNIX":
+       # log("Setting up UNIX authentication for : " + xmlPath,"debug")
+       # appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
+       # beanSettingPath = xmlPath + "/META-INF/contextXML/unix_bean_settings.xml"
+       # secSettingPath = xmlPath + "/META-INF/contextXML/unix_security_settings.xml"
+       # ## Logic is to find UNIX_BEAN_SETTINGS_START,UNIX_SEC_SETTINGS_START  from appContext xml file and append
+       # ## the xml properties from unix bean settings file
+       # if os.path.isfile(appContextPath) and os.path.isfile(unixSettingPath):
+       #     beanStrToBeAppended =  open(beanSettingPath).read()
+       #     secStrToBeAppended =  open(secSettingPath).read()
+       #     fileObj = open(appContextPath)
+       #     for line in fileObj.read().split(';\n'):
+       #         beanLineToAppend = line.match("UNIX_BEAN_SETTINGS_START")
+       #         beanLineToAppend.apend(beanStrToBeAppended)
+       #         secLineToAppend = line.match("UNIX_SEC_SETTINGS_START")
+       #         secLineToAppend.append(secStrToBeAppended)
+       #
+       #     fileObj.close()
+       #     sys.exit(0);
+       pass
+   elif authentication_method == "LDAP":
+       log("Setting up authentication for : " + xmlPath,"debug")
+
+       log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
+
+       appContextPath = os.path.join(xmlPath ,"META-INF","security-applicationContext.xml")
+       beanSettingPath = os.path.join(xmlPath, "META-INF","contextXML","ldap_bean_settings.xml")
+       secSettingPath = os.path.join(xmlPath , "META-INF","contextXML","ldap_security_settings.xml")
+       ## Logic is to find LDAP_BEAN_SETTINGS_START,LDAP_SEC_SETTINGS_START  from appContext xml file and append
+       ## the xml properties from unix bean settings file
+       if os.path.isfile(appContextPath) and os.path.isfile(beanSettingPath):
+           beanStrToBeAppended =  open(beanSettingPath).read()
+           secStrToBeAppended =  open(secSettingPath).read()
+           fileObj = open(appContextPath)
+           for line in fileObj.read().split(';\n'):
+               beanLineToAppend = line.match("LDAP_BEAN_SETTINGS_START")
+               beanLineToAppend.apend(beanStrToBeAppended)
+               secLineToAppend = line.match("LDAP_SEC_SETTINGS_START")
+               secLineToAppend.append(secStrToBeAppended)
+           fileObj.close()
+
+       elif authentication_method == "ACTIVE_DIRECTORY":
+           log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
+           appContextPath = os.path.join(xmlPath , "META-INF","security-applicationContext.xml")
+           beanSettingPath = os.path.join(xmlPath , "META-INF","contextXML","ad_bean_settings.xml")
+           secSettingPath = os.path.join(xmlPath , "META-INF","contextXML","ad_security_settings.xml")
+
+           ## Logic is to find AD_BEAN_SETTINGS_START,AD_SEC_SETTINGS_START  from appContext xml file and append
+           ## the xml properties from unix bean settings file
+           if os.path.isfile(appContextPath) and os.path.isfile(beanSettingPath):
+               beanStrToBeAppended =  open(beanSettingPath).read()
+               secStrToBeAppended =  open(secSettingPath).read()
+               fileObj = open(appContextPath)
+               for line in fileObj.read().split(';\n'):
+                   beanLineToAppend = line.match("AD_BEAN_SETTINGS_START")
+                   beanLineToAppend.apend(beanStrToBeAppended)
+                   secLineToAppend = line.match("AD_SEC_SETTINGS_START")
+                   secLineToAppend.append(secStrToBeAppended)
+
+               fileObj.close()
+
+           elif authentication_method == "NONE":
+               log("Authentication Method: "+authentication_method+" authentication for : " + xmlPath,"debug")
 #pass
 #
-#def do_authentication_setup(): 
-#    global PWD
-#    sys_conf_dict={}
-#    log("Starting setup based on user authentication method=authentication_method","debug")
+def do_authentication_setup():
+   global conf_dict
+   webappRoot = conf_dict['WEBAPP_ROOT']
+   sys_conf_dict={}
+   log("Starting setup based on user authentication method=authentication_method","debug")
 #    ##Written new function to perform authentication setup for all  cases
-#    authentication_method = os.getenv("authentication_method")
-#    setup_authentication(authentication_method, PWD)
-#    ldap_file=PWD +"/WEB-INF/resources/xa_ldap.properties"
-#    if os.path.isfile(ldap_file):
-#        log(ldap_file + " file found", "info")
-#    else:
-#        log(ldap_file + " does not exists", "warning")
-#    config = StringIO.StringIO()
-#    config.write('[dummysection]\n')
-#    config.write(open(ldap_file).read())
-#    config.seek(0, os.SEEK_SET)
-#    ##Now parse using configparser
-#    cObj = ConfigParser.ConfigParser()
-#    cObj.optionxform = str
-#    cObj.readfp(config)
-#    options = cObj.options('dummysection')
-#    for option in options:
-#        value = cObj.get('dummysection', option)
-#        sys_conf_dict[option] = value
-#        cObj.set("dummysection",option, value)
-#    log("LDAP file : "+ ldap_file + " file found", "info")
-#
-#    if authentication_method == "LDAP":
-#        log("Loading LDAP attributes and properties", "debug");
-#        newPropertyValue='' 
-#        ##########
-#        propertyName="xa_ldap_url"
-#        newPropertyValue=xa_ldap_url
-#        cObj.set('dummysection',propertyName,newPropertyValue)        
-#        ###########            
-#        propertyName="xa_ldap_userDNpattern"
-#        newPropertyValue=xa_ldap_userDNpattern
-#        cObj.set('dummysection',propertyName,newPropertyValue)        
-#        ###########            
-#        propertyName="xa_ldap_groupSearchBase"
-#        newPropertyValue=xa_ldap_groupSearchBase
-#        cObj.set('dummysection',propertyName,newPropertyValue)        
-#        ###########            
-#        propertyName="xa_ldap_groupSearchFilter"
-#        newPropertyValue=xa_ldap_groupSearchFilter
-#        cObj.set('dummysection',propertyName,newPropertyValue)        
-#        ###########            
-#        propertyName="xa_ldap_groupRoleAttribute"
-#        newPropertyValue=xa_ldap_groupRoleAttribute
-#        cObj.set('dummysection',propertyName,newPropertyValue)        
-#        ###########            
-#        propertyName="authentication_method"
-#        newPropertyValue=authentication_method
-#        cObj.set('dummysection',propertyName,newPropertyValue)
-#    else:
-#        log( "LDAP file: "+ ldap_file +" does not exists","exception")
-#    if authentication_method == "ACTIVE_DIRECTORY":
-#        log("[I] Loading ACTIVE DIRECTORY attributes and properties", "debug")
-#        newPropertyValue=''
-#        ldap_file=app_home+"/WEB-INF/classes/xa_ldap.properties"
-#        if os.path.isfile(ldap_file):
-#            log("LDAP file : "+ ldap_file + " file found", "info")
-#            propertyName="xa_ldap_ad_url"
-#            newPropertyValue=xa_ldap_ad_url
-#            cObj.set('dummysection',propertyName,newPropertyValue)
-#            ###########        
-#            propertyName="xa_ldap_ad_domain"
-#            newPropertyValue=xa_ldap_ad_domain
-#            cObj.set('dummysection',propertyName,newPropertyValue)
-#            ###########            
-#            propertyName="authentication_method"
-#            newPropertyValue=authentication_method
-#            cObj.set('dummysection',propertyName,newPropertyValue)
-#        else:
-#            log(ldap_file + " does not exists", "exception")
+   authentication_method = conf_dict['ARGUS_AUTHENTICATION_METHOD']
+   setup_authentication(authentication_method, webappRoot)
+   ldap_file=  os.path.join(webappRoot ,"WEB-INF","resources","xa_ldap.properties")
+   if os.path.isfile(ldap_file):
+       log(ldap_file + " file found", "info")
+   else:
+       log(ldap_file + " does not exists", "warning")
+   config = StringIO.StringIO()
+   config.write('[dummysection]\n')
+   config.write(open(ldap_file).read())
+   config.seek(0, os.SEEK_SET)
+   ##Now parse using configparser
+   cObj = ConfigParser.ConfigParser()
+   cObj.optionxform = str
+   cObj.readfp(config)
+   options = cObj.options('dummysection')
+   for option in options:
+       value = cObj.get('dummysection', option)
+       sys_conf_dict[option] = value
+       cObj.set("dummysection",option, value)
+   log("LDAP file : "+ ldap_file + " file found", "info")
+
+   if authentication_method == "LDAP":
+       log("Loading LDAP attributes and properties", "debug");
+       newPropertyValue=''
+       ##########
+       propertyName="xa_ldap_url"
+       newPropertyValue=conf_dict['ARGUS_LDAP_URL']
+       cObj.set('dummysection',propertyName,newPropertyValue)
+       ###########
+       propertyName="xa_ldap_userDNpattern"
+       newPropertyValue=conf_dict['ARGUS_LDAP_USERDNPATTERN']
+       cObj.set('dummysection',propertyName,newPropertyValue)
+       ###########
+       propertyName="xa_ldap_groupSearchBase"
+       newPropertyValue=conf_dict['ARGUS_LDAP_GROUPSEARCHBASE']
+       cObj.set('dummysection',propertyName,newPropertyValue)
+       ###########
+       propertyName="xa_ldap_groupSearchFilter"
+       newPropertyValue=conf_dict['ARGUS_LDAP_GROUPSEARCHFILTER']
+       cObj.set('dummysection',propertyName,newPropertyValue)
+       ###########
+       propertyName="xa_ldap_groupRoleAttribute"
+       newPropertyValue=conf_dict['ARGUS_ldap_GROUPROLEATTRIBUTE']
+       cObj.set('dummysection',propertyName,newPropertyValue)
+       ###########
+       propertyName="authentication_method"
+       newPropertyValue=authentication_method
+       cObj.set('dummysection',propertyName,newPropertyValue)
+   else:
+       log( "LDAP file: "+ ldap_file +" does not exists","exception")
+   if authentication_method == "ACTIVE_DIRECTORY":
+       log("[I] Loading ACTIVE DIRECTORY attributes and properties", "debug")
+       newPropertyValue=''
+       ldap_file= os.path.join(webappRoot,"WEB-INF","classes","xa_ldap.properties")
+       if os.path.isfile(ldap_file):
+           log("LDAP file : "+ ldap_file + " file found", "info")
+           propertyName="xa_ldap_ad_url"
+           newPropertyValue=conf_dict['ARGUS_LDAP_AD_URL']
+           cObj.set('dummysection',propertyName,newPropertyValue)
+           ###########
+           propertyName="xa_ldap_ad_domain"
+           newPropertyValue=conf_dict['ARGUS_LDAP_AD_DOMAIN']
+           cObj.set('dummysection',propertyName,newPropertyValue)
+           ###########
+           propertyName="authentication_method"
+           newPropertyValue=authentication_method
+           cObj.set('dummysection',propertyName,newPropertyValue)
+       else:
+           log(ldap_file + " does not exists", "exception")
 #    with open(ldap_file, 'wb') as configfile:
 #        cObj.write(configfile)        
 #
