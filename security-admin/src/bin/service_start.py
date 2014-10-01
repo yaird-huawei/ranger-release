@@ -50,6 +50,7 @@ if service_entry:
     appendTextElement('description', 'This service runs ' + app_type)
     appendTextElement('executable', argus_install.get_java_env())
     appendTextElement('arguments', arguments)
+    appendTextElement('logmode', "append")
 
     print xmlDoc.toprettyxml(indent='  ')
     sys.exit()

@@ -183,7 +183,7 @@ def get_argus_classpath():
     global conf_dict
     EWS_ROOT = conf_dict['EWS_ROOT']
 
-    cp = [ os.path.join(EWS_ROOT,"lib","*"), os.path.join(os.getenv('JAVA_HOME'), 'lib', '*')]
+    cp = [ os.path.join(EWS_ROOT,"lib","*"), EWS_ROOT, os.path.join(os.getenv('JAVA_HOME'), 'lib', '*')]
     class_path = get_class_path(cp)
     return class_path
 
@@ -201,6 +201,7 @@ def populate_config_dict_from_env():
     conf_dict['ARGUS_ADMIN_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_ROOT_PASSWORD")
     conf_dict['ARGUS_AUDIT_DB_ROOT_PASSWORD'] = os.getenv("ARGUS_AUDIT_DB_ROOT_PASSWORD")
     conf_dict['ARGUS_ADMIN_HOME'] = os.getenv("ARGUS_ADMIN_HOME")
+    
 
 def init_variables(switch):
     global conf_dict
@@ -663,50 +664,43 @@ def update_properties():
     newPropertyValue=audit_db_user
     cObj.set('dummysection',propertyName,newPropertyValue)
 
-    #if keystore is not None:
-    #    #os.makedirs(keystore)
-    #    getstatusoutput("java -cp cred/lib/* com.hortonworks.credentialapi.buildks create " + db_password_alias + "-value " + db_password + " -provider jceks://file" + keystore)
-    #    propertyName="xaDB.jdbc.credential.alias"
-    #    newPropertyValue=db_password_alias
-    #    cObj.set('dummysection',propertyName,newPropertyValue)
-    #
-    #    propertyName="xaDB.jdbc.credential.provider.path"
-    #    newPropertyValue=keystore
-    #    cObj.set('dummysection',propertyName,newPropertyValue)
+    if (os.path.isfile(os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE"):
+        propertyName="xaDB.jdbc.credential.alias"
+        newPropertyValue="policyDB.jdbc.password"
+        cObj.set('dummysection',propertyName,newPropertyValue)
 
-    #    propertyName="jdbc.password"
-    #    newPropertyValue="_"    
-    #    cObj.set('dummysection',propertyName,newPropertyValue)
+        propertyName="xaDB.jdbc.credential.provider.path"
+        newPropertyValue= os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE")
+        cObj.set('dummysection',propertyName,newPropertyValue)
 
-    #else:    
-    #    propertyName="jdbc.password"
-    #    newPropertyValue=db_password
-    #    cObj.set('dummysection',propertyName,newPropertyValue)
+        propertyName="jdbc.password"
+        newPropertyValue="_"    
+        cObj.set('dummysection',propertyName,newPropertyValue)
 
-    #audit_db_password_alias="auditDB.jdbc.password"
+        propertyName="auditDB.jdbc.credential.alias"
+        newPropertyValue="auditDB.jdbc.password"
+        cObj.set('dummysection',propertyName,newPropertyValue)
 
-    #if keystore is not None :
-    #    commands.getstatusoutput("java -cp 'cred/lib/*' com.hortonworks.credentialapi.buildks create "+audit_db_password_alias + " -value " + audit_db_password + " -provider jceks://file"+ keystore)
+        propertyName="auditDB.jdbc.credential.provider.path"
+        newPropertyValue= os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE")
+        cObj.set('dummysection',propertyName,newPropertyValue)
 
-    #    propertyName="auditDB.jdbc.credential.alias"
-    #    newPropertyValue=audit_db_password_alias
-    #    cObj.set('dummysection',propertyName,newPropertyValue)
+        propertyName="auditDB.jdbc.password"
+        newPropertyValue="_"    
+        cObj.set('dummysection',propertyName,newPropertyValue)
 
-    #    propertyName="auditDB.jdbc.credential.provider.path"
-    #    newPropertyValue=keystore
-    #    cObj.set('dummysection',propertyName,newPropertyValue)
+    else:
 
-    #    propertyName="auditDB.jdbc.password"
-    #    newPropertyValue="_"    
-    #    cObj.set('dummysection',propertyName,newPropertyValue)
-    #else: 
-    #    propertyName="auditDB.jdbc.password"
-    #    newPropertyValue=audit_db_password
-    #    cObj.set('dummysection',propertyName,newPropertyValue)
+        propertyName="jdbc.password"
+        newPropertyValue=os.getenv("ARGUS_ADMIN_DB_PASSWORD")    
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
+        propertyName="auditDB.jdbc.password"
+        newPropertyValue=os.getenv("ARGUS_AUDIT_DB_PASSWORD")    
+        cObj.set('dummysection',propertyName,newPropertyValue)
 
     with open(to_file, 'wb') as configfile:
         cObj.write(configfile)
-
 
 
 #def setup_authentication(authentication_method, xmlPath):
@@ -726,12 +720,9 @@ def update_properties():
 #                beanLineToAppend.apend(beanStrToBeAppended)
 #                secLineToAppend = line.match("UNIX_SEC_SETTINGS_START")
 #                secLineToAppend.append(secStrToBeAppended)
-#
 #            fileObj.close()    
-#            sys.exit(0);
 #    elif authentication_method == "LDAP":
 #        log("Setting up authentication for : " + xmlPath,"debug")
-#
 #        log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
 #        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
 #        beanSettingPath = xmlPath + "/META-INF/contextXML/ldap_bean_settings.xml"
@@ -747,9 +738,7 @@ def update_properties():
 #                beanLineToAppend.apend(beanStrToBeAppended)
 #                secLineToAppend = line.match("LDAP_SEC_SETTINGS_START")
 #                secLineToAppend.append(secStrToBeAppended)
-#
 #            fileObj.close()    
-#            sys.exit(0);
 #    elif authentication_method == "ACTIVE_DIRECTORY":
 #        log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
 #        appContextPath = xmlPath + "/META-INF/security-applicationContext.xml"
@@ -766,12 +755,9 @@ def update_properties():
 #                beanLineToAppend.apend(beanStrToBeAppended)
 #                secLineToAppend = line.match("AD_SEC_SETTINGS_START")
 #                secLineToAppend.append(secStrToBeAppended)
-#
 #            fileObj.close()    
-#            sys.exit(0);
 #        elif authentication_method == "NONE":
 #            log("Authentication Method: "+authentication_method+" authentication for : " + xmlPath,"debug")
-#            sys.exit(0);
 #pass
 #
 #def do_authentication_setup(): 
@@ -852,9 +838,6 @@ def update_properties():
 #    with open(ldap_file, 'wb') as configfile:
 #        cObj.write(configfile)        
 #
-#    #if authentication_method == "UNIX":
-#        ## I think it is not needed for Windows 
-#        ##do_unixauth_setup
 #    log("Finished setup based on user authentication method=authentication_method", "info") 
 #pass
 
