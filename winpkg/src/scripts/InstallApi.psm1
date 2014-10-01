@@ -912,12 +912,6 @@ function ConfigureArgusHbase(
     UpdateXmlConfig $xmlFile $configs["hbaseChanges"]
 
     ###
-    ### Apply configuration changes to hbaseserver2-site.xml
-    ###
-    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "hbaseserver2-site.xml" 
-    UpdateXmlConfig $xmlFile $configs["hbaseServerChanges"]
-
-    ###
     ### Apply configuration changes to xasecure-hbase-security.xml
     ###
     $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-hbase-security.xml" 
@@ -927,8 +921,7 @@ function ConfigureArgusHbase(
     ### Apply configuration changes to xasecure-audit.xml
     ###
     $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml" 
-    UpdateXmlConfig $xmlFile $configs["hiveAuditChanges"]
-
+    UpdateXmlConfig $xmlFile $configs["hbaseAuditChanges"]
 
 
  }

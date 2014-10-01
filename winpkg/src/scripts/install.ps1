@@ -108,12 +108,14 @@ function Main( $scriptDir )
     ### Apply configuration changes to xasecure-audit.xml
     ###
 	$hdfsAuditChanges = @{
-		"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:3306/${ENV:ARGUS_AUDIT_DB_DBNAME}"
+		"xasecure.audit.db.is.enabled"                          = "true"
+        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:3306/${ENV:ARGUS_AUDIT_DB_DBNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
 		"xasecure.audit.repository.name"						= "${ENV:ARGUS_HDFS_REPO}"
 		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
+        xasecure.audit.hdfs.is.enabled                          = "false"
 	}
     ###
     ### Apply configuration changes to xasecure-hdfs-security.xml
@@ -176,6 +178,8 @@ function Main( $scriptDir )
 		"xasecure.audit.repository.name"						= "${ENV:ARGUS_HIVE_REPO}"
 		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_HIVE_CRED_KEYSTORE_FILE}"
        	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
+        "xasecure.audit.db.is.enabled"                          = "true"
+        "xasecure.audit.hdfs.is.enabled"                        = "false"
 	}
 
     ####
@@ -194,7 +198,12 @@ function Main( $scriptDir )
 		"xasecure.policymgr.url"								= "$ENV:ARGUS_HOST"
 	}
 
-    Configure "argus-hive" $nodeInstallRoot $serviceCredential 
+    $configs = @{}
+    $configs.Add("hiveChanges",$hiveChanges)
+    $configs.Add("hiveServerChanges",$hiveServerChanges)
+    $configs.Add("hiveAuditChanges",$hiveAuditChanges)
+    $configs.Add("hiveSecurityChanges",$hiveSecurityChanges)
+    Configure "argus-hive" $nodeInstallRoot $serviceCredential $configs 
     Write-Log "Installation of argus-hive completed successfully"
 
 
@@ -211,36 +220,28 @@ function Main( $scriptDir )
     #### Apply configuration changes to hbase-site.xml
     ####
     #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "hbase-site.xml"
-	#UpdateXmlConfig $xmlFile  @{
-	#	"hbase.coprocessor.master.classes"	= "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-	#	"hbase.coprocessor.region.classes"	= "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-	#	"hbase.rpc.protection"				= "PRIVACY"
-	#	"hbase.rpc.engine"					= "org.apache.hadoop.hbase.ipc.SecureRpcEngine"
-	#}
-
-    ####
-    #### Apply configuration changes to hbaseserver2-site.xml
-    ####
-    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "hbaseserver2-site.xml"
-	#UpdateXmlConfig $xmlFile  @{
-	#	"hbase.security.authorization.enabled"	= "true"
-	#	"hbase.security.authorization.manager"	= "com.xasecure.authorization.hbase.authorizer.XaSecureHbaseAuthorizerFactory"
-	#	"hbase.security.authenticator.manager"	= "org.apache.hadoop.hbase.ql.security.SessionStateUserAuthenticator"
-	#	"hbase.conf.restricted.list"			= "hbase.security.authorization.enabled,hbase.security.authorization.manager,hbase.security.authenticator.manager"
-	#}
+	$hbasechanges =   @{
+        "hbase.security.authorization"      = "true"
+    	"hbase.coprocessor.master.classes"	= "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+		"hbase.coprocessor.region.classes"	= "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+		"hbase.rpc.protection"				= "PRIVACY"
+	    "hbase.rpc.engine"					= "org.apache.hadoop.hbase.ipc.SecureRpcEngine"
+	}
 
     ####
     #### Apply configuration changes to xasecure-audit.xml
     ####
     #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml"
-    #UpdateXmlConfig $xmlFile @{
-	#	"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:3306/${ENV:ARGUS_AUDIT_DB_DBNAME}"
-	#	"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
-	#	"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
-	#	"xasecure.audit.repository.name"						= "${ENV:ARGUS_HBASE_REPO}"
-	#	"xasecure.audit.credential.provider.file"				= "jceks://file${ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE}"
-    #   	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
-	#}
+    $hbaseAuditChanges =   @{
+        "xasecure.audit.db.is.enabled"                          = "true"
+		"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:3306/${ENV:ARGUS_AUDIT_DB_DBNAME}"
+		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
+		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
+		"xasecure.audit.repository.name"						= "${ENV:ARGUS_HBASE_REPO}"
+		"xasecure.audit.credential.provider.file"				= "jceks://file${ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE}"
+       	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
+        "xasecure.audit.hdfs.is.enabled"                        = "false"
+	}
 
     ####
     #### Apply configuration changes to xasecure-hbase-security.xml
@@ -248,15 +249,15 @@ function Main( $scriptDir )
 	#
     #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-hbase-security.xml"
 	#
-    #UpdateXmlConfig $xmlFile @{
-	#	"hbase.authorization.verifier.classname"				= "com.xasecure.pdp.hbase.XASecureAuthorizer"
-	#	"xasecure.hbase.policymgr.url"							= "${ENV:ARGUS_HOST}/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
-	#	"xasecure.hbase.policymgr.url.saveAsFile"				= "/tmp/hbase_${ENV:ARGUS_HBASE_REPO}"
-	#	"xasecure.hbase.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HBASE_CACHE_FILE}/hbase_${ENV:ARGUS_HBASE_REPO}_json"
-	#	"xasecure.hbase.policymgr.url.reloadIntervalInMillis"	= "30000"
-	#	"xasecure.hbase.update.xapolicies.on.grant.revoke"		= "true"
-	#	"xasecure.policymgr.url"								= "${ENV:ARGUS_HOST}"
-	#}
+    $hbaseSecurityChanges =     @{
+		"hbase.authorization.verifier.classname"				= "com.xasecure.pdp.hbase.XASecureAuthorizer"
+		"xasecure.hbase.policymgr.url"							= "${ENV:ARGUS_HOST}/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
+		"xasecure.hbase.policymgr.url.saveAsFile"				= "/tmp/hbase_${ENV:ARGUS_HBASE_REPO}"
+		"xasecure.hbase.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HBASE_CACHE_FILE}/hbase_${ENV:ARGUS_HBASE_REPO}_json"
+		"xasecure.hbase.policymgr.url.reloadIntervalInMillis"	= "30000"
+		"xasecure.hbase.update.xapolicies.on.grant.revoke"		= "true"
+		"xasecure.policymgr.url"								= "${ENV:ARGUS_HOST}"
+	}
 
     #####################################################################
     ####         Install and Configure argus-ugsync service              ###
