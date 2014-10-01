@@ -604,7 +604,7 @@ def update_properties():
     global conf_dict
     sys_conf_dict={}
 
-    MYSQL_HOST = conf_dict["ARGUS_HOST"]
+    MYSQL_HOST = conf_dict["ARGUS_ADMIN_DB_HOST"]
     WEBAPP_ROOT = conf_dict["WEBAPP_ROOT"]
     db_user = conf_dict["ARGUS_ADMIN_DB_USERNAME"]
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
