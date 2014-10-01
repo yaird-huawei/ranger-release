@@ -183,7 +183,7 @@ def get_argus_classpath():
     global conf_dict
     EWS_ROOT = conf_dict['EWS_ROOT']
 
-    cp = [ os.path.join(EWS_ROOT,"lib","*"), os.path.join(os.getenv('JAVA_HOME'), 'lib', '*')]
+    cp = [ os.path.join(EWS_ROOT,"lib","*"), EWS_ROOT, os.path.join(os.getenv('JAVA_HOME'), 'lib', '*')]
     class_path = get_class_path(cp)
     return class_path
 
@@ -208,6 +208,7 @@ def populate_config_dict_from_env():
     conf_dict['ARGUS_LDAP_GROUPSEARCHBASE'] = os.getenv("ARGUS_LDAP_GROUPSEARCHBASE")
     conf_dict['ARGUS_LDAP_GROUPSEARCHFILTER'] = os.getenv("ARGUS_LDAP_GROUPSEARCHFILTER")
     conf_dict['ARGUS_ldap_GROUPROLEATTRIBUTE'] = os.getenv("ARGUS_ldap_GROUPROLEATTRIBUTE")
+    
 
     # AD Settings
     conf_dict['ARGUS_LDAP_AD_DOMAIN'] = os.getenv("ARGUS_LDAP_AD_DOMAIN")
@@ -345,25 +346,25 @@ def create_mysql_user(db_name, db_user, db_password, db_host, db_root_password):
 
 		cmdArr.extend(["-e", "select count(*) from mysql.user where user='%s' and host='%s'" %(db_user, host)])
 		output = subprocess.check_output(cmdArr)
-		if output.strip("\n\r") is "1":
+		if output.strip("\n\r") is "1": 
 			log( "\nMYSQL User already exists!\n", "debug")
 		else:
 			cmdArr = get_mysql_cmd('root', db_root_password, db_host)
 			if db_password == "":
 				#cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'";\''
 				cmdArr.extend(["-e", "create user %s@%s" %(db_user, host)])
-			else:
+			else: 
 				cmdArr.extend(["-e", "create user '%s'@'%s' identified by '%s' " %(db_user, host, db_password)])
 				#cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'" identified by "'+db_password+'";\''
 				ret = subprocess.check_call(cmdArr)
-			if ret == 0:
+			if ret == 0: 
 				#mysqlquery="GRANT ALL ON "+db_name+".* TO \'"+db_user+"'@'"+db_host+"' ;\
 				#grant all privileges on "+db_name+".* to '"+db_user+"'@'"+db_host+"' with grant option;\
 				#FLUSH PRIVILEGES;"
 				cmdArr = get_mysql_cmd('root', db_root_password, db_host)
 				cmdArr.extend(["-e", "GRANT ALL ON *.* TO '%s'@'%s'; grant all privileges on *.* to '%s'@'%s' with grant option; FLUSH PRIVILEGES" %(db_user,host,db_user,host)])
 				ret = subprocess.check_call(cmdArr)
-				if ret == 0:
+				if ret == 0: 
 					log("\nCreating MySQL user '" + db_user + "' (using root priviledges for % hosts ) DONE\n", "info")
 				else:
 					log("\nCreating MySQL user '" + db_user + "' (using root priviledges) FAILED\n", "info")
@@ -654,6 +655,42 @@ def update_properties():
     propertyName="auditDB.jdbc.user"
     newPropertyValue=audit_db_user
     cObj.set('dummysection',propertyName,newPropertyValue)
+
+    if (os.path.isfile(os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE"):
+        propertyName="xaDB.jdbc.credential.alias"
+        newPropertyValue="policyDB.jdbc.password"
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
+        propertyName="xaDB.jdbc.credential.provider.path"
+        newPropertyValue= os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE")
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
+        propertyName="jdbc.password"
+        newPropertyValue="_"    
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
+        propertyName="auditDB.jdbc.credential.alias"
+        newPropertyValue="auditDB.jdbc.password"
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
+        propertyName="auditDB.jdbc.credential.provider.path"
+        newPropertyValue= os.getenv("ARGUS_ADMIN_CRED_KEYSTORE_FILE")
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
+        propertyName="auditDB.jdbc.password"
+        newPropertyValue="_"    
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
+    else:
+
+        propertyName="jdbc.password"
+        newPropertyValue=os.getenv("ARGUS_ADMIN_DB_PASSWORD")    
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
+        propertyName="auditDB.jdbc.password"
+        newPropertyValue=os.getenv("ARGUS_AUDIT_DB_PASSWORD")    
+        cObj.set('dummysection',propertyName,newPropertyValue)
+
     with open(to_file, 'wb') as configfile:
         cObj.write(configfile)
 
@@ -802,9 +839,6 @@ def do_authentication_setup():
 #    with open(ldap_file, 'wb') as configfile:
 #        cObj.write(configfile)        
 #
-#    #if authentication_method == "UNIX":
-#        ## I think it is not needed for Windows 
-#        ##do_unixauth_setup
 #    log("Finished setup based on user authentication method=authentication_method", "info") 
 #pass
 

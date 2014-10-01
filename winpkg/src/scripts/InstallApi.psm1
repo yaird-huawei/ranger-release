@@ -98,6 +98,8 @@ function Install(
 
 					CreateJCEKS "policyDB.jdbc.password" "${ENV:ARGUS_ADMIN_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
 					CreateJCEKS "auditDb.jdbc.password" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+					[Environment]::SetEnvironmentVariable("ARGUS_ADMIN_CRED_KEYSTORE_FILE", "$credStorePath\xapolicymgr.jceks" , [EnvironmentVariableTarget]::Machine)
+					$ENV:ARGUS_ADMIN_CRED_KEYSTORE_FILE = "$credStorePath\xapolicymgr.jceks"
 					
 				}
 				
@@ -1177,7 +1179,7 @@ function CreateJCEKS (
 {
 	
 	Write-Log "Creating alias $alias in jceks file : $jceksFile"
-    $cmd = "java -cp `"${libPath}\*`" com.hortonworks.credentialapi.buildks create `"${alias}`" -value `"${password}`" -provider `"jceks://file/${jceksFile}`" "
+    $cmd = "${ENV:JAVA_HOME}\bin\java -cp `"${libPath}\*`" com.hortonworks.credentialapi.buildks create `"${alias}`" -value `"${password}`" -provider `"jceks://file/${jceksFile}`" "
 	Invoke-Cmd $cmd
 	
 }
