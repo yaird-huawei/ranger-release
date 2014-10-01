@@ -207,7 +207,6 @@ def init_variables(switch):
     global conf_dict
 
     populate_config_dict_from_env()
-
     INSTALL_DIR = os.path.join(conf_dict['ARGUS_ADMIN_HOME'] , "app")
     EWS_ROOT    = os.path.join(INSTALL_DIR , "ews")
     WEBAPP_ROOT = os.path.join(INSTALL_DIR , "ews" , "webapp")
@@ -275,23 +274,6 @@ def setup_install_files():
     log(" Setting up installation files and directory DONE", "info");
 pass
 
-#def parse_config_file():
-#    global conf_dict
-#    ini_file = os.path.join(conf_dict['ARGUS_ADMIN_HOME'],"install.properties")
-#    config = StringIO.StringIO()
-#    config.write('[dummysection]\n')
-#    config.write(open(ini_file).read())
-#    config.seek(0, os.SEEK_SET)
-#    ##Now parse using configparser
-#    cObj = ConfigParser.ConfigParser()
-#    cObj.optionxform = str
-#    cObj.readfp(config)
-#    options = cObj.options('dummysection')
-#    for option in options:
-#        value = cObj.get('dummysection', option)
-#        conf_dict[option] = value
-#        #print "Properties : %s=%s ::: \n", (option,value)
-
 def init_logfiles():
     FORMAT = '%(asctime)-15s %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.DEBUG)
@@ -343,40 +325,39 @@ def create_mysql_user(db_name, db_user, db_password, db_host, db_root_password):
     cmdArr = []
 
     MYSQL_BIN = conf_dict["MYSQL_BIN"]
-
+    hosts_arr =["%", "localhost"]
     #check_mysql_password()
     ### From properties file 
-    log("Creating MySQL user "+db_user+" (using root priviledges)", 'debug')
-    cmdArr = get_mysql_cmd('root', db_root_password, db_host)
+    log("\nCreating MySQL user "+db_user+" (using root priviledges)\n", 'debug')
+    for host in hosts_arr:
+		cmdArr = get_mysql_cmd('root', db_root_password, db_host)
+		#subprocess.call(["mysql", "-u", username, "-p%s" % password, "-e", "SELECT @@hostname"]
 
-    #subprocess.call(["mysql", "-u", username, "-p%s" % password, "-e", "SELECT @@hostname"]
-
-    cmdArr.extend(["-e", "select count(*) from mysql.user where user='%s' and host='%s'" %(db_user, db_host)])
-    output = subprocess.check_output(cmdArr)
-    if output.strip("\n\r") is "1": 
-        log( "MYSQL User already exists!", "debug")
-    else:
-        cmdArr = get_mysql_cmd('root', db_root_password, db_host)
-        if db_password == "":
-            #cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'";\''
-            cmdArr.extend(["-e", "create user %s@%s" %(db_user, db_host)])
-        else: 
-            cmdArr.extend(["-e", "create user %s@%s identified by '%s' " %(db_user, db_host, db_password)])
-            #cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'" identified by "'+db_password+'";\''
-        ret = subprocess.check_call(cmdArr)
-        if ret == 0: 
-            #mysqlquery="GRANT ALL ON "+db_name+".* TO \'"+db_user+"'@'"+db_host+"' ;\
-            #grant all privileges on "+db_name+".* to '"+db_user+"'@'"+db_host+"' with grant option;\
-            #FLUSH PRIVILEGES;"
-            cmdArr = get_mysql_cmd('root', db_root_password, db_host)
-            cmdArr.extend(["-e", "GRANT ALL ON %s.* TO %s@%s; grant all privileges on %s.* to %s@%s with grant option; FLUSH PRIVILEGES" %(db_name,db_user,db_host,db_name, db_user, db_host)])
-
-            ret = subprocess.check_call(cmdArr)
-            if ret == 0: 
-                log("Creating MySQL user '" + db_user + "' (using root priviledges) DONE", "info")
-            else:
-                log("Creating MySQL user '" + db_user + "' (using root priviledges) FAILED", "info")
-                sys.exit(1)
+		cmdArr.extend(["-e", "select count(*) from mysql.user where user='%s' and host='%s'" %(db_user, host)])
+		output = subprocess.check_output(cmdArr)
+		if output.strip("\n\r") is "1": 
+			log( "\nMYSQL User already exists!\n", "debug")
+		else:
+			cmdArr = get_mysql_cmd('root', db_root_password, db_host)
+			if db_password == "":
+				#cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'";\''
+				cmdArr.extend(["-e", "create user %s@%s" %(db_user, host)])
+			else: 
+				cmdArr.extend(["-e", "create user '%s'@'%s' identified by '%s' " %(db_user, host, db_password)])
+				#cmdStr = '"' + MYSQL_BIN + '"' + ' -B -u root --password='+db_root_password+' -h '+db_host+' -e \'create user "'+db_user+'"@"'+db_host+'" identified by "'+db_password+'";\''
+				ret = subprocess.check_call(cmdArr)
+			if ret == 0: 
+				#mysqlquery="GRANT ALL ON "+db_name+".* TO \'"+db_user+"'@'"+db_host+"' ;\
+				#grant all privileges on "+db_name+".* to '"+db_user+"'@'"+db_host+"' with grant option;\
+				#FLUSH PRIVILEGES;"
+				cmdArr = get_mysql_cmd('root', db_root_password, db_host)
+				cmdArr.extend(["-e", "GRANT ALL ON *.* TO '%s'@'%s'; grant all privileges on *.* to '%s'@'%s' with grant option; FLUSH PRIVILEGES" %(db_user,host,db_user,host)])
+				ret = subprocess.check_call(cmdArr)
+				if ret == 0: 
+					log("\nCreating MySQL user '" + db_user + "' (using root priviledges for % hosts ) DONE\n", "info")
+				else:
+					log("\nCreating MySQL user '" + db_user + "' (using root priviledges) FAILED\n", "info")
+					sys.exit(1)
 
 def check_mysql_password ():
     global conf_dict
@@ -455,7 +436,7 @@ def upgrade_db():
     MYSQL_BIN = conf_dict['MYSQL_BIN']
     MYSQL_HOST = conf_dict['ARGUS_ADMIN_DB_HOST']
 
-    log("Creating Baseline DB upgrade ... ", "debug")
+    log("\nCreating Baseline DB upgrade ... \n", "debug")
     DBVERSION_CATALOG_CREATION = os.path.join(conf_dict['ARGUS_DB_DIR'], 'create_dbversion_catalog.sql') 
     PATCHES_PATH = os.path.join(conf_dict['ARGUS_DB_DIR'], 'patches') 
     if os.path.isfile(DBVERSION_CATALOG_CREATION): 
@@ -464,7 +445,7 @@ def upgrade_db():
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE)
         out, err = proc.communicate(file(DBVERSION_CATALOG_CREATION).read())
-        log("Baseline DB upgraded successfully", "info")
+        log("\nBaseline DB upgraded successfully\n", "info")
 
     #first get all patches and then apply each patch 
     files = os.listdir(PATCHES_PATH)
@@ -478,14 +459,14 @@ def upgrade_db():
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE)
             out, err = proc.communicate(file(currentPatch).read())
-            log( "Patch applied: " +  currentPatch, "debug")
+            log( "\nPatch applied: " +  currentPatch +"\n", "debug")
     
 
 def verify_db (db_user, db_password, db_name, db_host):
     global conf_dict
     MYSQL_BIN = conf_dict['MYSQL_BIN']
 
-    log("Verifying Database: " + db_name,"debug")
+    log("\nVerifying Database: " + db_name+"\n","debug")
 
     cmdArr = get_mysql_cmd(db_user, db_password, db_host)
     cmdArr.extend(["-e", "show databases like '%s'" %(db_name)])
@@ -508,18 +489,18 @@ def import_db ():
     db_core_file =  conf_dict['db_core_file'] 
     db_asset_file = conf_dict['db_asset_file']
     MYSQL_BIN = conf_dict['MYSQL_BIN']
-    log ("Importing to Database: " + db_name,"debug");
+    log ("\nImporting to Database: " + db_name,"debug");
 
     if verify_db(db_user, db_password, db_name, MYSQL_HOST): 
-        log("Database "+db_name + " already exists. Ignoring import_db","info")
+        log("\nDatabase "+db_name + " already exists. Ignoring import_db\n","info")
     else:   
-        log("Database does not exist. Creating databse : " + db_name,"info")
+        log("\nDatabase does not exist. Creating databse : \n" + db_name,"info")
 
         cmdArr = get_mysql_cmd('root', db_root_password, MYSQL_HOST)
         cmdArr.extend(["-e", "create database %s" %(db_name)])
         ret = subprocess.check_call(cmdArr)
         if ret != 0:
-            log("Database creation failed!!","error")
+            log("\nDatabase creation failed!!\n","exception")
             sys.exit(1)
 
         ##execute each line from sql file to import DB
@@ -530,12 +511,12 @@ def import_db ():
                         stdout=subprocess.PIPE)
             out, err = proc.communicate(file(db_core_file).read())
             if (proc.returncode == 0):
-                log("Admin db file Imported successfully","info")
+                log("\nAdmin db file Imported successfully\n","info")
             else:
-                log("Admin db file Import failed!","info")
+                log("\nAdmin db file Import failed!\n","info")
                 sys.exit(1)
         else:
-            log("Import sql file not found","exception")
+            log("\nImport sql file not found\n","exception")
             sys.exit(1)
 
         if os.path.isfile(db_asset_file):
@@ -544,12 +525,12 @@ def import_db ():
                         stdout=subprocess.PIPE)
             out, err = proc.communicate(file(db_asset_file).read())
             if (proc.returncode == 0):
-                log("Asset file Imported successfully","info")
+                log("\nAsset file Imported successfully\n","info")
             else:
-                log("Asset file Import filed!","info")
+                log("\nAsset file Import filed!\n","info")
                 sys.exit(1)
         else:
-            log("Import asset sql file not found","exception")
+            log("\nImport asset sql file not found\n","exception")
             sys.exit(1)
 
 def extract_war(): 
@@ -852,19 +833,18 @@ def setup_audit_user_db():
     audit_db_password = conf_dict["ARGUS_AUDIT_DB_PASSWORD"]
     audit_db_name = conf_dict['ARGUS_AUDIT_DB_NAME']
     db_audit_file =  conf_dict['db_audit_file']
-
+    
     #check_mysql_audit_user_password()
-    log("--------- Creating mysql audit user --------- ","info")
+    log("\n--------- Creating mysql audit user --------- \n","info")
     create_mysql_user(audit_db_name, audit_db_user, audit_db_password, MYSQL_HOST, db_root_password)
-    log("--------- Creating mysql audit user DONE----- ","info")
+    log("\n--------- Creating mysql audit user DONE----- \n","info")
 
-    log("--------- Importing Audit Database --------- ","info")
-
+    log("\n--------- Importing Audit Database ---------\n","info")
     # Verify if audit db is present
     if verify_db(audit_db_user, audit_db_password, audit_db_name, MYSQL_HOST): 
-        log("Database "+audit_db_name + " already exists. Ignoring import_db","info")
+        log("\nDatabase "+audit_db_name + " already exists. Ignoring import_db\n","info")
     else:   
-        log("Creating Database " + audit_db_name, "info")
+        log("\nCreating Database " + audit_db_name, "info")
         # Create audit db is not present
         cmdArr = get_mysql_cmd('root', db_root_password, MYSQL_HOST)
         cmdArr.extend(["-e", "create database %s" %(audit_db_name)])
@@ -874,7 +854,6 @@ def setup_audit_user_db():
             sys.exit(1)
         else:
             log("Creating database "+audit_db_name+" succeeded", "info")
-
     # Check if audit table exists 
     AUDIT_TABLE="xa_access_audit"
     log("Verifying table "+AUDIT_TABLE+" in audit database "+audit_db_name, "debug")
@@ -882,27 +861,26 @@ def setup_audit_user_db():
     cmdArr = get_mysql_cmd(audit_db_user, audit_db_password, MYSQL_HOST)
     cmdArr.extend([audit_db_name, "-e", "show tables like '%s'" %(AUDIT_TABLE)])
     output = subprocess.check_output(cmdArr)
-
-    if output.strip('\r\n') != "1":
+    if output.strip('\r\n') != AUDIT_TABLE:
         # Import audit table 
-        log("Importing Audit Database file: " + db_audit_file,"debug")
+        log("\nImporting Audit Database file: " + db_audit_file,"debug")
         if os.path.isfile(db_audit_file):
-            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % audit_db_user, "--password=%s" % audit_db_password, audit_db_name],
+            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % audit_db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % audit_db_password, audit_db_name],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE)
             out, err = proc.communicate(file(db_audit_file).read())
             if (proc.returncode == 0):
-                log("Audit file Imported successfully","info")
+                log("\nAudit file Imported successfully\n","info")
             else:
-                log("Audit file Import failed!","info")
+                log("\nAudit file Import failed!\n","info")
                 sys.exit(1)
         else:
-            log("Audit file not found!","info")
+            log("\nAudit file not found!\n","info")
 
     else:
-        log("table "+AUDIT_TABLE+" already exists in audit database "+audit_db_name,"info")
+        log("\nTable "+AUDIT_TABLE+" already exists in audit database "+audit_db_name +"\n","info")
 
-    log("--------- Importing Audit Database DONE----- ","info")
+    log("\n--------- Importing Audit Database DONE-----\n","info")
 
 
 def setup_admin_db_user():
@@ -914,7 +892,7 @@ def setup_admin_db_user():
     db_password = conf_dict["ARGUS_ADMIN_DB_PASSWORD"]
     db_root_password = conf_dict["ARGUS_ADMIN_DB_ROOT_PASSWORD"]
     db_name = conf_dict['ARGUS_ADMIN_DB_NAME']
-
+	
     log("--------- Creating mysql user --------- ","info")
     create_mysql_user(db_name, db_user, db_password, MYSQL_HOST, db_root_password)
     #log("--------- Creating mysql user DONE----- ","info")

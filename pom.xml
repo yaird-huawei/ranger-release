@@ -134,6 +134,17 @@
             </plugins>
         </build>
     </profile>
+     <profile>
+          <id>linux</id>
+          <activation>
+              <os>
+                  <family>linux</family>
+              </os>
+          </activation>
+         <modules>
+            <module>unixauthnative</module>
+          </modules>
+      </profile>
   </profiles>
   <distributionManagement>
         <repository>
@@ -141,7 +152,7 @@
             <name>${distMgmtStagingName}</name>
             <url>${distMgmtStagingUrl}</url>
         </repository>
-   </distributionManagement>
+  </distributionManagement>
   <repositories>
           <repository>
             <id>apache.snapshots.https</id>
