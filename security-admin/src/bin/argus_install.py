@@ -808,17 +808,16 @@ def setup_audit_user_db():
     db_audit_file =  conf_dict['db_audit_file']
     
     #check_mysql_audit_user_password()
-    log("--------- Creating mysql audit user --------- ","info")
+    log("\n--------- Creating mysql audit user --------- \n","info")
     create_mysql_user(audit_db_name, audit_db_user, audit_db_password, MYSQL_HOST, db_root_password)
-    log("--------- Creating mysql audit user DONE----- ","info")
+    log("\n--------- Creating mysql audit user DONE----- \n","info")
 
-    log("--------- Importing Audit Database --------- ","info")
-
+    log("\n--------- Importing Audit Database ---------\n","info")
     # Verify if audit db is present
     if verify_db(audit_db_user, audit_db_password, audit_db_name, MYSQL_HOST): 
-        log("Database "+audit_db_name + " already exists. Ignoring import_db","info")
+        log("\nDatabase "+audit_db_name + " already exists. Ignoring import_db\n","info")
     else:   
-        log("Creating Database " + audit_db_name, "info")
+        log("\nCreating Database " + audit_db_name, "info")
         # Create audit db is not present
         cmdArr = get_mysql_cmd('root', db_root_password, MYSQL_HOST)
         cmdArr.extend(["-e", "create database %s" %(audit_db_name)])
@@ -828,7 +827,6 @@ def setup_audit_user_db():
             sys.exit(1)
         else:
             log("Creating database "+audit_db_name+" succeeded", "info")
-
     # Check if audit table exists 
     AUDIT_TABLE="xa_access_audit"
     log("Verifying table "+AUDIT_TABLE+" in audit database "+audit_db_name, "debug")
@@ -836,27 +834,26 @@ def setup_audit_user_db():
     cmdArr = get_mysql_cmd(audit_db_user, audit_db_password, MYSQL_HOST)
     cmdArr.extend([audit_db_name, "-e", "show tables like '%s'" %(AUDIT_TABLE)])
     output = subprocess.check_output(cmdArr)
-
-    if output.strip('\r\n') != "1":
+    if output.strip('\r\n') != AUDIT_TABLE:
         # Import audit table 
-        log("Importing Audit Database file: " + db_audit_file,"debug")
+        log("\nImporting Audit Database file: " + db_audit_file,"debug")
         if os.path.isfile(db_audit_file):
-            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % audit_db_user, "--password=%s" % audit_db_password, audit_db_name],
+            proc = subprocess.Popen([MYSQL_BIN, "--user=%s" % audit_db_user, "--host=%s" %MYSQL_HOST, "--password=%s" % audit_db_password, audit_db_name],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE)
             out, err = proc.communicate(file(db_audit_file).read())
             if (proc.returncode == 0):
-                log("Audit file Imported successfully","info")
+                log("\nAudit file Imported successfully\n","info")
             else:
-                log("Audit file Import failed!","info")
+                log("\nAudit file Import failed!\n","info")
                 sys.exit(1)
         else:
-            log("Audit file not found!","info")
+            log("\nAudit file not found!\n","info")
 
     else:
-        log("table "+AUDIT_TABLE+" already exists in audit database "+audit_db_name,"info")
+        log("\nTable "+AUDIT_TABLE+" already exists in audit database "+audit_db_name +"\n","info")
 
-    log("--------- Importing Audit Database DONE----- ","info")
+    log("\n--------- Importing Audit Database DONE-----\n","info")
 
 
 def setup_admin_db_user():
