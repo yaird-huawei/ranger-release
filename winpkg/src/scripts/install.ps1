@@ -109,13 +109,25 @@ function Main( $scriptDir )
     ###
 	$hdfsAuditChanges = @{
 		"xasecure.audit.db.is.enabled"                          = "true"
-        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:3306/${ENV:ARGUS_AUDIT_DB_DBNAME}"
+        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:${ENV:ARGUS_AUDIT_DB_PORT}/${ENV:ARGUS_AUDIT_DB_DBNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
 		"xasecure.audit.repository.name"						= "${ENV:ARGUS_HDFS_REPO}"
 		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
-        xasecure.audit.hdfs.is.enabled                          = "false"
+        "xasecure.audit.hdfs.is.enabled"                        = "false"
+		"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:ARGUS_HDFS_DESTINATION_DIRECTORY}"
+		"xasecure.audit.hdfs.config.destination.file"           = "${ENV:ARGUS_HDFS_DESTINTATION_FILE}"   
+		"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_DIRECTORY}"          
+		"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_FILE}"              
+		"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_DIRECTORY}"             
+		"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"      
+
 	}
     ###
     ### Apply configuration changes to xasecure-hdfs-security.xml
@@ -123,7 +135,7 @@ function Main( $scriptDir )
 	$hdfsSecurityChanges = @{
 		"hdfs.authorization.verifier.classname"					= "com.xasecure.pdp.hdfs.XASecureAuthorizer"
 		"xasecure.hdfs.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
-		"xasecure.hdfs.policymgr.url.saveAsFile"				= "${ENV:TEMP}\hadoop_${ENV:ARGUS_HDFS_REPO}"
+		"xasecure.hdfs.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\hadoop_${ENV:ARGUS_HDFS_REPO}"
 		"xasecure.hdfs.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HDFS_CACHE_FILE}\hadoop_${ENV:ARGUS_HDFS_REPO}_json"
 		"xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"
 	}
@@ -172,14 +184,26 @@ function Main( $scriptDir )
     ####
     #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "xasecure-audit.xml"
     $hiveAuditChanges = @{
-		"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:3306/${ENV:ARGUS_AUDIT_DB_DBNAME}"
+        "xasecure.audit.db.is.enabled"                          = "true"
+        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:${ENV:ARGUS_AUDIT_DB_PORT}/${ENV:ARGUS_AUDIT_DB_DBNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
 		"xasecure.audit.repository.name"						= "${ENV:ARGUS_HIVE_REPO}"
 		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_HIVE_CRED_KEYSTORE_FILE}"
        	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
-        "xasecure.audit.db.is.enabled"                          = "true"
         "xasecure.audit.hdfs.is.enabled"                        = "false"
+		"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:ARGUS_HDFS_DESTINATION_DIRECTORY}"
+		"xasecure.audit.hdfs.config.destination.file"           = "${ENV:ARGUS_HDFS_DESTINTATION_FILE}"   
+		"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_DIRECTORY}"          
+		"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_FILE}"              
+		"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_DIRECTORY}"             
+		"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"      
+
 	}
 
     ####
@@ -191,11 +215,11 @@ function Main( $scriptDir )
     $hiveSecurityChanges = @{
 		"hive.authorization.verifier.classname"					= "com.xasecure.pdp.hive.XASecureAuthorizer"
 		"xasecure.hive.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_HIVE_REPO}"
-		"xasecure.hive.policymgr.url.saveAsFile"				= "${ENV:TEMP}\hive_${ENV:ARGUS_HIVE_REPO}"
+		"xasecure.hive.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\hive_${ENV:ARGUS_HIVE_REPO}"
 		"xasecure.hive.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HIVE_CACHE_FILE}\hive_${ENV:ARGUS_HIVE_REPO}_json"
 		"xasecure.hive.policymgr.url.reloadIntervalInMillis"	= "30000"
 		"xasecure.hive.update.xapolicies.on.grant.revoke"		= "true"
-		"xasecure.policymgr.url"								= "$ENV:ARGUS_HOST"
+		"xasecure.policymgr.url"								= "http://${ENV:ARGUS_HOST}:6080"
 	}
 
     $configs = @{}
@@ -212,15 +236,14 @@ function Main( $scriptDir )
     #####################################################################
     #
  
-    #$roles = ' '
-    #Install "argus-hbase" $nodeInstallRoot $serviceCredential $roles
-    #Configure "argus-hbase" $nodeInstallRoot $serviceCredential 
+    $roles = ' '
+    Install "argus-hbase" $nodeInstallRoot $serviceCredential $roles
 
     ####
     #### Apply configuration changes to hbase-site.xml
     ####
     #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "hbase-site.xml"
-	$hbasechanges =   @{
+	$hbaseChanges =   @{
         "hbase.security.authorization"      = "true"
     	"hbase.coprocessor.master.classes"	= "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
 		"hbase.coprocessor.region.classes"	= "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
@@ -234,13 +257,26 @@ function Main( $scriptDir )
     #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml"
     $hbaseAuditChanges =   @{
         "xasecure.audit.db.is.enabled"                          = "true"
-		"xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:3306/${ENV:ARGUS_AUDIT_DB_DBNAME}"
+        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:${ENV:ARGUS_AUDIT_DB_PORT}/${ENV:ARGUS_AUDIT_DB_DBNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
 		"xasecure.audit.repository.name"						= "${ENV:ARGUS_HBASE_REPO}"
-		"xasecure.audit.credential.provider.file"				= "jceks://file${ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE}"
+		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE}"
        	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
-        "xasecure.audit.hdfs.is.enabled"                        = "false"
+		"xasecure.audit.hdfs.is.enabled"                        = "false"
+		"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:ARGUS_HDFS_DESTINATION_DIRECTORY}"
+		"xasecure.audit.hdfs.config.destination.file"           = "${ENV:ARGUS_HDFS_DESTINTATION_FILE}"   
+		"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_DIRECTORY}"          
+		"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_FILE}"              
+		"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_DIRECTORY}"             
+		"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"      
+
+
 	}
 
     ####
@@ -251,13 +287,148 @@ function Main( $scriptDir )
 	#
     $hbaseSecurityChanges =     @{
 		"hbase.authorization.verifier.classname"				= "com.xasecure.pdp.hbase.XASecureAuthorizer"
-		"xasecure.hbase.policymgr.url"							= "${ENV:ARGUS_HOST}/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
-		"xasecure.hbase.policymgr.url.saveAsFile"				= "/tmp/hbase_${ENV:ARGUS_HBASE_REPO}"
-		"xasecure.hbase.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HBASE_CACHE_FILE}/hbase_${ENV:ARGUS_HBASE_REPO}_json"
+		"xasecure.hbase.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_HBASE_REPO}"
+		"xasecure.hbase.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\hbase_${ENV:ARGUS_HBASE_REPO}"
+		"xasecure.hbase.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HBASE_CACHE_FILE}\hbase_${ENV:ARGUS_HBASE_REPO}_json"
 		"xasecure.hbase.policymgr.url.reloadIntervalInMillis"	= "30000"
 		"xasecure.hbase.update.xapolicies.on.grant.revoke"		= "true"
-		"xasecure.policymgr.url"								= "${ENV:ARGUS_HOST}"
+		"xasecure.policymgr.url"								= "htpp://${ENV:ARGUS_HOST}:6080"
 	}
+
+	$configs = @{}
+    $configs.Add("hbaseChanges",$hbaseChanges)
+    $configs.Add("hbaseAuditChanges",$hbaseAuditChanges)
+    $configs.Add("hbaseSecurityChanges",$hbaseSecurityChanges)
+    Configure "argus-hbase" $nodeInstallRoot $serviceCredential $configs 
+    Write-Log "Installation of argus-hbase completed successfully"
+
+    Configure "argus-hbase" $nodeInstallRoot $serviceCredential $configs
+
+
+
+    #####################################################################
+    ####			Install and Configure argus-knox agent              ###
+    #####################################################################
+    #
+ 
+    $roles = ' '
+    Install "argus-knox" $nodeInstallRoot $serviceCredential $roles
+
+    ####
+    #### Apply configuration changes to xasecure-audit.xml
+    ####
+    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "xasecure-audit.xml"
+    $knoxAuditChanges =   @{
+        "xasecure.audit.db.is.enabled"                          = "true"
+        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:${ENV:ARGUS_AUDIT_DB_PORT}/${ENV:ARGUS_AUDIT_DB_DBNAME}"
+		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
+		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
+		"xasecure.audit.repository.name"						= "${ENV:ARGUS_KNOX_REPO}"
+		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_KNOX_CRED_KEYSTORE_FILE}"
+       	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
+		"xasecure.audit.hdfs.is.enabled"                        = "false"
+		"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:ARGUS_HDFS_DESTINATION_DIRECTORY}"
+		"xasecure.audit.hdfs.config.destination.file"           = "${ENV:ARGUS_HDFS_DESTINTATION_FILE}"   
+		"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_DIRECTORY}"          
+		"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_FILE}"              
+		"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_DIRECTORY}"             
+		"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"      
+
+
+	}
+
+    ####
+    #### Apply configuration changes to xasecure-knox-security.xml
+    ####
+	#
+    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "xasecure-knox-security.xml"
+	#
+    $knoxSecurityChanges =     @{
+		"knox.authorization.verifier.classname"				= "com.xasecure.pdp.knox.XASecureAuthorizer"
+		"xasecure.knox.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_KNOX_REPO}"
+		"xasecure.knox.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\knox_${ENV:ARGUS_KNOX_REPO}"
+		"xasecure.knox.policymgr.url.laststoredfile"			= "${ENV:ARGUS_KNOX_CACHE_FILE}\knox_${ENV:ARGUS_KNOX_REPO}_json"
+		"xasecure.knox.policymgr.url.reloadIntervalInMillis"	= "30000"
+		"xasecure.knox.update.xapolicies.on.grant.revoke"		= "true"
+		"xasecure.policymgr.url"								= "htpp://${ENV:ARGUS_HOST}:6080"
+	}
+
+	$configs = @{}
+    $configs.Add("knoxAuditChanges",$knoxAuditChanges)
+    $configs.Add("knoxSecurityChanges",$knoxSecurityChanges)
+    Configure "argus-knox" $nodeInstallRoot $serviceCredential $configs 
+    Write-Log "Installation of argus-knox completed successfully"
+
+    Configure "argus-knox" $nodeInstallRoot $serviceCredential $configs
+
+
+
+    #####################################################################
+    ####			Install and Configure argus-storm agent              ###
+    #####################################################################
+    #
+ 
+    $roles = ' '
+    Install "argus-storm" $nodeInstallRoot $serviceCredential $roles
+
+    ####
+    #### Apply configuration changes to xasecure-audit.xml
+    ####
+    #$xmlFile = Join-Path $ENV:STORM_CONF_DIR "xasecure-audit.xml"
+    $stormAuditChanges =   @{
+        "xasecure.audit.db.is.enabled"                          = "true"
+        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:ARGUS_AUDIT_DB_HOST}:${ENV:ARGUS_AUDIT_DB_PORT}/${ENV:ARGUS_AUDIT_DB_DBNAME}"
+		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:ARGUS_AUDIT_DB_USERNAME}"
+		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"		
+		"xasecure.audit.repository.name"						= "${ENV:ARGUS_STORM_REPO}"
+		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:ARGUS_STORM_CRED_KEYSTORE_FILE}"
+       	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
+		"xasecure.audit.hdfs.is.enabled"                        = "false"
+		"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:ARGUS_HDFS_DESTINATION_DIRECTORY}"
+		"xasecure.audit.hdfs.config.destination.file"           = "${ENV:ARGUS_HDFS_DESTINTATION_FILE}"   
+		"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:ARGUS_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_DIRECTORY}"          
+		"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:ARGUS.HDFS_LOCAL_BUFFER_FILE}"              
+		"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:ARGUS_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
+		"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_DIRECTORY}"             
+		"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:ARGUS_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"      
+
+
+	}
+
+    ####
+    #### Apply configuration changes to xasecure-storm-security.xml
+    ####
+	#
+    #$xmlFile = Join-Path $ENV:STORM_CONF_DIR "xasecure-storm-security.xml"
+	#
+    $stormSecurityChanges =     @{
+		"storm.authorization.verifier.classname"				= "com.xasecure.pdp.storm.XASecureAuthorizer"
+		"xasecure.storm.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_STORM_REPO}"
+		"xasecure.storm.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\storm_${ENV:ARGUS_STORM_REPO}"
+		"xasecure.storm.policymgr.url.laststoredfile"			= "${ENV:ARGUS_STORM_CACHE_FILE}\storm_${ENV:ARGUS_STORM_REPO}_json"
+		"xasecure.storm.policymgr.url.reloadIntervalInMillis"	= "30000"
+		"xasecure.storm.update.xapolicies.on.grant.revoke"		= "true"
+		"xasecure.policymgr.url"								= "htpp://${ENV:ARGUS_HOST}:6080"
+	}
+
+	$configs = @{}
+    $configs.Add("stormAuditChanges",$stormAuditChanges)
+    $configs.Add("stormSecurityChanges",$stormSecurityChanges)
+    Configure "argus-storm" $nodeInstallRoot $serviceCredential $configs 
+    Write-Log "Installation of argus-storm completed successfully"
+
+    Configure "argus-storm" $nodeInstallRoot $serviceCredential $configs
+
+
 
     #####################################################################
     ####         Install and Configure argus-ugsync service              ###
