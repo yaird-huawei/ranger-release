@@ -788,7 +788,7 @@ def do_authentication_setup():
        log(ldap_file + " file found", "info")
    else:
        log(ldap_file + " does not exists", "warning")
-
+   """
    config = StringIO.StringIO()
    config.write('[LDAP_AD_CONF]\n')
    config.write(open(ldap_file).read())
@@ -803,34 +803,40 @@ def do_authentication_setup():
        sys_conf_dict[option] = value
        cObj.set("LDAP_AD_CONF",option, value)
    log("LDAP file : "+ ldap_file + " file found", "info")
-
+   """
    if authentication_method == "LDAP":
        log("Loading LDAP attributes and properties", "debug");
        newPropertyValue=''
        ##########
        propertyName="xa_ldap_url"
        newPropertyValue=conf_dict['ARGUS_LDAP_URL']
-       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       ModConfig(ldap_file,propertyName,newPropertyValue)
        ###########
        propertyName="xa_ldap_userDNpattern"
        newPropertyValue=conf_dict['ARGUS_LDAP_USERDNPATTERN']
-       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       ModConfig(ldap_file,propertyName,newPropertyValue)
        ###########
        propertyName="xa_ldap_groupSearchBase"
        newPropertyValue=conf_dict['ARGUS_LDAP_GROUPSEARCHBASE']
-       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       ModConfig(ldap_file,propertyName,newPropertyValue)
        ###########
        propertyName="xa_ldap_groupSearchFilter"
        newPropertyValue=conf_dict['ARGUS_LDAP_GROUPSEARCHFILTER']
-       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       ModConfig(ldap_file,propertyName,newPropertyValue)
        ###########
        propertyName="xa_ldap_groupRoleAttribute"
        newPropertyValue=conf_dict['ARGUS_ldap_GROUPROLEATTRIBUTE']
-       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       ModConfig(ldap_file,propertyName,newPropertyValue)
        ###########
        propertyName="authentication_method"
        newPropertyValue=authentication_method
-       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+       ModConfig(ldap_file,propertyName,newPropertyValue)
    else:
        log( "LDAP file: "+ ldap_file +" does not exists","exception")
    if authentication_method == "ACTIVE_DIRECTORY":
@@ -841,20 +847,23 @@ def do_authentication_setup():
            log("LDAP file : "+ ldap_file + " file found", "info")
            propertyName="xa_ldap_ad_url"
            newPropertyValue=conf_dict['ARGUS_LDAP_AD_URL']
-           cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+           # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+           ModConfig(ldap_file,propertyName,newPropertyValue)
            ###########
            propertyName="xa_ldap_ad_domain"
            newPropertyValue=conf_dict['ARGUS_LDAP_AD_DOMAIN']
-           cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+           # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+           ModConfig(ldap_file,propertyName,newPropertyValue)
            ###########
            propertyName="authentication_method"
            newPropertyValue=authentication_method
-           cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+           # cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
+           ModConfig(ldap_file,propertyName,newPropertyValue)
        else:
            log(ldap_file + " does not exists", "exception")
 
-   with open(ldap_file, 'wb') as configfile:
-       cObj.write(configfile)
+#   with open(ldap_file, 'wb') as configfile:
+#       cObj.write(configfile)
 #
 #    #if authentication_method == "UNIX":
 #        ## I think it is not needed for Windows
