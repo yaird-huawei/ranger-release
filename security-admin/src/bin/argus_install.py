@@ -728,35 +728,50 @@ def setup_authentication(authentication_method, xmlPath):
            beanStrToBeAppended =  open(beanSettingPath).read()
            secStrToBeAppended =  open(secSettingPath).read()
            fileObj = open(appContextPath)
-           for line in fileObj.read().split(';\n'):
-               beanLineToAppend = line.match("LDAP_BEAN_SETTINGS_START")
-               beanLineToAppend.apend(beanStrToBeAppended)
-               secLineToAppend = line.match("LDAP_SEC_SETTINGS_START")
-               secLineToAppend.append(secStrToBeAppended)
+           data = ''
+           for line in fileObj.read().split('\n'):
+               if ("LDAP_BEAN_SETTINGS_START") in line:
+                   line = line + '\n' + beanStrToBeAppended
+               if ("LDAP_SEC_SETTINGS_START") in line:
+                   line = line + '\n' + secStrToBeAppended
+               if data == '':
+                   data = line
+               data = data + '\n' + line
            fileObj.close()
 
-       elif authentication_method == "ACTIVE_DIRECTORY":
-           log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
-           appContextPath = os.path.join(xmlPath , "META-INF","security-applicationContext.xml")
-           beanSettingPath = os.path.join(xmlPath , "META-INF","contextXML","ad_bean_settings.xml")
-           secSettingPath = os.path.join(xmlPath , "META-INF","contextXML","ad_security_settings.xml")
+           fileObj = open(appContextPath,'w')
+           fileObj.writelines(data)
+           fileObj.close()
 
-           ## Logic is to find AD_BEAN_SETTINGS_START,AD_SEC_SETTINGS_START  from appContext xml file and append
-           ## the xml properties from unix bean settings file
-           if os.path.isfile(appContextPath) and os.path.isfile(beanSettingPath):
-               beanStrToBeAppended =  open(beanSettingPath).read()
-               secStrToBeAppended =  open(secSettingPath).read()
-               fileObj = open(appContextPath)
-               for line in fileObj.read().split(';\n'):
-                   beanLineToAppend = line.match("AD_BEAN_SETTINGS_START")
-                   beanLineToAppend.apend(beanStrToBeAppended)
-                   secLineToAppend = line.match("AD_SEC_SETTINGS_START")
-                   secLineToAppend.append(secStrToBeAppended)
+   elif authentication_method == "ACTIVE_DIRECTORY":
+       log("Setting up "+authentication_method+" authentication for : " + xmlPath,"debug")
+       appContextPath = os.path.join(xmlPath , "META-INF","security-applicationContext.xml")
+       beanSettingPath = os.path.join(xmlPath , "META-INF","contextXML","ad_bean_settings.xml")
+       secSettingPath = os.path.join(xmlPath , "META-INF","contextXML","ad_security_settings.xml")
 
-               fileObj.close()
+       ## Logic is to find AD_BEAN_SETTINGS_START,AD_SEC_SETTINGS_START  from appContext xml file and append
+       ## the xml properties from unix bean settings file
+       if os.path.isfile(appContextPath) and os.path.isfile(beanSettingPath):
+           beanStrToBeAppended =  open(beanSettingPath).read()
+           secStrToBeAppended =  open(secSettingPath).read()
+           fileObj = open(appContextPath)
+           data = ''
+           for line in fileObj.read().split('\n'):
+               if ("AD_BEAN_SETTINGS_START") in line :
+                    line = line + '\n'+  beanStrToBeAppended
+               if ("AD_SEC_SETTINGS_START") in line:
+                    line = line + '\n' + secStrToBeAppended
+               if data == '':
+                   data = line
+               data = data + '\n' + line
+           fileObj.close()
 
-           elif authentication_method == "NONE":
-               log("Authentication Method: "+authentication_method+" authentication for : " + xmlPath,"debug")
+           fileObj = open(appContextPath,'w')
+           fileObj.writelines(data)
+           fileObj.close()
+
+   elif authentication_method == "NONE":
+      log("Authentication Method: "+authentication_method+" authentication for : " + xmlPath,"debug")
 #pass
 #
 def do_authentication_setup():
@@ -767,24 +782,26 @@ def do_authentication_setup():
 #    ##Written new function to perform authentication setup for all  cases
    authentication_method = conf_dict['ARGUS_AUTHENTICATION_METHOD']
    setup_authentication(authentication_method, webappRoot)
-   ldap_file=  os.path.join(webappRoot ,"WEB-INF","resources","xa_ldap.properties")
+   # ldap_file=  os.path.join(webappRoot ,"WEB-INF","resources","xa_ldap.properties")
+   ldap_file=  os.path.join(webappRoot ,"WEB-INF","classes","xa_ldap.properties")
    if os.path.isfile(ldap_file):
        log(ldap_file + " file found", "info")
    else:
        log(ldap_file + " does not exists", "warning")
+
    config = StringIO.StringIO()
-   config.write('[dummysection]\n')
+   config.write('[LDAP_AD_CONF]\n')
    config.write(open(ldap_file).read())
    config.seek(0, os.SEEK_SET)
    ##Now parse using configparser
    cObj = ConfigParser.ConfigParser()
    cObj.optionxform = str
    cObj.readfp(config)
-   options = cObj.options('dummysection')
+   options = cObj.options('LDAP_AD_CONF')
    for option in options:
-       value = cObj.get('dummysection', option)
+       value = cObj.get('LDAP_AD_CONF', option)
        sys_conf_dict[option] = value
-       cObj.set("dummysection",option, value)
+       cObj.set("LDAP_AD_CONF",option, value)
    log("LDAP file : "+ ldap_file + " file found", "info")
 
    if authentication_method == "LDAP":
@@ -793,27 +810,27 @@ def do_authentication_setup():
        ##########
        propertyName="xa_ldap_url"
        newPropertyValue=conf_dict['ARGUS_LDAP_URL']
-       cObj.set('dummysection',propertyName,newPropertyValue)
+       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
        ###########
        propertyName="xa_ldap_userDNpattern"
        newPropertyValue=conf_dict['ARGUS_LDAP_USERDNPATTERN']
-       cObj.set('dummysection',propertyName,newPropertyValue)
+       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
        ###########
        propertyName="xa_ldap_groupSearchBase"
        newPropertyValue=conf_dict['ARGUS_LDAP_GROUPSEARCHBASE']
-       cObj.set('dummysection',propertyName,newPropertyValue)
+       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
        ###########
        propertyName="xa_ldap_groupSearchFilter"
        newPropertyValue=conf_dict['ARGUS_LDAP_GROUPSEARCHFILTER']
-       cObj.set('dummysection',propertyName,newPropertyValue)
+       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
        ###########
        propertyName="xa_ldap_groupRoleAttribute"
        newPropertyValue=conf_dict['ARGUS_ldap_GROUPROLEATTRIBUTE']
-       cObj.set('dummysection',propertyName,newPropertyValue)
+       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
        ###########
        propertyName="authentication_method"
        newPropertyValue=authentication_method
-       cObj.set('dummysection',propertyName,newPropertyValue)
+       cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
    else:
        log( "LDAP file: "+ ldap_file +" does not exists","exception")
    if authentication_method == "ACTIVE_DIRECTORY":
@@ -824,19 +841,20 @@ def do_authentication_setup():
            log("LDAP file : "+ ldap_file + " file found", "info")
            propertyName="xa_ldap_ad_url"
            newPropertyValue=conf_dict['ARGUS_LDAP_AD_URL']
-           cObj.set('dummysection',propertyName,newPropertyValue)
+           cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
            ###########
            propertyName="xa_ldap_ad_domain"
            newPropertyValue=conf_dict['ARGUS_LDAP_AD_DOMAIN']
-           cObj.set('dummysection',propertyName,newPropertyValue)
+           cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
            ###########
            propertyName="authentication_method"
            newPropertyValue=authentication_method
-           cObj.set('dummysection',propertyName,newPropertyValue)
+           cObj.set('LDAP_AD_CONF',propertyName,newPropertyValue)
        else:
            log(ldap_file + " does not exists", "exception")
-#    with open(ldap_file, 'wb') as configfile:
-#        cObj.write(configfile)        
+
+   with open(ldap_file, 'wb') as configfile:
+       cObj.write(configfile)
 #
 #    #if authentication_method == "UNIX":
 #        ## I think it is not needed for Windows
@@ -932,12 +950,13 @@ def setup_admin_db_user():
 # Entry point to script using --service
 def run_setup(cmd, app_type):
     init_logfiles()
-    log("--------- Running Argus PolicyManager Install Script --------- ","debug")
+    log("--------- Running Argus PolicyManager Install Script ---------","debug")
     #parse_config_file()
     init_variables("service")
     setup_install_files()
     extract_war()
     update_properties()
+    do_authentication_setup()
     return
 
 # Entry point to script using --configure
