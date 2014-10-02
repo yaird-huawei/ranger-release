@@ -280,30 +280,61 @@ function Install(
 	}
     elseif ( $component -eq "argus-ugsync" )
     {
-        # This if will work on the assumption that $component ="argus" is installed
-        # so we have the ARGUS_HDFS_HOME properly set
-
-        # setup path variables
+		# This if will work on the assumption that $component ="argus" is installed
+		# so we have the ARGUS_UGSYNC_HOME properly set
+		$HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
+        ### $argusInstallPath: the name of the folder containing the application, after unzipping
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
+        $argusAdmin = $FinalName + "-admin"
+        $argusAdminInstallPath = Join-Path "$argusInstallPath" "$argusAdmin" 
+        $argusInstallToBin = Join-Path "$argusAdminInstallPath" "bin"
+		
+		if ($roles) {
+			###
+			### Create Argus-Ugsync Windows Services and grant user ACLS to start/stop
+			###
+			### TODO
+			Write-Log "argus-ugsync Role Services: $roles"
 
-        Write-Log "Copying argus-ugsync config files "
+			### Verify that roles are in the supported set
+			### TODO
+			CheckRole $roles @("argus-ugsync")
 
-		## TODO:WINDOWS check if the path HBASE_CONF_DIR is set or not
-		#Write-Log "Checking the HBASE_CONF_DIR Installation."
-        #if( -not (Test-Path $ENV:HBASE_CONF_DIR))
-        #{
-        #  Write-Log "HBASE_CONF_DIR not set properly; $ENV:HBASE_CONF_DIR does not exist" "Failure"
-        #  throw "Install: HBASE_CONF_DIR not set properly; $ENV:HBASE_CONF_DIR does not exist."
-        #}
+			Write-Log "Role : $roles"
+			foreach( $service in empty-null ($roles -Split('\s+')))
+			{
+				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
+				if ( $service -eq "argus-ugsync" )
+				{
+					$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+					$credStorePath = $credStorePath -replace "\\", "/"
+					
+				    ### Create Credential Store  directory
+					if( -not (Test-Path "$credStorePath"))
+					{
+						Write-Log "Creating Credential Store directory: `"$credStorePath`""
+						$cmd = "mkdir `"$credStorePath`""
+						Invoke-CmdChk $cmd
+					}
 
-        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\conf\*`" `"$ENV:HBASE_CONF_DIR`""
-        #Invoke-CmdChk $xcopy_cmd
-
-        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\dist\*.jar`" `"$HBASE_HOME\lib`""
-        #Invoke-CmdChk $xcopy_cmd
-
-        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_UGSYNC_HOME\lib\*.jar`" `"$HBASE_HOME\lib`""
-        #Invoke-CmdChk $xcopy_cmd
+					CreateJCEKS "ldap.bind.password" "${ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/ugsync.jceks"
+					[Environment]::SetEnvironmentVariable("ARGUS_UGSYNC_CRED_KEYSTORE_FILE", "$credStorePath\ugsync.jceks" , [EnvironmentVariableTarget]::Machine)
+					$ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE = "$credStorePath\ugsync.jceks"
+					
+				}
+				
+				###
+				### Setup argus ugsync service config
+				###
+				$ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
+				Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
+				# TODO:WINDOWS take python from `which` or `where`
+				$cmd = "python $argusInstallToBin\argus_ugsync.py --service > `"$argusInstallToBin\$service.xml`""
+				Invoke-CmdChk $cmd    
+			}
+	        ### end of roles loop
+        }
+		###	Install Argus Ugsync ends
     }
     else
     {
@@ -1130,20 +1161,62 @@ function ConfigureArgusUgsync(
     #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
     #}
 
-    # Add line to invoke the xasecure-hadoop-env.cmd
-    # set HADOOP_NAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_NAMENODE_OPTS% 
-    # set HADOOP_SECONDARYNAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_SECONDARYNAMENODE_OPTS%
-    
-    Write-Log "Modifying hadoop-env.cmd to invoke xasecure-hadoop-env.cmd"
-    $file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
+	$ARGUS_UGSYNC_CONF_DIR = Join-Path $ENV:ARGUS_UGSYNC_HOME "conf"
+	$file = Join-Path  $ARGUS_UGSYNC_CONF_DIR "unixauthservice.properties"
 
-    $line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
     #TODO:WINDOWS Should we guard against option already being present?
-    Add-Content $file $line
-
-    $line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
-    #TODO:WINDOWS Should we guard against option already being present?
-    Add-Content $file $line
+    #Add-Content $file $line
+	$line = "usergroupSync.policymanager.baseURL=$ENV:ARGUS_HOST:"
+	Add-Content $file $line
+	
+	$line = "usergroupSync.sleepTimeInMillisBetweenSyncCycle=$ENV:ARGUS_SYNC_INTERVAL"
+	Add-Content $file $line
+	
+	##Not there in ENV vars
+	$line = "usergroupSync.source.impl.class=$ENV:ARGUS_SYNC_SOURCE"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.ldapUrl=$ENV:ARGUS_SYNC_LDAP_URL"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.ldapBindDn=$ENV:ARGUS_SYNC_LDAP_BIND_DN"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.ldapBindPassword=$ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD"
+	Add-Content $file $line
+	
+	##Not there in ENV vars
+	$line = "ldapGroupSync.ldapBindKeystore=$ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE"
+	Add-Content $file $line
+	
+	##Not there in ENV vars
+	$line = "ldapGroupSync.ldapBindAlias=$ENV:ARGUS_SYNC_LDAP_BIND_ALIAS"
+	Add-Content $file $line
+	
+	##Not there in ENV vars
+	$line = "ldapGroupSync.userSearchBase=$ENV:ARGUS_SYNC_LDAP_USER_SEARCH_BASE"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.userSearchScope=$ENV:ARGUS_SYNC_LDAP_USER_SEARCH_SCOPE"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.userObjectClass=$ENV:ARGUS_SYNC_LDAP_USER_OBJECT_CLASS"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.userNameAttribute=$ENV:ARGUS_SYNC_LDAP_USER_NAME_ATTRIBUTE"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.userGroupNameAttribute=$ENV:ARGUS_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.username.caseConversion=$ENV:ARGUS_SYNC_LDAP_USERNAME_CASE_CONVERSION"
+	Add-Content $file $line
+	
+	$line = "ldapGroupSync.groupname.caseConversion=$ENV:ARGUS_SYNC_LDAP_GROUPNAME_CASE_CONVERSION"
+	Add-Content $file $line
+	
+	$line = "SYNC_LDAP_BIND_ALIAS=ldap.bind.password"
+	Add-Content $file $line
 
  }
 
