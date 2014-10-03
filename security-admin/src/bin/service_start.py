@@ -38,7 +38,7 @@ if service_entry:
     dom = getDOMImplementation()
     xmlDoc = dom.createDocument(None, 'service', None)
     xmlDocRoot = xmlDoc.documentElement
-    arguments = ' '.join([' '.join(jdk_options), '-cp', class_path, java_class, class_arguments ])
+    arguments = ''.join([' '.join(jdk_options), '-cp', class_path, java_class, class_arguments ])
 
     def appendTextElement(name, value):
         elem = xmlDoc.createElement(name)
@@ -52,7 +52,7 @@ if service_entry:
     appendTextElement('arguments', arguments)
     appendTextElement('logmode', "append")
 
-    print xmlDoc.toprettyxml(indent='  ')
+    print xmlDoc.toprettyxml(indent='')
     sys.exit()
 
 

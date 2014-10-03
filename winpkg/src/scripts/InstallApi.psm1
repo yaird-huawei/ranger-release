@@ -99,7 +99,7 @@ function Install(
 					CreateJCEKS "policyDB.jdbc.password" "${ENV:ARGUS_ADMIN_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
 					CreateJCEKS "auditDb.jdbc.password" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
 					[Environment]::SetEnvironmentVariable("ARGUS_ADMIN_CRED_KEYSTORE_FILE", "$credStorePath\xapolicymgr.jceks" , [EnvironmentVariableTarget]::Machine)
-					$ENV:ARGUS_ADMIN_CRED_KEYSTORE_FILE = "$credStorePath\xapolicymgr.jceks"
+					$ENV:ARGUS_ADMIN_CRED_KEYSTORE_FILE = "$credStorePath/xapolicymgr.jceks"
 					
 				}
 				
@@ -116,7 +116,7 @@ function Install(
 	        ### end of roles loop
         }
 		$username = $serviceCredential.UserName
-		GiveFullPermissions $argusInstallToBin $username
+		GiveFullPermissions $argusInstallPath $username
 		
         Write-Log "Finished installing Argus Admin Tool"
     } 
@@ -149,14 +149,15 @@ function Install(
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
 		
         [Environment]::SetEnvironmentVariable("ARGUS_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath\Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
+        $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
 
 	}
 	elseif ( $component -eq "argus-hive" )
 	{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HIVE_HOME properly set
-
+		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		$credStorePath = $credStorePath -replace "\\", "/"
         Write-Log "Copying argus-hive config files "
 
 		Write-Log "Checking the HIVE_CONF_DIR Installation."
@@ -173,15 +174,15 @@ function Install(
         Invoke-CmdChk $xcopy_cmd
 
 
-        if( -not (Test-Path Join-Path $ENV:HIVE_CONF_DIR "hiveserver2-site.xml"))
+        if( -not (Test-Path `"$ENV:HIVE_CONF_DIR\hiveserver2-site.xml`"))
 		{
-			$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME`"\install\conf.templates\default\configuration.xml `"$ENV:HIVE_CONF_DIR`"\hiveserver2-site.xml"
-			Invoke-CmdChk $xcopy_cmd
+			$copy_cmd = "copy `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_CONF_DIR`"\hiveserver2-site.xml"
+			Invoke-CmdChk $copy_cmd
 		}
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HIVE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
 		
         [Environment]::SetEnvironmentVariable("ARGUS_HIVE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HIVE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HIVE_CRED_KEYSTORE_FILE = "$credStorePath\Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
+        $ENV:ARGUS_HIVE_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
 
 
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
@@ -192,6 +193,8 @@ function Install(
 	{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HIVE_HOME properly set
+		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		$credStorePath = $credStorePath -replace "\\", "/"
 
         Write-Log "Copying argus-hbase config files "
 
@@ -211,7 +214,7 @@ function Install(
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HBASE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
 		
         [Environment]::SetEnvironmentVariable("ARGUS_HBASE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HBASE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE = "$credStorePath\Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
+        $ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
 
 
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
@@ -222,6 +225,8 @@ function Install(
 	{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HIVE_HOME properly set
+		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		$credStorePath = $credStorePath -replace "\\", "/"
 
         Write-Log "Copying argus-knox config files "
 
@@ -232,7 +237,7 @@ function Install(
           throw "Install: ${ENV:KNOX_HOME}\conf dir does not exist."
         }
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_KNOX_HOME\install\conf.templates\enable\*.xml`" `"${ENV:KNOX_DIR}\conf`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_KNOX_HOME\install\conf.templates\enable\*.xml`" `"${ENV:KNOX_HOME}\conf`""
         Invoke-CmdChk $xcopy_cmd
 
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_KNOX_HOME\lib\*.jar`" `"$ENV:KNOX_HOME\lib`""
@@ -241,7 +246,7 @@ function Install(
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_KNOX_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_KNOX_REPO}.jceks"
 		
         [Environment]::SetEnvironmentVariable("ARGUS_KNOX_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_KNOX_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_KNOX_CRED_KEYSTORE_FILE = "$credStorePath\Repo_${ENV:ARGUS_KNOX_REPO}.jceks"
+        $ENV:ARGUS_KNOX_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_KNOX_REPO}.jceks"
 
 
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_KNOX_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
@@ -252,6 +257,8 @@ function Install(
 	{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HIVE_HOME properly set
+		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		$credStorePath = $credStorePath -replace "\\", "/"
 
         Write-Log "Copying argus-storm config files "
 
@@ -271,7 +278,7 @@ function Install(
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_STORM_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_STORM_REPO}.jceks"
 		
         [Environment]::SetEnvironmentVariable("ARGUS_STORM_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_STORM_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_STORM_CRED_KEYSTORE_FILE = "$credStorePath\Repo_${ENV:ARGUS_STORM_REPO}.jceks"
+        $ENV:ARGUS_STORM_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_STORM_REPO}.jceks"
 
 
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_STORM_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
@@ -319,7 +326,7 @@ function Install(
 
 					CreateJCEKS "ldap.bind.password" "${ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/ugsync.jceks"
 					[Environment]::SetEnvironmentVariable("ARGUS_UGSYNC_CRED_KEYSTORE_FILE", "$credStorePath\ugsync.jceks" , [EnvironmentVariableTarget]::Machine)
-					$ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE = "$credStorePath\ugsync.jceks"
+					$ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE = "$credStorePath/ugsync.jceks"
 					
 				}
 				
@@ -1071,7 +1078,7 @@ function ConfigureArgusKnox(
     ###
     ### Apply configuration changes to xasecure-hbase-security.xml
     ###
-    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-hbase-security.xml" 
+    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-knox-security.xml" 
     UpdateXmlConfig $xmlFile $configs["knoxSecurityChanges"]
 
     ###
@@ -1116,7 +1123,7 @@ function ConfigureArgusStorm(
     ###
     ### Apply configuration changes to xasecure-hbase-security.xml
     ###
-    $xmlFile = Join-Path $ENV:STORM_HOME "conf\xasecure-hbase-security.xml" 
+    $xmlFile = Join-Path $ENV:STORM_HOME "conf\xasecure-storm-security.xml" 
     UpdateXmlConfig $xmlFile $configs["stormSecurityChanges"]
 
     ###
