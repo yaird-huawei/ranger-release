@@ -116,8 +116,9 @@ function Install(
 	        ### end of roles loop
         }
 		$username = $serviceCredential.UserName
-		GiveFullPermissions $argusInstallPath $username
-		
+		GiveFullPermissions $argusInstallToBin $username $true
+		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+
         Write-Log "Finished installing Argus Admin Tool"
     } 
 	elseif ( $component -eq "argus-hdfs" )
@@ -148,6 +149,9 @@ function Install(
 
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
 		
+		$username = $serviceCredential.UserName
+		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+
         [Environment]::SetEnvironmentVariable("ARGUS_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
 
@@ -181,6 +185,9 @@ function Install(
 		}
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HIVE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
 		
+		$username = $serviceCredential.UserName
+		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+
         [Environment]::SetEnvironmentVariable("ARGUS_HIVE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HIVE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HIVE_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
 
@@ -213,6 +220,9 @@ function Install(
 
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HBASE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
 		
+		$username = $serviceCredential.UserName
+		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+
         [Environment]::SetEnvironmentVariable("ARGUS_HBASE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HBASE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
 
@@ -245,6 +255,9 @@ function Install(
 
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_KNOX_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_KNOX_REPO}.jceks"
 		
+		$username = $serviceCredential.UserName
+		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+
         [Environment]::SetEnvironmentVariable("ARGUS_KNOX_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_KNOX_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_KNOX_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_KNOX_REPO}.jceks"
 
@@ -277,6 +290,9 @@ function Install(
 
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_STORM_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_STORM_REPO}.jceks"
 		
+		$username = $serviceCredential.UserName
+		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+
         [Environment]::SetEnvironmentVariable("ARGUS_STORM_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_STORM_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_STORM_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_STORM_REPO}.jceks"
 
@@ -325,6 +341,10 @@ function Install(
 					}
 
 					CreateJCEKS "ldap.bind.password" "${ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/ugsync.jceks"
+					
+					$username = $serviceCredential.UserName
+					GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+
 					[Environment]::SetEnvironmentVariable("ARGUS_UGSYNC_CRED_KEYSTORE_FILE", "$credStorePath\ugsync.jceks" , [EnvironmentVariableTarget]::Machine)
 					$ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE = "$credStorePath/ugsync.jceks"
 					
@@ -1247,7 +1267,9 @@ function GiveFullPermissions(
     $recursive = $false)
 {
     Write-Log "Giving user/group `"$username`" full permissions to `"$folder`""
-    $cmd = "icacls `"$folder`" /grant ${username}:(OI)(CI)F"
+	### Give /inheritance:e because jceks files in the jceks foler is not
+	### getting it by default and hence decrypting of keystore alias is failing!
+    $cmd = "icacls `"$folder`" /inheritance:e /grant ${username}:(OI)(CI)F"
     if ($recursive) {
         $cmd += " /T"
     }
