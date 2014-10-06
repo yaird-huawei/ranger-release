@@ -736,7 +736,8 @@ def setup_authentication(authentication_method, xmlPath):
                    line = line + '\n' + secStrToBeAppended
                if data == '':
                    data = line
-               data = data + '\n' + line
+               else:
+                   data = data + '\n' + line
            fileObj.close()
 
            fileObj = open(appContextPath,'w')
@@ -763,7 +764,8 @@ def setup_authentication(authentication_method, xmlPath):
                     line = line + '\n' + secStrToBeAppended
                if data == '':
                    data = line
-               data = data + '\n' + line
+               else:
+                   data = data + '\n' + line
            fileObj.close()
 
            fileObj = open(appContextPath,'w')
