@@ -1188,62 +1188,92 @@ function ConfigureArgusUgsync(
     #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
     #}
 
-	$ARGUS_UGSYNC_CONF_DIR = Join-Path $ENV:ARGUS_UGSYNC_HOME "conf"
-	$file = Join-Path  $ARGUS_UGSYNC_CONF_DIR "unixauthservice.properties"
+    #Write-Log "Modifying hadoop-env.cmd to invoke argus-ugsync-hadoop-env.cmd"
+    #$file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
+    $ARGUS_UGSYNC_CONF_DIR = Join-Path $ENV:ARGUS_UGSYNC_HOME "conf"
+    $file = Join-Path  $ARGUS_UGSYNC_CONF_DIR "unixauthservice.properties"
 
     #TODO:WINDOWS Should we guard against option already being present?
-    #Add-Content $file $line
-	$line = "usergroupSync.policymanager.baseURL=$ENV:ARGUS_HOST:"
-	Add-Content $file $line
-	
-	$line = "usergroupSync.sleepTimeInMillisBetweenSyncCycle=$ENV:ARGUS_SYNC_INTERVAL"
-	Add-Content $file $line
-	
-	##Not there in ENV vars
-	$line = "usergroupSync.source.impl.class=$ENV:ARGUS_SYNC_SOURCE"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.ldapUrl=$ENV:ARGUS_SYNC_LDAP_URL"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.ldapBindDn=$ENV:ARGUS_SYNC_LDAP_BIND_DN"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.ldapBindPassword=$ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD"
-	Add-Content $file $line
-	
-	##Not there in ENV vars
-	$line = "ldapGroupSync.ldapBindKeystore=$ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE"
-	Add-Content $file $line
-	
-	##Not there in ENV vars
-	$line = "ldapGroupSync.ldapBindAlias=$ENV:ARGUS_SYNC_LDAP_BIND_ALIAS"
-	Add-Content $file $line
-	
-	##Not there in ENV vars
-	$line = "ldapGroupSync.userSearchBase=$ENV:ARGUS_SYNC_LDAP_USER_SEARCH_BASE"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.userSearchScope=$ENV:ARGUS_SYNC_LDAP_USER_SEARCH_SCOPE"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.userObjectClass=$ENV:ARGUS_SYNC_LDAP_USER_OBJECT_CLASS"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.userNameAttribute=$ENV:ARGUS_SYNC_LDAP_USER_NAME_ATTRIBUTE"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.userGroupNameAttribute=$ENV:ARGUS_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.username.caseConversion=$ENV:ARGUS_SYNC_LDAP_USERNAME_CASE_CONVERSION"
-	Add-Content $file $line
-	
-	$line = "ldapGroupSync.groupname.caseConversion=$ENV:ARGUS_SYNC_LDAP_GROUPNAME_CASE_CONVERSION"
-	Add-Content $file $line
-	
-	$line = "SYNC_LDAP_BIND_ALIAS=ldap.bind.password"
-	Add-Content $file $line
+    
+    $prop       = "usergroupSync.policymanager.baseURL"
+    $propVal    = $ENV:ARGUS_HOST
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "usergroupSync.sleepTimeInMillisBetweenSyncCycle"
+    $propVal    = $ENV:ARGUS_SYNC_INTERVAL
+    ReplacePropertyVal $file $prop $propVal
+    
+    ##Not there in ENV vars
+    if($ENV:SYNCSOURCE.ToUpper() -eq 'LDAP') {
+        $prop       = "usergroupSync.source.impl.class"
+        $propVal    = "com.xasecure.ldapusersync.process.LdapUserGroupBuilder"
+    }elseif($ENV:SYNCSOURCE.ToUpper() -eq 'UNIX') {
+        $prop       = "usergroupSync.source.impl.class"
+        $propVal    = "com.xasecure.unixusersync.process.UnixUserGroupBuilder"
+    }else{
+        $prop       = "usergroupSync.source.impl.class"
+        $propVal    = "com.xasecure.unixusersync.process.UnixUserGroupBuilder"
+    }
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldapGroupSync.ldapUrl"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_URL
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldapGroupSync.ldapBindDn"
+    $propVal        = $ENV:ARGUS_SYNC_LDAP_BIND_DN
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldapGroupSync.ldapBindPassword"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD
+    ReplacePropertyVal $file $prop $propVal
+    
+    ##Not there in ENV vars
+    $prop       = "ldapGroupSync.ldapBindKeystore" 
+    $propVal    = $ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE
+    ReplacePropertyVal $file $prop $propVal
+    
+    ##Not there in ENV vars
+    $prop       = "ldapGroupSync.ldapBindAlias"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_BIND_ALIAS
+    ReplacePropertyVal $file $prop $propVal
+    
+    ##Not there in ENV vars
+    $prop       = "ldapGroupSync.userSearchBase"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_SEARCH_BASE
+    ReplacePropertyVal $file $prop $propVal
+        
+    $prop       = "ldapGroupSync.userSearchScope"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_SEARCH_SCOPE
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldapGroupSync.userObjectClass"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_OBJECT_CLASS
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldapGroupSync.userObjectClass"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_OBJECT_CLASS
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldapGroupSync.userNameAttribute"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_NAME_ATTRIBUTE
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldapGroupSync.userGroupNameAttribute"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldapGroupSync.username.caseConversion"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_USERNAME_CASE_CONVERSION
+    ReplacePropertyVal $file $prop $propVal
+        
+    $prop       = "ldapGroupSync.groupname.caseConversion"
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_GROUPNAME_CASE_CONVERSION
+    ReplacePropertyVal $file $prop $propVal
+    
+    $prop       = "ldap.bind.password"
+    $propVal    = $ENV:SYNC_LDAP_BIND_ALIAS
+    ReplacePropertyVal $file $prop $propVal
 
  }
 
@@ -1426,6 +1456,26 @@ function ReplaceString($file,$find,$replace)
         if ($content[$i] -like "*$find*")
         {
             $content[$i] = $content[$i].Replace($find, $replace)
+        }
+    }
+    Set-Content -Value $content -Path $file -Force
+}
+
+### Helper routine that replaces a property value in a file
+function ReplacePropertyVal($file,$findProp,$replaceVal)
+{
+    $content = Get-Content $file
+    for ($i=1; $i -le $content.Count; $i++)
+    {
+        if($content[$i]) 
+        { 
+            $prop = $content[$i].Split('=')[0]
+            if ($prop.trim() -eq $findProp )
+            {
+                $content[$i]= ""
+                $updatedContent = "$findProp = $replaceVal"
+                $content[$i] = $updatedContent
+            }
         }
     }
     Set-Content -Value $content -Path $file -Force
