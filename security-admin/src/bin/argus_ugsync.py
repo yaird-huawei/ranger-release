@@ -18,6 +18,7 @@ import subprocess
 import time
 #import argus_install
 from xml.dom.minidom import getDOMImplementation
+import re 
 
 cmd = sys.argv[0]
 app_type = sys.argv[1]
