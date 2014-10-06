@@ -46,7 +46,7 @@ def appendTextElement(name, value):
 
 def get_argus_classpath():
 	global conf_dict
-	cp = [ os.path.join(conf_dict["INSTALL_DIR"],"dist","*"), os.path.join(conf_dict["INSTALL_DIR"],"lib","*"), os.path.join(conf_dict["INSTALL_DIR"], 'conf', '*')]
+	cp = [ os.path.join(conf_dict["INSTALL_DIR"],"dist","*"), os.path.join(conf_dict["INSTALL_DIR"],"lib","*"), os.path.join(conf_dict["INSTALL_DIR"], 'conf')]
 	class_path = get_class_path(cp)
 	return class_path
 	
