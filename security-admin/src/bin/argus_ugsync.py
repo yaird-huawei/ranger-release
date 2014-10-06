@@ -93,7 +93,11 @@ if service_entry:
 	appendTextElement('description', 'This service runs argus-ugsync')
 	appendTextElement('executable', get_java_env())
 	appendTextElement('arguments', arguments)
-	print xmlDoc.toprettyxml(indent='  ')
+	uglyXml = xmlDoc.toprettyxml(indent='  ')
+	text_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)    
+	prettyXml = text_re.sub('>\g<1></', uglyXml)
+
+	print prettyXml
 	sys.exit()
 	
 if configure_entry:
