@@ -213,10 +213,25 @@ def populate_config_dict_from_env():
     conf_dict['ARGUS_LDAP_AD_DOMAIN'] = os.getenv("ARGUS_LDAP_AD_DOMAIN")
     conf_dict['ARGUS_LDAP_AD_URL'] = os.getenv("ARGUS_LDAP_AD_URL")
 
+def populate_config_dict_from_file():
+    global config_dict
+    read_config_file = open("install_config.properties")
+    for each_line in read_config_file.read().split('\n') :
+        if len(each_line) == 0 : continue
+        # print 'each_line = ' + each_line
+        key , value = each_line.strip().split("=",1)
+        key = key.strip()
+        value = value.strip()
+        conf_dict[key] = value
+
+
 def init_variables(switch):
     global conf_dict
 
-    populate_config_dict_from_env()
+    if switch == 'service' :
+        populate_config_dict_from_env()
+    else:
+        populate_config_dict_from_file()
     INSTALL_DIR = os.path.join(conf_dict['ARGUS_ADMIN_HOME'] , "app")
     EWS_ROOT    = os.path.join(INSTALL_DIR , "ews")
     WEBAPP_ROOT = os.path.join(INSTALL_DIR , "ews" , "webapp")
@@ -283,6 +298,17 @@ def setup_install_files():
 
     log(" Setting up installation files and directory DONE", "info");
 pass
+
+
+def write_config_to_file():
+    global conf_dict
+    file_path = os.path.join(conf_dict["ARGUS_ADMIN_HOME"], "bin")
+    mkdir_p(file_path)
+    write_conf_to_file = os.path.join(file_path, "install_config.properties")
+    open(write_conf_to_file,'wb')
+    for key,value in conf_dict.items():
+        ModConfig(write_conf_to_file , key,value)
+
 
 def init_logfiles():
     FORMAT = '%(asctime)-15s %(message)s'
@@ -965,6 +991,7 @@ def run_setup(cmd, app_type):
     #parse_config_file()
     init_variables("service")
     setup_install_files()
+    write_config_to_file()
     extract_war()
     update_properties()
     do_authentication_setup()
