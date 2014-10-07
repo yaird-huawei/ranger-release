@@ -535,13 +535,13 @@ function InstallUserSync(
 
 			### Verify that roles are in the supported set
 			### TODO
-			CheckRole $roles @("argus-ugsync")
+			CheckRole $roles @("argus-usersync")
 
 			Write-Log "Role : $roles"
 			foreach( $service in empty-null ($roles -Split('\s+')))
 			{
 				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
-				if ( $service -eq "argus-ugsync" )
+				if ( $service -eq "argus-usersync" )
 				{
 					$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
 					$credStorePath = $credStorePath -replace "\\", "/"
@@ -921,7 +921,7 @@ function Uninstall(
 
 		### Stop and delete services
         ###
-        foreach( $service in ("argus"))
+        foreach( $service in @("argus", "argus-usersync"))
         {
             StopAndDeleteHadoopService $service
         }
@@ -935,6 +935,27 @@ function Uninstall(
         ### Removing ARGUS_HOME environment variable
         Write-Log "Removing the ARGUS_HOME environment variable"
         [Environment]::SetEnvironmentVariable( "ARGUS_HOME", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the ARGUS_ADMIN_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_ADMIN_HOME", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the ARGUS_HDFS_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_HDFS_HOME", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the ARGUS_HBASE_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_HBASE_HOME", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the ARGUS_HIVE_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_HIVE_HOME", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the ARGUS_KNOX_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_KNOX_HOME", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the ARGUS_STORM_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_STORM_HOME", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the ARGUS_UGSYNC_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_UGSYNC_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
         Write-Log "Successfully uninstalled argus"
 
@@ -1145,7 +1166,7 @@ function ConfigureArgusHdfs(
 	### Regenerate the namenode.xml file
 	$service = "namenode"
 	Write-Log "Regenerating service config ${ENV:HADOOP_HOME}\$service.xml"
-	$cmd = "$ENV:HADOOP_HOME\hdfs.cmd --service $service > `"$ENV:HADOOP_HOME\bin\$service.xml`""
+	$cmd = "$ENV:HADOOP_HOME\bin\hdfs.cmd --service $service > `"$ENV:HADOOP_HOME\bin\$service.xml`""
 	Invoke-CmdChk $cmd
     #$line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
 	#TODO:WINDOWS Should we guard against option already being present?
@@ -1205,7 +1226,7 @@ function ConfigureArgusHive(
 	### Regenerate the namenode.xml file
 	$service = "hiveserver2"
 	Write-Log "Regenerating service config ${ENV:HIVE_HOME}\bin\$service.xml"
-	$cmd = "$HIVE_HOME\bin\hive.cmd --service $service catservicexml > `"$ENV:HIVE_HOME\bin\$service.xml`""
+	$cmd = "$ENV:HIVE_HOME\bin\hive.cmd --service $service catservicexml > `"$ENV:HIVE_HOME\bin\$service.xml`""
 	Invoke-CmdChk $cmd
 
     ###
