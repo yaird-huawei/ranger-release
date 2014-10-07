@@ -2,20 +2,18 @@
 if not defined HADOOP_HOME (
 	set HADOOP_HOME=%~dp0
 )
-echo %HADOOP_HOME%
 
-setlocal enableextensions enabledelayedexpansion
-for /f "usebackq" %%i in (`dir %HADOOP_HOME% /b ^| findstr /i "^hdfs-agent-[0-9][0-9.]*\.jar"`) do (
-    set XASECURE_AGENT_PATH=%%i
+for /f "usebackq delims=|" %%G in (`dir /b "%HADOOP_HOME%\share\hadoop\common\lib" ^| findstr /i "^hdfs-agent-.*\.jar"`) do (
+
+    set "XASECURE_AGENT_PATH=%HADOOP_HOME%\share\hadoop\common\lib\%%~G"
+	
 )
-endlocal
 
-if exist {%XASECURE_AGENT_PATH%} (
+if exist %XASECURE_AGENT_PATH% (
 
 	set XASECURE_AGENT_OPTS= -javaagent:%XASECURE_AGENT_PATH%=authagent 
-	@setlocal enableextensions enabledelayedexpansion
 	rem Convert \\ to \ in path since its causing problem with findstr below
-	Echo.%HADOOP_NAMENODE_OPTS_TMP:\\=\% | findstr /C:"%XASECURE_AGENT_OPTS_TMP:\\=\%">nul && (
+	Echo.%HADOOP_NAMENODE_OPTS:\\=\% | findstr /C:"%XASECURE_AGENT_OPTS:\\=\%">nul && (
 		REM OPTIONS already set continue
 	) || (
 		set HADOOP_NAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_NAMENODE_OPTS% 
@@ -24,3 +22,4 @@ if exist {%XASECURE_AGENT_PATH%} (
 ) else (
     rem %XASECURE_AGENT_PATH% file doesn't exist
 )
+

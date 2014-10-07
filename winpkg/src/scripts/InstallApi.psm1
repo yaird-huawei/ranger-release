@@ -225,7 +225,7 @@ function InstallHdfs(
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-		$xcopy_cmd = "xcopy /EIYF `"$HDP_INSTALL_PATH\..\template\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR\`"
+		$xcopy_cmd = "xcopy /EIYF `"$HDP_INSTALL_PATH\..\template\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR\`""
         Invoke-CmdChk $xcopy_cmd
 
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
@@ -288,17 +288,17 @@ function InstallHive(
 
         if( -not (Test-Path `"$ENV:HIVE_CONF_DIR\hiveserver2-site.xml`"))
 		{
-			$copy_cmd = "copy `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_CONF_DIR\hiveserver2-site.xml`"
+			$copy_cmd = "copy `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_CONF_DIR\hiveserver2-site.xml`""
 			Invoke-CmdChk $copy_cmd
 		}
 
         if( Test-Path `"$ENV:HIVE_HOME\bin\ext\hs2service.cmd`")
 		{
-			$copy_cmd = "copy `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd.orig`"
+			$copy_cmd = "copy `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd.orig`""
 			Invoke-CmdChk $copy_cmd
 		}
 
-		$copy_cmd = "copy `"HDP_INSTALL_PATH\..\template\hiveserver2-argus.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`"
+		$copy_cmd = "copy `"$HDP_INSTALL_PATH\..\template\hiveserver2-argus.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`""
 		Invoke-CmdChk $copy_cmd
 
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HIVE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
@@ -1138,7 +1138,7 @@ function ConfigureArgusHdfs(
     $file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
 
     #$line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
-    $line = "`call xasecure-hadoop-env.cmd"
+    $line = "`if exist %HADOOP_CONF_DIR%\xasecure-hadoop-env.cmd CALL %HADOOP_CONF_DIR%\xasecure-hadoop-env.cmd"
 	#TODO:WINDOWS Should we guard against option already being present?
     Add-Content $file $line
 
@@ -1205,7 +1205,7 @@ function ConfigureArgusHive(
 	### Regenerate the namenode.xml file
 	$service = "hiveserver2"
 	Write-Log "Regenerating service config ${ENV:HIVE_HOME}\bin\$service.xml"
-	$cmd = "$HIVE_HOME\bin\hive.cmd --service $service catservicexml > `"$ENV:HIVE_HOME`"\$service.xml"
+	$cmd = "$HIVE_HOME\bin\hive.cmd --service $service catservicexml > `"$ENV:HIVE_HOME\bin\$service.xml`""
 	Invoke-CmdChk $cmd
 
     ###
