@@ -54,75 +54,156 @@ function Install(
     )
 {
 
-
     if ( $component -eq "argus" )
     {
-        $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
-
-        ### $argusInstallPath: the name of the folder containing the application, after unzipping
-        $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
-        $argusAdmin = $FinalName + "-admin"
-        $argusAdminInstallPath = Join-Path "$argusInstallPath" "$argusAdmin" 
-        $argusInstallToBin = Join-Path "$argusAdminInstallPath" "bin"
-        InstallBinaries $nodeInstallRoot $serviceCredential
-
-		if ($roles) {
-			###
-			### Create Argus Windows Services and grant user ACLS to start/stop
-			###
-			### TODO
-			Write-Log "Argus Role Services: $roles"
-
-			### Verify that roles are in the supported set
-			### TODO
-			CheckRole $roles @("argus")
-
-
-
-			Write-Log "Role : $roles"
-			foreach( $service in empty-null ($roles -Split('\s+')))
-			{
-				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
-				if ( $service -eq "argus" )
-				{
-					$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
-					$credStorePath = $credStorePath -replace "\\", "/"
-					
-				    ### Create Credential Store  directory
-					if( -not (Test-Path "$credStorePath"))
-					{
-						Write-Log "Creating Credential Store directory: `"$credStorePath`""
-						$cmd = "mkdir `"$credStorePath`""
-						Invoke-CmdChk $cmd
-					}
-
-					CreateJCEKS "policyDB.jdbc.password" "${ENV:ARGUS_ADMIN_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
-					CreateJCEKS "auditDb.jdbc.password" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
-					[Environment]::SetEnvironmentVariable("ARGUS_ADMIN_CRED_KEYSTORE_FILE", "$credStorePath\xapolicymgr.jceks" , [EnvironmentVariableTarget]::Machine)
-					$ENV:ARGUS_ADMIN_CRED_KEYSTORE_FILE = "$credStorePath/xapolicymgr.jceks"
-					
-				}
-				
-				###
-				### Setup argus service config
-				###
-				$ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
-				Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
-				# TODO:WINDOWS take python from `which` or `where`
-				$cmd = "python $argusInstallToBin\argus_start.py --service > `"$argusInstallToBin\$service.xml`""
-				Invoke-CmdChk $cmd    
-
-			}
-	        ### end of roles loop
-        }
-		$username = $serviceCredential.UserName
-		GiveFullPermissions $argusInstallToBin $username $true
-		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
-
-        Write-Log "Finished installing Argus Admin Tool"
-    } 
+        InstallArgusCore $nodeInstallRoot $serviceCredential $roles
+	} 
 	elseif ( $component -eq "argus-hdfs" )
 	{
+        InstallHdfs $nodeInstallRoot $serviceCredential $roles
+	}
+	elseif ( $component -eq "argus-hive" )
+	{
+        InstallHive $nodeInstallRoot $serviceCredential $roles
+	}
+	elseif ( $component -eq "argus-hbase" )
+	{
+        InstallHBase $nodeInstallRoot $serviceCredential $roles
+	}
+	elseif ( $component -eq "argus-knox" )
+	{
+        InstallKnox $nodeInstallRoot $serviceCredential $roles
+	}
+	elseif ( $component -eq "argus-storm" )
+	{
+        InstallStorm $nodeInstallRoot $serviceCredential $roles
+	}
+    elseif ( $component -eq "argus-ugsync" )
+    {
+        InstallUserSync $nodeInstallRoot $serviceCredential $roles
+    }
+    else
+    {
+        throw "Install: Unsupported component argument."
+    }
+}
+
+
+###############################################################################
+###
+### Installs Argus HDFS component.
+###
+### Arguments:
+###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
+###     serviceCredential: Credential object used for service creation
+###     hdfsRole: Space separated list of  roles that should be installed.
+###               (for example, "argus")
+###
+###############################################################################
+function InstallArgusCore(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [String]
+    [Parameter( Position=2, Mandatory=$false )]
+    $roles
+    )
+{
+	$HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
+
+	### $argusInstallPath: the name of the folder containing the application, after unzipping
+	$argusInstallPath = Join-Path $nodeInstallRoot $FinalName
+	$argusAdmin = $FinalName + "-admin"
+	$argusAdminInstallPath = Join-Path "$argusInstallPath" "$argusAdmin" 
+	$argusInstallToBin = Join-Path "$argusAdminInstallPath" "bin"
+	InstallBinaries $nodeInstallRoot $serviceCredential
+
+	if ($roles) {
+		###
+		### Create Argus Windows Services and grant user ACLS to start/stop
+		###
+		### TODO
+		Write-Log "Argus Role Services: $roles"
+
+		### Verify that roles are in the supported set
+		### TODO
+		CheckRole $roles @("argus")
+
+
+
+		Write-Log "Role : $roles"
+		foreach( $service in empty-null ($roles -Split('\s+')))
+		{
+			CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
+			if ( $service -eq "argus" )
+			{
+				$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+				$credStorePath = $credStorePath -replace "\\", "/"
+				
+				### Create Credential Store  directory
+				if( -not (Test-Path "$credStorePath"))
+				{
+					Write-Log "Creating Credential Store directory: `"$credStorePath`""
+					$cmd = "mkdir `"$credStorePath`""
+					Invoke-CmdChk $cmd
+				}
+
+				CreateJCEKS "policyDB.jdbc.password" "${ENV:ARGUS_ADMIN_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+				CreateJCEKS "auditDb.jdbc.password" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+				[Environment]::SetEnvironmentVariable("ARGUS_ADMIN_CRED_KEYSTORE_FILE", "$credStorePath\xapolicymgr.jceks" , [EnvironmentVariableTarget]::Machine)
+				$ENV:ARGUS_ADMIN_CRED_KEYSTORE_FILE = "$credStorePath/xapolicymgr.jceks"
+				
+			}
+			
+			###
+			### Setup argus service config
+			###
+			$ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
+			Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
+			# TODO:WINDOWS take python from `which` or `where`
+			$cmd = "python $argusInstallToBin\argus_start.py --service > `"$argusInstallToBin\$service.xml`""
+			Invoke-CmdChk $cmd    
+
+		}
+		### end of roles loop
+	}
+	$username = $serviceCredential.UserName
+	GiveFullPermissions $argusInstallToBin $username $true
+	GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+
+	Write-Log "Finished installing Argus Admin Tool"
+
+}
+
+
+###############################################################################
+###
+### Installs Argus HDFS component.
+###
+### Arguments:
+###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
+###     serviceCredential: Credential object used for service creation
+###     hdfsRole: Space separated list of  roles that should be installed.
+###               (for example, "argus")
+###
+###############################################################################
+function InstallHdfs(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [String]
+    [Parameter( Position=2, Mandatory=$false )]
+    $roles
+    )
+{
+
+        $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HDFS_HOME properly set
 		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
@@ -144,8 +225,12 @@ function Install(
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
+		$xcopy_cmd = "xcopy /EIYF `"$HDP_INSTALL_PATH\..\template\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR\`"
+        Invoke-CmdChk $xcopy_cmd
+
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
+
 
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
 		
@@ -155,9 +240,32 @@ function Install(
         [Environment]::SetEnvironmentVariable("ARGUS_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
         $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
 
-	}
-	elseif ( $component -eq "argus-hive" )
-	{
+}
+
+###############################################################################
+###
+### Installs Argus Hive component.
+###
+### Arguments:
+###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
+###     serviceCredential: Credential object used for service creation
+###     hdfsRole: Space separated list of  roles that should be installed.
+###               (for example, "argus")
+###
+###############################################################################
+function InstallHive(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [String]
+    [Parameter( Position=2, Mandatory=$false )]
+    $roles
+    )
+{
+        $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HIVE_HOME properly set
 		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
@@ -180,9 +288,19 @@ function Install(
 
         if( -not (Test-Path `"$ENV:HIVE_CONF_DIR\hiveserver2-site.xml`"))
 		{
-			$copy_cmd = "copy `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_CONF_DIR`"\hiveserver2-site.xml"
+			$copy_cmd = "copy `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_CONF_DIR\hiveserver2-site.xml`"
 			Invoke-CmdChk $copy_cmd
 		}
+
+        if( Test-Path `"$ENV:HIVE_HOME\bin\ext\hs2service.cmd`")
+		{
+			$copy_cmd = "copy `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd.orig`"
+			Invoke-CmdChk $copy_cmd
+		}
+
+		$copy_cmd = "copy `"HDP_INSTALL_PATH\..\template\hiveserver2-argus.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`"
+		Invoke-CmdChk $copy_cmd
+
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HIVE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
 		
 		$username = $serviceCredential.UserName
@@ -195,9 +313,32 @@ function Install(
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
-	}
-	elseif ( $component -eq "argus-hbase" )
-	{
+
+}
+
+###############################################################################
+###
+### Installs Argus HBase component.
+###
+### Arguments:
+###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
+###     serviceCredential: Credential object used for service creation
+###     hdfsRole: Space separated list of  roles that should be installed.
+###               (for example, "argus")
+###
+###############################################################################
+function InstallHBase(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [String]
+    [Parameter( Position=2, Mandatory=$false )]
+    $roles
+    )
+{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HIVE_HOME properly set
 		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
@@ -230,9 +371,33 @@ function Install(
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
-	}
-	elseif ( $component -eq "argus-knox" )
-	{
+
+}
+
+
+###############################################################################
+###
+### Installs Argus Knox component.
+###
+### Arguments:
+###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
+###     serviceCredential: Credential object used for service creation
+###     hdfsRole: Space separated list of  roles that should be installed.
+###               (for example, "argus")
+###
+###############################################################################
+function InstallKnox(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [String]
+    [Parameter( Position=2, Mandatory=$false )]
+    $roles
+    )
+{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HIVE_HOME properly set
 		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
@@ -265,9 +430,33 @@ function Install(
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_KNOX_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
-	}
-	elseif ( $component -eq "argus-storm" )
-	{
+
+}
+
+
+###############################################################################
+###
+### Installs Argus Storm component.
+###
+### Arguments:
+###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
+###     serviceCredential: Credential object used for service creation
+###     hdfsRole: Space separated list of  roles that should be installed.
+###               (for example, "argus")
+###
+###############################################################################
+function InstallStorm(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [String]
+    [Parameter( Position=2, Mandatory=$false )]
+    $roles
+    )
+{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_HIVE_HOME properly set
 		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
@@ -300,9 +489,34 @@ function Install(
         #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_STORM_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
-	}
-    elseif ( $component -eq "argus-ugsync" )
-    {
+
+}
+
+
+
+###############################################################################
+###
+### Installs Argus user-sync component.
+###
+### Arguments:
+###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
+###     serviceCredential: Credential object used for service creation
+###     hdfsRole: Space separated list of  roles that should be installed.
+###               (for example, "argus")
+###
+###############################################################################
+function InstallUserSync(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $nodeInstallRoot,
+    [System.Management.Automation.PSCredential]
+    [Parameter( Position=1, Mandatory=$false )]
+    $serviceCredential,
+    [String]
+    [Parameter( Position=2, Mandatory=$false )]
+    $roles
+    )
+{
 		# This if will work on the assumption that $component ="argus" is installed
 		# so we have the ARGUS_UGSYNC_HOME properly set
 		$HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
@@ -362,13 +576,8 @@ function Install(
 	        ### end of roles loop
         }
 		###	Install Argus Ugsync ends
-    }
-    else
-    {
-        throw "Install: Unsupported component argument."
-    }
-}
 
+}
 ###############################################################################
 ###
 ### Installs argus binaries.
@@ -704,7 +913,7 @@ function Uninstall(
 	    Write-Log "Uninstalling argus $FinalName"
 	    $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
 
-        ### If Hadoop Core root does not exist exit early
+        ### If Argus Core root does not exist exit early
         if ( -not (Test-Path $argusInstallPath) )
         {
             return
@@ -928,13 +1137,19 @@ function ConfigureArgusHdfs(
 	Write-Log "Modifying hadoop-env.cmd to invoke xasecure-hadoop-env.cmd"
     $file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
 
-    $line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
+    #$line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
+    $line = "`call xasecure-hadoop-env.cmd"
 	#TODO:WINDOWS Should we guard against option already being present?
     Add-Content $file $line
 
-    $line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
+	### Regenerate the namenode.xml file
+	$service = "namenode"
+	Write-Log "Regenerating service config ${ENV:HADOOP_HOME}\$service.xml"
+	$cmd = "$ENV:HADOOP_HOME\hdfs.cmd --service $service > `"$ENV:HADOOP_HOME\bin\$service.xml`""
+	Invoke-CmdChk $cmd
+    #$line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
 	#TODO:WINDOWS Should we guard against option already being present?
-    Add-Content $file $line
+    #Add-Content $file $line
 
     ###
     ### Apply configuration changes to hdfs-site.xml
@@ -986,6 +1201,12 @@ function ConfigureArgusHive(
     #{
     #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
     #}
+
+	### Regenerate the namenode.xml file
+	$service = "hiveserver2"
+	Write-Log "Regenerating service config ${ENV:HIVE_HOME}\bin\$service.xml"
+	$cmd = "$HIVE_HOME\bin\hive.cmd --service $service catservicexml > `"$ENV:HIVE_HOME`"\$service.xml"
+	Invoke-CmdChk $cmd
 
     ###
     ### Apply configuration changes to hive-site.xml

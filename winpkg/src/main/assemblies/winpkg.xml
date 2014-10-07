@@ -39,6 +39,13 @@
             <include>**</include>
           </includes>
         </fileSet>
+		<fileSet>
+          <directory>${basedir}/src/template/bin</directory>
+          <outputDirectory>/template</outputDirectory>
+          <includes>
+            <include>**</include>
+          </includes>
+        </fileSet>
         <!-- Argus Secure Zip -->
         <fileSet>
           <directory>${basedir}/../target/</directory>
