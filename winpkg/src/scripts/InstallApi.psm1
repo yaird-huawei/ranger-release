@@ -656,6 +656,19 @@ function InstallBinaries(
             Invoke-CmdChk $cmd
         }
 
+        $argusLogsDir = Join-Path $ENV:HDP_LOG_DIR "argus"
+        ###
+        ### ACL Argus logs directory such that machine users can write to it
+        ###
+        if( -not (Test-Path "$argusLogsDir"))
+        {
+            Write-Log "Creating Argus logs folder"
+            New-Item -Path "$argusLogsDir" -type directory | Out-Null
+        }
+        GiveFullPermissions "$argusLogsDir" "Users"
+        Write-Log "Setting the ARGUS_LOG_DIR environment variable at machine scope to `"$argusLogDir`""
+        [Environment]::SetEnvironmentVariable("ARGUS_LOG_DIR", $argusLogsDir, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_LOG_DIR = "$argusLogsDir"
 
         $argusInstallPathParent = (Get-Item $argusInstallPath).parent.FullName
 

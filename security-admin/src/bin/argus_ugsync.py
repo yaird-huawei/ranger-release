@@ -53,7 +53,7 @@ def get_argus_classpath():
 	
 def get_jdk_options():
     global conf_dict
-    return [os.getenv('ARGUS_PROPERTIES', '')]
+    return [os.getenv('ARGUS_PROPERTIES', ''), "-Dlogdir="+os.getenv("ARGUS_LOG_DIR")]
 
 def init_variables():
 	global  INSTALL_DIR,ARGUS_UGSYNC_HOME, conf_dict
