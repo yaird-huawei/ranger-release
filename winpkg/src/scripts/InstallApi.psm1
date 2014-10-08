@@ -956,6 +956,28 @@ function Uninstall(
 
         Write-Log "Removing the ARGUS_UGSYNC_HOME environment variable"
         [Environment]::SetEnvironmentVariable( "ARGUS_UGSYNC_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        
+        Write-Log "Removing the ARGUS_ADMIN_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_ADMIN_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+        
+        Write-Log "Removing the ARGUS_HDFS_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_HDFS_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+        
+        Write-Log "Removing the ARGUS_HIVE_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_HIVE_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+        
+        Write-Log "Removing the ARGUS_HBASE_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_HBASE_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+        
+        Write-Log "Removing the ARGUS_KNOX_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_KNOX_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+        
+        Write-Log "Removing the ARGUS_STORM_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_STORM_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+        
+        Write-Log "Removing the ARGUS_UGSYNC_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_UGSYNC_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+
 
         Write-Log "Successfully uninstalled argus"
 
