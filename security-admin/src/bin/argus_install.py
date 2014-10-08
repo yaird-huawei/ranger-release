@@ -29,6 +29,7 @@ from datetime import date
 import getpass
 import glob
 import pprint
+from subprocess import  Popen,PIPE
 
 conf_dict={}
 
@@ -215,14 +216,24 @@ def populate_config_dict_from_env():
 
 def populate_config_dict_from_file():
     global config_dict
-    read_config_file = open("install_config.properties")
+    read_config_file = open('install_config.properties')
+    library_path = '/tmp/credjks/lib/*'
     for each_line in read_config_file.read().split('\n') :
         if len(each_line) == 0 : continue
         # print 'each_line = ' + each_line
         key , value = each_line.strip().split("=",1)
         key = key.strip()
+        if 'PASSWORD' in key:
+            jceks_file_path = os.path.join(conf_dict['ARGUS_ADMIN_HOME'], 'jceks','argus_db.jceks')
+            statuscode,value = call_keystore(library_path,key,'',jceks_file_path,'get')
+            if statuscode == 1:
+                value = ''
         value = value.strip()
         conf_dict[key] = value
+    if os.getenv("MYSQL_BIN") is not None:
+        conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
+    else:
+        os.sys.exit('Please set MYSQL_BIN variable in environment settings.')
 
 
 def init_variables(switch):
@@ -302,11 +313,21 @@ pass
 
 def write_config_to_file():
     global conf_dict
-    file_path = os.path.join(conf_dict["ARGUS_ADMIN_HOME"], "bin")
-    mkdir_p(file_path)
+    # file_path = os.path.join(conf_dict["ARGUS_ADMIN_HOME"], "bin")
+    # mkdir_p(file_path)
+    library_path = '/tmp/credjks/lib/*'
+    jceks_file_path = os.path.join(conf_dict['ARGUS_ADMIN_HOME'], "jceks")
+    if not os.path.isdir(jceks_file_path):
+        mkdir_p(jceks_file_path)
+    jceks_file_path = os.path.join(jceks_file_path,'argus_db.jceks')
+
+    file_path = os.path.dirname(os.path.realpath(__file__))
     write_conf_to_file = os.path.join(file_path, "install_config.properties")
     open(write_conf_to_file,'wb')
     for key,value in conf_dict.items():
+        if 'PASSWORD' in key :
+            call_keystore(library_path,key,value,jceks_file_path,'create')
+            value = ''
         ModConfig(write_conf_to_file , key,value)
 
 
@@ -983,6 +1004,32 @@ def setup_admin_db_user():
 
 
 ## Argus Functions Ends here --------------------
+
+
+def call_keystore(libpath,aliasKey,aliasValue , filepath,getorcreate):
+    if getorcreate == 'create':
+        commandtorun = ['java', '-cp', '.:' + libpath, 'com.hortonworks.credentialapi.buildks' ,'create', aliasKey, '-value', aliasValue, '-provider','jceks://file'+filepath]
+        p = Popen(commandtorun,stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        output, error = p.communicate()
+        statuscode = p.returncode
+
+        # print 'output = ' + str(output)
+        # print 'error = ' + str(error)
+        # print 'statuscode = ' + str(statuscode)
+        return statuscode
+
+    elif getorcreate == 'get':
+        commandtorun = ['java', '-cp', '.:'+libpath, 'com.hortonworks.credentialapi.buildks' ,'get', aliasKey, '-provider','jceks://file'+filepath]
+        p = Popen(commandtorun,stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        output, error = p.communicate()
+        statuscode = p.returncode
+        # print 'output = ' + str(output)
+        # print 'error = ' + str(error)
+        # print 'statuscode = ' + str(statuscode)
+        return statuscode, output
+    else:
+        print 'proper command not received for input need get or create'
+
 
 # Entry point to script using --service
 def run_setup(cmd, app_type):
