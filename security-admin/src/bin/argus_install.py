@@ -216,15 +216,16 @@ def populate_config_dict_from_env():
 
 def populate_config_dict_from_file():
     global config_dict
-    read_config_file = open('install_config.properties')
-    library_path = '/tmp/credjks/lib/*'
+    ARGUS_ADMIN_HOME = os.getenv("ARGUS_ADMIN_HOME")
+    read_config_file = open(os.path.join(ARGUS_ADMIN_HOME,'bin','install_config.properties'))
+    library_path = os.path.join(ARGUS_ADMIN_HOME,"cred","lib","*")
     for each_line in read_config_file.read().split('\n') :
         if len(each_line) == 0 : continue
         # print 'each_line = ' + each_line
         key , value = each_line.strip().split("=",1)
         key = key.strip()
         if 'PASSWORD' in key:
-            jceks_file_path = os.path.join(conf_dict['ARGUS_ADMIN_HOME'], 'jceks','argus_db.jceks')
+            jceks_file_path = os.path.join(os.getenv('ARGUS_HOME'), 'jceks','argus_db.jceks')
             statuscode,value = call_keystore(library_path,key,'',jceks_file_path,'get')
             if statuscode == 1:
                 value = ''
@@ -313,10 +314,9 @@ pass
 
 def write_config_to_file():
     global conf_dict
-    # file_path = os.path.join(conf_dict["ARGUS_ADMIN_HOME"], "bin")
-    # mkdir_p(file_path)
-    library_path = '/tmp/credjks/lib/*'
-    jceks_file_path = os.path.join(conf_dict['ARGUS_ADMIN_HOME'], "jceks")
+    ARGUS_ADMIN_HOME = os.getenv("ARGUS_ADMIN_HOME")
+    library_path = os.path.join(ARGUS_ADMIN_HOME, 'cred', 'lib','*')
+    jceks_file_path = os.path.join(os.getenv("ARGUS_HOME"), "jceks")
     if not os.path.isdir(jceks_file_path):
         mkdir_p(jceks_file_path)
     jceks_file_path = os.path.join(jceks_file_path,'argus_db.jceks')
@@ -1007,25 +1007,19 @@ def setup_admin_db_user():
 
 
 def call_keystore(libpath,aliasKey,aliasValue , filepath,getorcreate):
+    finalLibPath = libpath.replace('\\','/').replace('//','/')
+    finalFilePath = 'jceks://file/'+filepath.replace('\\','/').replace('//','/')
     if getorcreate == 'create':
-        commandtorun = ['java', '-cp', '.:' + libpath, 'com.hortonworks.credentialapi.buildks' ,'create', aliasKey, '-value', aliasValue, '-provider','jceks://file'+filepath]
+        commandtorun = ['java', '-cp', finalLibPath, 'com.hortonworks.credentialapi.buildks' ,'create', aliasKey, '-value', aliasValue, '-provider',finalFilePath]
         p = Popen(commandtorun,stdin=PIPE, stdout=PIPE, stderr=PIPE)
         output, error = p.communicate()
         statuscode = p.returncode
-
-        # print 'output = ' + str(output)
-        # print 'error = ' + str(error)
-        # print 'statuscode = ' + str(statuscode)
         return statuscode
-
     elif getorcreate == 'get':
-        commandtorun = ['java', '-cp', '.:'+libpath, 'com.hortonworks.credentialapi.buildks' ,'get', aliasKey, '-provider','jceks://file'+filepath]
+        commandtorun = ['java', '-cp', finalLibPath, 'com.hortonworks.credentialapi.buildks' ,'get', aliasKey, '-provider',finalFilePath]
         p = Popen(commandtorun,stdin=PIPE, stdout=PIPE, stderr=PIPE)
         output, error = p.communicate()
         statuscode = p.returncode
-        # print 'output = ' + str(output)
-        # print 'error = ' + str(error)
-        # print 'statuscode = ' + str(statuscode)
         return statuscode, output
     else:
         print 'proper command not received for input need get or create'
