@@ -1152,26 +1152,32 @@ function Configure(
     }
 	elseif ( $component -eq "argus-hdfs" )
     {
+		Write-Log "Configuring Argus HDFS Agent"
         ConfigureArgusHdfs $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
 	elseif ( $component -eq "argus-hive" )
     {
+		Write-Log "Configuring Argus Hive Agent"
         ConfigureArgusHive $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
 	elseif ( $component -eq "argus-hbase" )
     {
+		Write-Log "Configuring Argus HBase Agent"
         ConfigureArgusHbase $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
 	elseif ( $component -eq "argus-knox" )
     {
+		Write-Log "Configuring Argus Knox Agent"
         ConfigureArgusKnox $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
 	elseif ( $component -eq "argus-storm" )
     {
+		Write-Log "Configuring Argus Storm Agent"
         ConfigureArgusStorm $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
     elseif ( $component -eq "argus-ugsync" )
     {
+		Write-Log "Configuring Argus User Sync Agent"
         ConfigureArgusUgsync $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
     else
@@ -1409,6 +1415,11 @@ function ConfigureArgusKnox(
     $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-audit.xml" 
     UpdateXmlConfig $xmlFile $configs["knoxAuditChanges"]
 
+	### TODO: Find a better way
+	$path = Join-Path $ENV:KNOX_HOME "conf\topologies"
+	Get-ChildItem -recurse -path $path -filter '*.xml' | % {
+		ReplaceString $_.FullName 'AclsAuthz' 'XASecurePDPKnox'
+	}
 
  }
 
@@ -1498,7 +1509,7 @@ function ConfigureArgusUgsync(
     #TODO:WINDOWS Should we guard against option already being present?
     
     $prop       = "usergroupSync.policymanager.baseURL"
-    $propVal    = $ENV:ARGUS_HOST
+    $propVal    = $ENV:ARGUS_EXTERNAL_URL
     ReplacePropertyVal $file $prop $propVal
     
     $prop       = "usergroupSync.sleepTimeInMillisBetweenSyncCycle"
@@ -1523,11 +1534,11 @@ function ConfigureArgusUgsync(
     ReplacePropertyVal $file $prop $propVal
     
     $prop       = "ldapGroupSync.ldapBindDn"
-    $propVal        = $ENV:ARGUS_SYNC_LDAP_BIND_DN
+    $propVal    = $ENV:ARGUS_SYNC_LDAP_BIND_DN
     ReplacePropertyVal $file $prop $propVal
     
     $prop       = "ldapGroupSync.ldapBindPassword"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD
+    $propVal    = "_" #$ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD
     ReplacePropertyVal $file $prop $propVal
     
     ##Not there in ENV vars
@@ -1537,7 +1548,7 @@ function ConfigureArgusUgsync(
     
     ##Not there in ENV vars
     $prop       = "ldapGroupSync.ldapBindAlias"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_BIND_ALIAS
+    $propVal    = "ldap.bind.password"
     ReplacePropertyVal $file $prop $propVal
     
     ##Not there in ENV vars
@@ -1573,9 +1584,9 @@ function ConfigureArgusUgsync(
     $propVal    = $ENV:ARGUS_SYNC_LDAP_GROUPNAME_CASE_CONVERSION
     ReplacePropertyVal $file $prop $propVal
     
-    $prop       = "ldap.bind.password"
-    $propVal    = $ENV:SYNC_LDAP_BIND_ALIAS
-    ReplacePropertyVal $file $prop $propVal
+    #$prop       = "ldap.bind.password"
+    #$propVal    = $ENV:SYNC_LDAP_BIND_ALIAS
+    #ReplacePropertyVal $file $prop $propVal
 
  }
 
