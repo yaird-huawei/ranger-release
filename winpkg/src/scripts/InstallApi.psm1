@@ -173,6 +173,7 @@ function InstallArgusCore(
 	$username = $serviceCredential.UserName
 	GiveFullPermissions $argusInstallToBin $username $true
 	GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+	GiveFullPermissions `"$ENV:ARGUS_HOME\tmp`" $username $true
 
 	Write-Log "Finished installing Argus Admin Tool"
 
@@ -213,6 +214,15 @@ function InstallHdfs(
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
 
         Write-Log "Copying argus-hdfs config files "
+
+		Write-Log "Checking the HADOOP_HOME Installation."
+        if( -not (Test-Path $ENV:HADOOP_HOME))
+        {
+          Write-Log "HADOOP_HOME not set properly; $ENV:HADOOP_HOME does not exist" "Failure"
+          throw "Install: HADOOP_HOME not set properly; $ENV:HADOOP_HOME does not exist."
+        }
+
+
 
 		Write-Log "Checking the HADOOP_CONF_DIR Installation."
         if( -not (Test-Path $ENV:HADOOP_CONF_DIR))
@@ -277,6 +287,13 @@ function InstallHive(
         {
           Write-Log "HIVE_CONF_DIR not set properly; $ENV:HIVE_CONF_DIR does not exist" "Failure"
           throw "Install: HIVE_CONF_DIR not set properly; $ENV:HIVE_CONF_DIR does not exist."
+        }
+
+		Write-Log "Checking the HIVE_LIB_DIR Installation."
+        if( -not (Test-Path $ENV:HIVE_LIB_DIR))
+        {
+          Write-Log "HIVE_LIB_DIR not set properly; $ENV:HIVE_LIB_DIR does not exist" "Failure"
+          throw "Install: HIVE_LIB_DIR not set properly; $ENV:HIVE_LIB_DIR does not exist."
         }
 
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HIVE_CONF_DIR`""
@@ -346,6 +363,13 @@ function InstallHBase(
 
         Write-Log "Copying argus-hbase config files "
 
+		Write-Log "Checking the HBASE_HOME Installation."
+        if( -not (Test-Path $ENV:HBASE_HOME))
+        {
+          Write-Log "HBASE_HOME not set properly; $ENV:HBASE_HOME does not exist" "Failure"
+          throw "Install: HBASE_HOME not set properly; $ENV:HBASE_HOME does not exist."
+        }
+
 		Write-Log "Checking the HBASE_CONF_DIR Installation."
         if( -not (Test-Path $ENV:HBASE_CONF_DIR))
         {
@@ -356,7 +380,7 @@ function InstallHBase(
         $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HBASE_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\lib\*.jar`" `"$ENV:HBASE_LIB_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\lib\*.jar`" `"$ENV:HBASE_HOME\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
 		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HBASE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
@@ -1267,8 +1291,9 @@ function ConfigureArgusHive(
     ###
     ### Apply configuration changes to hive-site.xml
     ###
-	$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "hive-site.xml" 
-    UpdateXmlConfig $xmlFile $configs["hivechanges"]
+	# NOT SUPPORTED post Champlain
+	#$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "hive-site.xml" 
+    #UpdateXmlConfig $xmlFile $configs["hivechanges"]
 
     ###
     ### Apply configuration changes to hiveserver2-site.xml

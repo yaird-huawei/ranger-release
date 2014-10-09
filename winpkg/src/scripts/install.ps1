@@ -134,9 +134,9 @@ function Main( $scriptDir )
     ###
 	$hdfsSecurityChanges = @{
 		"hdfs.authorization.verifier.classname"					= "com.xasecure.pdp.hdfs.XASecureAuthorizer"
-		"xasecure.hdfs.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
-		"xasecure.hdfs.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\hadoop_${ENV:ARGUS_HDFS_REPO}"
-		"xasecure.hdfs.policymgr.url.laststoredfile"			= "${ENV:ARGUS_ADMIN_HOME}\tmp\hadoop_${ENV:ARGUS_HDFS_REPO}_json"
+		"xasecure.hdfs.policymgr.url"							= "${ENV:ARGUS_EXTERNAL_URL}/service/assets/policyList/${ENV:ARGUS_HDFS_REPO}"
+		"xasecure.hdfs.policymgr.url.saveAsFile"				= "${ENV:ARGUS_HOME}\tmp\hadoop_${ENV:ARGUS_HDFS_REPO}"
+		"xasecure.hdfs.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HOME}\tmp\hadoop_${ENV:ARGUS_HDFS_REPO}_json"
 		"xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"
 	}
 
@@ -214,16 +214,16 @@ function Main( $scriptDir )
 	#
     $hiveSecurityChanges = @{
 		"hive.authorization.verifier.classname"					= "com.xasecure.pdp.hive.XASecureAuthorizer"
-		"xasecure.hive.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_HIVE_REPO}"
-		"xasecure.hive.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\hive_${ENV:ARGUS_HIVE_REPO}"
-		"xasecure.hive.policymgr.url.laststoredfile"			= "${ENV:ARGUS_ADMIN_HOME}\tmp\hive_${ENV:ARGUS_HIVE_REPO}_json"
+		"xasecure.hive.policymgr.url"							= "${ENV:ARGUS_EXTERNAL_URL}/service/assets/policyList/${ENV:ARGUS_HIVE_REPO}"
+		"xasecure.hive.policymgr.url.saveAsFile"				= "${ENV:ARGUS_HOME}\tmp\hive_${ENV:ARGUS_HIVE_REPO}"
+		"xasecure.hive.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HOME}\tmp\hive_${ENV:ARGUS_HIVE_REPO}_json"
 		"xasecure.hive.policymgr.url.reloadIntervalInMillis"	= "30000"
 		"xasecure.hive.update.xapolicies.on.grant.revoke"		= "true"
-		"xasecure.policymgr.url"								= "http://${ENV:ARGUS_HOST}:6080"
+		"xasecure.policymgr.url"								= "${ENV:ARGUS_EXTERNAL_URL}"
 	}
 
     $configs = @{}
-    $configs.Add("hiveChanges",$hiveChanges)
+    #$configs.Add("hiveChanges",$hiveChanges)
     $configs.Add("hiveServerChanges",$hiveServerChanges)
     $configs.Add("hiveAuditChanges",$hiveAuditChanges)
     $configs.Add("hiveSecurityChanges",$hiveSecurityChanges)
@@ -287,12 +287,12 @@ function Main( $scriptDir )
 	#
     $hbaseSecurityChanges =     @{
 		"hbase.authorization.verifier.classname"				= "com.xasecure.pdp.hbase.XASecureAuthorizer"
-		"xasecure.hbase.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_HBASE_REPO}"
-		"xasecure.hbase.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\hbase_${ENV:ARGUS_HBASE_REPO}"
-		"xasecure.hbase.policymgr.url.laststoredfile"			= "${ENV:ARGUS_ADMIN_HOME}\tmp\hbase_${ENV:ARGUS_HBASE_REPO}_json"
+		"xasecure.hbase.policymgr.url"							= "${ENV:ARGUS_EXTERNAL_URL}/service/assets/policyList/${ENV:ARGUS_HBASE_REPO}"
+		"xasecure.hbase.policymgr.url.saveAsFile"				= "${ENV:ARGUS_HOME}\tmp\hbase_${ENV:ARGUS_HBASE_REPO}"
+		"xasecure.hbase.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HOME}\tmp\hbase_${ENV:ARGUS_HBASE_REPO}_json"
 		"xasecure.hbase.policymgr.url.reloadIntervalInMillis"	= "30000"
 		"xasecure.hbase.update.xapolicies.on.grant.revoke"		= "true"
-		"xasecure.policymgr.url"								= "htpp://${ENV:ARGUS_HOST}:6080"
+		"xasecure.policymgr.url"								= "${ENV:ARGUS_EXTERNAL_URL}"
 	}
 
 	$configs = @{}
@@ -350,12 +350,12 @@ function Main( $scriptDir )
 	#
     $knoxSecurityChanges =     @{
 		"knox.authorization.verifier.classname"				= "com.xasecure.pdp.knox.XASecureAuthorizer"
-		"xasecure.knox.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_KNOX_REPO}"
-		"xasecure.knox.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\knox_${ENV:ARGUS_KNOX_REPO}"
-		"xasecure.knox.policymgr.url.laststoredfile"			= "${ENV:ARGUS_ADMIN_HOME}\tmp\knox_${ENV:ARGUS_KNOX_REPO}_json"
+		"xasecure.knox.policymgr.url"							= "${ENV:ARGUS_EXTERNAL_URL}/service/assets/policyList/${ENV:ARGUS_KNOX_REPO}"
+		"xasecure.knox.policymgr.url.saveAsFile"				= "${ENV:ARGUS_HOME}\tmp\knox_${ENV:ARGUS_KNOX_REPO}"
+		"xasecure.knox.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HOME}\tmp\knox_${ENV:ARGUS_KNOX_REPO}_json"
 		"xasecure.knox.policymgr.url.reloadIntervalInMillis"	= "30000"
 		"xasecure.knox.update.xapolicies.on.grant.revoke"		= "true"
-		"xasecure.policymgr.url"								= "htpp://${ENV:ARGUS_HOST}:6080"
+		"xasecure.policymgr.url"								= "${ENV:ARGUS_EXTERNAL_URL}"
 	}
 
 	$configs = @{}
@@ -412,12 +412,12 @@ function Main( $scriptDir )
 	#
     $stormSecurityChanges =     @{
 		"storm.authorization.verifier.classname"				= "com.xasecure.pdp.storm.XASecureAuthorizer"
-		"xasecure.storm.policymgr.url"							= "http://${ENV:ARGUS_HOST}:6080/service/assets/policyList/${ENV:ARGUS_STORM_REPO}"
-		"xasecure.storm.policymgr.url.saveAsFile"				= "${ENV:ARGUS_ADMIN_HOME}\tmp\storm_${ENV:ARGUS_STORM_REPO}"
-		"xasecure.storm.policymgr.url.laststoredfile"			= "${ENV:ARGUS_ADMIN_HOME}\tmp\storm_${ENV:ARGUS_STORM_REPO}_json"
+		"xasecure.storm.policymgr.url"							= "${ENV:ARGUS_EXTERNAL_URL}/service/assets/policyList/${ENV:ARGUS_STORM_REPO}"
+		"xasecure.storm.policymgr.url.saveAsFile"				= "${ENV:ARGUS_HOME}\tmp\storm_${ENV:ARGUS_STORM_REPO}"
+		"xasecure.storm.policymgr.url.laststoredfile"			= "${ENV:ARGUS_HOME}\tmp\storm_${ENV:ARGUS_STORM_REPO}_json"
 		"xasecure.storm.policymgr.url.reloadIntervalInMillis"	= "30000"
 		"xasecure.storm.update.xapolicies.on.grant.revoke"		= "true"
-		"xasecure.policymgr.url"								= "htpp://${ENV:ARGUS_HOST}:6080"
+		"xasecure.policymgr.url"								= "${ENV:ARGUS_EXTERNAL_URL}"
 	}
 
 	$configs = @{}

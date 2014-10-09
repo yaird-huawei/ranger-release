@@ -682,7 +682,7 @@ def update_properties():
     cObj.set('dummysection',propertyName,newPropertyValue)
 
     propertyName="xa.webapp.url.root"
-    newPropertyValue= "http://" + os.getenv("ARGUS_HOST") + ":6080"
+    newPropertyValue=os.getenv("ARGUS_EXTERNAL_URL")
     cObj.set('dummysection',propertyName,newPropertyValue)
 
     #TODO hardcoding for now
