@@ -35,11 +35,13 @@ import com.xasecure.audit.provider.LogDestination;
 import com.xasecure.audit.provider.MiscUtil;
 
 public class HdfsLogDestination<T> implements LogDestination<T> {
+	public final static String EXCP_MSG_FILESYSTEM_CLOSED = "Filesystem closed";
+
 	private String  mDirectory                = null;
 	private String  mFile                     = null;
 	private int     mFlushIntervalSeconds     = 1 * 60;
 	private String  mEncoding                 = null;
-	private boolean mIsAppend                 = true;
+	private boolean mIsAppend                 = false;
 	private int     mRolloverIntervalSeconds  = 24 * 60 * 60;
 	private int     mOpenRetryIntervalSeconds = 60;
 	private DebugTracer mLogger               = null;
@@ -181,6 +183,7 @@ public class HdfsLogDestination<T> implements LogDestination<T> {
 		FileSystem         fileSystem  = null;
 		Path               pathLogfile = null;
 		Configuration      conf        = null;
+		boolean            bOverwrite  = false;
 
 		try {
 			mLogger.debug("HdfsLogDestination.openFile(): opening file " + mHdfsFilename);
@@ -193,30 +196,35 @@ public class HdfsLogDestination<T> implements LogDestination<T> {
 			pathLogfile = new Path(mHdfsFilename);
 			fileSystem  = FileSystem.get(uri, conf);
 
-			if(fileSystem.exists(pathLogfile)) {
-				if(mIsAppend) {
-					try {
+			try {
+				if(fileSystem.exists(pathLogfile)) { // file already exists. either append to the file or write to a new file
+					if(mIsAppend) {
 						ostream = fileSystem.append(pathLogfile);
-					} catch(IOException excp) {
-						// append may not be supported by the filesystem. rename existing file and create a new one
-						String fileSuffix    = MiscUtil.replaceTokens("-" + MiscUtil.TOKEN_START + MiscUtil.TOKEN_TIME + "yyyyMMdd-HHmm.ss" + MiscUtil.TOKEN_END, startTime);
-						String movedFilename = appendToFilename(mHdfsFilename, fileSuffix);
-						Path   movedFilePath = new Path(movedFilename);
-
-						fileSystem.rename(pathLogfile, movedFilePath);
+					} else {
+						mHdfsFilename =  getNewFilename(mHdfsFilename, fileSystem);
+						pathLogfile   = new Path(mHdfsFilename);
 					}
 				}
+
+				// if file does not exist or if mIsAppend==false, create the file
+				if(ostream == null) {
+					ostream = fileSystem.create(pathLogfile, bOverwrite);
+				}
+			} catch(IOException excp) {
+				// append may not be supported by the filesystem; or the file might already be open by another application. Try a different filename - with current timestamp
+				mHdfsFilename =  getNewFilename(mHdfsFilename, fileSystem);
+				pathLogfile   = new Path(mHdfsFilename);
 			}
 
 			if(ostream == null){
-				ostream = fileSystem.create(pathLogfile);
+				ostream = fileSystem.create(pathLogfile, bOverwrite);
 			}
 		} catch(IOException ex) {
 			Path parentPath = pathLogfile.getParent();
 
 			try {
 				if(parentPath != null&& fileSystem != null && !fileSystem.exists(parentPath) && fileSystem.mkdirs(parentPath)) {
-					ostream = fileSystem.create(pathLogfile);
+					ostream = fileSystem.create(pathLogfile, bOverwrite);
 				} else {
 					logException("HdfsLogDestination.openFile() failed", ex);
 				}
@@ -317,35 +325,59 @@ public class HdfsLogDestination<T> implements LogDestination<T> {
 
 	    return writer;
 	}
-	
-	private String appendToFilename(String fileName, String strToAppend) {
-		String ret = fileName;
-		
-		if(strToAppend != null) {
-			if(ret == null) {
-				ret = "";
-			}
-	
-			int extnPos = ret.lastIndexOf(".");
-			
-			if(extnPos < 0) {
-				ret += strToAppend;
-			} else {
-				String extn = ret.substring(extnPos);
-				
-				ret = ret.substring(0, extnPos) + strToAppend + extn;
-			}
-		}
 
-		return ret;
-	}
+    private String getNewFilename(String fileName, FileSystem fileSystem) {
+    	if(fileName == null) {
+    		return "";
+    	}
+
+        for(int i = 1; ; i++) {
+        	String ret = fileName;
+
+	        String strToAppend = "-" + Integer.toString(i);
 	
-	private void logException(String msg, IOException excp) {
-		if(mIsStopInProgress) { // during shutdown, the underlying FileSystem might already be closed; so don't print error details
+	        int extnPos = ret.lastIndexOf(".");
+	
+	        if(extnPos < 0) {
+	            ret += strToAppend;
+	        } else {
+	            String extn = ret.substring(extnPos);
+	
+	            ret = ret.substring(0, extnPos) + strToAppend + extn;
+	        }
+	        
+	        if(fileSystem != null && fileExists(ret, fileSystem)) {
+        		continue;
+	        } else {
+	        	return ret;
+	        }
+    	}
+    }
+    
+    private boolean fileExists(String fileName, FileSystem fileSystem) {
+    	boolean ret = false;
+
+    	if(fileName != null && fileSystem != null) {
+    		Path path = new Path(fileName);
+
+    		try {
+    			ret = fileSystem.exists(path);
+    		} catch(IOException excp) {
+    			// ignore
+    		}
+    	}
+ 
+    	return ret;
+    }
+
+    private void logException(String msg, IOException excp) {
+		// during shutdown, the underlying FileSystem might already be closed; so don't print error details
+
+		if(mIsStopInProgress) {
 			return;
 		}
 
-		String  excpMsgToExclude   = "Filesystem closed";
+		String  excpMsgToExclude   = EXCP_MSG_FILESYSTEM_CLOSED;;
 		String  excpMsg            = excp != null ? excp.getMessage() : null;
 		boolean excpExcludeLogging = (excpMsg != null && excpMsg.contains(excpMsgToExclude));
 		
