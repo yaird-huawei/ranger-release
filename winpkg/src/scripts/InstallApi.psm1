@@ -167,6 +167,10 @@ function InstallArgusCore(
 			$cmd = "python $argusInstallToBin\argus_start.py --service > `"$argusInstallToBin\$service.xml`""
 			Invoke-CmdChk $cmd    
 
+			Write-Log "Configuring Argus"
+			$cmd = "python $argusInstallToBin\argus_start.py --configure"
+			Invoke-CmdChk $cmd    
+
 		}
 		### end of roles loop
 	}
@@ -1297,19 +1301,19 @@ function ConfigureArgusHive(
     ###
     ### Apply configuration changes to hiveserver2-site.xml
     ###
-    $xmlFile = Join-Path $ENV:HIVE_CONF_DIR "hiveserver2-site.xml" 
+    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\hiveserver2-site.xml" 
     UpdateXmlConfig $xmlFile $configs["hiveServerChanges"]
 
     ###
     ### Apply configuration changes to xasecure-hive-security.xml
     ###
-    $xmlFile = Join-Path $ENV:HIVE_CONF_DIR "xasecure-hive-security.xml" 
+    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\xasecure-hive-security.xml" 
     UpdateXmlConfig $xmlFile $configs["hiveSecurityChanges"]
 
     ###
     ### Apply configuration changes to xasecure-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:HIVE_CONF_DIR "xasecure-audit.xml" 
+    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\xasecure-audit.xml" 
     UpdateXmlConfig $xmlFile $configs["hiveAuditChanges"]
 
  }
