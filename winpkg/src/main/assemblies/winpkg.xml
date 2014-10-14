@@ -51,7 +51,7 @@
           <directory>${basedir}/../target/</directory>
           <outputDirectory>/resources</outputDirectory>
           <includes>
-            <include>argus-*-ugsync.zip</include>
+            <include>argus-*-usersync.zip</include>
 			<include>argus-*-admin.zip</include>
 			<include>argus*agent.zip</include>
           </includes>

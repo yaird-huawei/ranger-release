@@ -431,14 +431,14 @@ function Main( $scriptDir )
 
 
     #####################################################################
-    ####         Install and Configure argus-ugsync service              ###
+    ####         Install and Configure argus-usersync service              ###
     #####################################################################
     #
  
     $roles = "argus-usersync" # TODO!!
-    Install "argus-ugsync" $nodeInstallRoot $serviceCredential $roles
-    Configure "argus-ugsync" $nodeInstallRoot $serviceCredential 
-    Write-Log "Installation of argus-ugsync completed successfully"
+    Install "argus-usersync" $nodeInstallRoot $serviceCredential $roles
+    Configure "argus-usersync" $nodeInstallRoot $serviceCredential 
+    Write-Log "Installation of argus-usersync completed successfully"
 
 
 }

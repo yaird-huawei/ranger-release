@@ -78,7 +78,7 @@ function Install(
 	{
         InstallStorm $nodeInstallRoot $serviceCredential $roles
 	}
-    elseif ( $component -eq "argus-ugsync" )
+    elseif ( $component -eq "argus-usersync" )
     {
         InstallUserSync $nodeInstallRoot $serviceCredential $roles
     }
@@ -539,7 +539,7 @@ function InstallUserSync(
     )
 {
 		# This if will work on the assumption that $component ="argus" is installed
-		# so we have the ARGUS_UGSYNC_HOME properly set
+		# so we have the ARGUS_USERSYNC_HOME properly set
 		$HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
         ### $argusInstallPath: the name of the folder containing the application, after unzipping
         $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
@@ -549,10 +549,10 @@ function InstallUserSync(
 		
 		if ($roles) {
 			###
-			### Create Argus-Ugsync Windows Services and grant user ACLS to start/stop
+			### Create Argus-UserSync Windows Services and grant user ACLS to start/stop
 			###
 			### TODO
-			Write-Log "argus-ugsync Role Services: $roles"
+			Write-Log "argus-usersync Role Services: $roles"
 
 			### Verify that roles are in the supported set
 			### TODO
@@ -575,28 +575,28 @@ function InstallUserSync(
 						Invoke-CmdChk $cmd
 					}
 
-					CreateJCEKS "ldap.bind.password" "${ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/ugsync.jceks"
+					CreateJCEKS "ldap.bind.password" "${ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/usersync.jceks"
 					
 					$username = $serviceCredential.UserName
 					GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
 
-					[Environment]::SetEnvironmentVariable("ARGUS_UGSYNC_CRED_KEYSTORE_FILE", "$credStorePath\ugsync.jceks" , [EnvironmentVariableTarget]::Machine)
-					$ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE = "$credStorePath/ugsync.jceks"
+					[Environment]::SetEnvironmentVariable("ARGUS_USERSYNC_CRED_KEYSTORE_FILE", "$credStorePath\usersync.jceks" , [EnvironmentVariableTarget]::Machine)
+					$ENV:ARGUS_USERSYNC_CRED_KEYSTORE_FILE = "$credStorePath/usersync.jceks"
 					
 				}
 				
 				###
-				### Setup argus ugsync service config
+				### Setup argus usersync service config
 				###
 				$ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
 				Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
 				# TODO:WINDOWS take python from `which` or `where`
-				$cmd = "python $argusInstallToBin\argus_ugsync.py --service > `"$argusInstallToBin\$service.xml`""
+				$cmd = "python $argusInstallToBin\argus_usersync.py --service > `"$argusInstallToBin\$service.xml`""
 				Invoke-CmdChk $cmd    
 			}
 	        ### end of roles loop
         }
-		###	Install Argus Ugsync ends
+		###	Install Argus UserSync ends
 
 }
 ###############################################################################
@@ -641,8 +641,8 @@ function InstallBinaries(
         $argusStormAgentFile = $FinalName +"-storm-agent"
         $argusStormAgentPath = Join-Path $argusInstallPath $argusStormAgentFile 
 
-        $argusUgsyncFile = $FinalName + "-ugsync"
-        $argusUgsyncPath = Join-Path $argusInstallPath $argusUgsyncFile 
+        $argusUserSyncFile = $FinalName + "-usersync"
+        $argusUserSyncPath = Join-Path $argusInstallPath $argusUserSyncFile 
 
         Write-Log "Installing $FinalName to $argusInstallPath"
         #argus: Installing argus-0.1.0.2.1.1.0-1111 to D:\HDP\\argus-0.1.0.2.1.1.0-1111
@@ -888,15 +888,15 @@ function InstallBinaries(
         $ENV:ARGUS_STORM_HOME = "$argusStormAgentPath"
 
         ###
-        ###  Unzip Argus Ugsync from compressed archive
+        ###  Unzip Argus UserSync from compressed archive
         ###
 
-        Write-Log "Extracting $argusUgsyncFile.zip to $argusInstallPath"
+        Write-Log "Extracting $argusUserSyncFile.zip to $argusInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusUgsyncFile.zip`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusUserSyncFile.zip`"")
             $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
@@ -905,17 +905,17 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusUgsyncFile.zip")
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusUserSyncFile.zip")
             $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
 
         ###
-        ### Set ARGUS_UGSYNC_HOME environment variable
+        ### Set ARGUS_USERSYNC_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_UGSYNC_HOME environment variable at machine scope to `"$argusUgsyncPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_UGSYNC_HOME", $argusUgsyncPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_UGSYNC_HOME = "$argusUgsyncPath"
+        Write-Log "Setting the ARGUS_USERSYNC_HOME environment variable at machine scope to `"$argusUserSyncPath`""
+        [Environment]::SetEnvironmentVariable("ARGUS_USERSYNC_HOME", $argusUserSyncPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:ARGUS_USERSYNC_HOME = "$argusUserSyncPath"
 
 }
 
@@ -988,8 +988,8 @@ function Uninstall(
         Write-Log "Removing the ARGUS_STORM_HOME environment variable"
         [Environment]::SetEnvironmentVariable( "ARGUS_STORM_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
-        Write-Log "Removing the ARGUS_UGSYNC_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_UGSYNC_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the ARGUS_USERSYNC_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_USERSYNC_HOME", $null, [EnvironmentVariableTarget]::Machine )
         
         Write-Log "Removing the ARGUS_ADMIN_CRED_KEYSTORE_FILE environment variable"
         [Environment]::SetEnvironmentVariable( "ARGUS_ADMIN_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
@@ -1009,8 +1009,8 @@ function Uninstall(
         Write-Log "Removing the ARGUS_STORM_CRED_KEYSTORE_FILE environment variable"
         [Environment]::SetEnvironmentVariable( "ARGUS_STORM_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
         
-        Write-Log "Removing the ARGUS_UGSYNC_CRED_KEYSTORE_FILE environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_UGSYNC_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the ARGUS_USERSYNC_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "ARGUS_USERSYNC_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
 
 
         Write-Log "Successfully uninstalled argus"
@@ -1172,10 +1172,10 @@ function Configure(
 		Write-Log "Configuring Argus Storm Agent"
         ConfigureArgusStorm $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
-    elseif ( $component -eq "argus-ugsync" )
+    elseif ( $component -eq "argus-usersync" )
     {
 		Write-Log "Configuring Argus User Sync Agent"
-        ConfigureArgusUgsync $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+        ConfigureArgusUserSync $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
     else
     {
@@ -1469,12 +1469,12 @@ function ConfigureArgusStorm(
 
 ###############################################################################
 ###
-### Alters the configuration of the Hadoop Ugsync service for Argus.
+### Alters the configuration of the Hadoop UserSync service for Argus.
 ###
 ### Arguments:
 ###   See Configure
 ###############################################################################
-function ConfigureArgusUgsync(
+function ConfigureArgusUserSync(
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
@@ -1498,10 +1498,10 @@ function ConfigureArgusUgsync(
     #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
     #}
 
-    #Write-Log "Modifying hadoop-env.cmd to invoke argus-ugsync-hadoop-env.cmd"
+    #Write-Log "Modifying hadoop-env.cmd to invoke argus-usersync-hadoop-env.cmd"
     #$file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
-    $ARGUS_UGSYNC_CONF_DIR = Join-Path $ENV:ARGUS_UGSYNC_HOME "conf"
-    $file = Join-Path  $ARGUS_UGSYNC_CONF_DIR "unixauthservice.properties"
+    $ARGUS_USERSYNC_CONF_DIR = Join-Path $ENV:ARGUS_USERSYNC_HOME "conf"
+    $file = Join-Path  $ARGUS_USERSYNC_CONF_DIR "unixauthservice.properties"
 
     #TODO:WINDOWS Should we guard against option already being present?
     
@@ -1540,7 +1540,7 @@ function ConfigureArgusUgsync(
     
     ##Not there in ENV vars
     $prop       = "ldapGroupSync.ldapBindKeystore" 
-    $propVal    = $ENV:ARGUS_UGSYNC_CRED_KEYSTORE_FILE
+    $propVal    = $ENV:ARGUS_USERSYNC_CRED_KEYSTORE_FILE
     ReplacePropertyVal $file $prop $propVal
     
     ##Not there in ENV vars
