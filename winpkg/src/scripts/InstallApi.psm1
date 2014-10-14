@@ -282,30 +282,23 @@ function InstallHive(
 		$credStorePath = $credStorePath -replace "\\", "/"
         Write-Log "Copying argus-hive config files "
 
-		Write-Log "Checking the HIVE_CONF_DIR Installation."
-        if( -not (Test-Path $ENV:HIVE_CONF_DIR))
+		Write-Log "Checking the HIVE_HOME Installation."
+        if( -not (Test-Path $ENV:HIVE_HOME))
         {
-          Write-Log "HIVE_CONF_DIR not set properly; $ENV:HIVE_CONF_DIR does not exist" "Failure"
-          throw "Install: HIVE_CONF_DIR not set properly; $ENV:HIVE_CONF_DIR does not exist."
+          Write-Log "HIVE_HOME not set properly; $ENV:HIVE_HOME does not exist" "Failure"
+          throw "Install: HIVE_HOME not set properly; $ENV:HIVE_HOME does not exist."
         }
 
-		Write-Log "Checking the HIVE_LIB_DIR Installation."
-        if( -not (Test-Path $ENV:HIVE_LIB_DIR))
-        {
-          Write-Log "HIVE_LIB_DIR not set properly; $ENV:HIVE_LIB_DIR does not exist" "Failure"
-          throw "Install: HIVE_LIB_DIR not set properly; $ENV:HIVE_LIB_DIR does not exist."
-        }
-
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HIVE_CONF_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HIVE_HOME\conf`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\lib\*.jar`" `"$ENV:HIVE_LIB_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\lib\*.jar`" `"$ENV:HIVE_HOME\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
 
-        if( -not (Test-Path `"$ENV:HIVE_CONF_DIR\hiveserver2-site.xml`"))
+        if( -not (Test-Path `"$ENV:HIVE_HOME\conf\hiveserver2-site.xml`"))
 		{
-			$copy_cmd = "copy `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_CONF_DIR\hiveserver2-site.xml`""
+			$copy_cmd = "copy `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_HOME\conf\hiveserver2-site.xml`""
 			Invoke-CmdChk $copy_cmd
 		}
 
