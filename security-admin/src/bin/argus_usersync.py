@@ -56,12 +56,12 @@ def get_jdk_options():
     return [os.getenv('ARGUS_PROPERTIES', ''), "-Dlogdir="+os.getenv("ARGUS_LOG_DIR")]
 
 def init_variables():
-	global  INSTALL_DIR,ARGUS_UGSYNC_HOME, conf_dict
+	global  INSTALL_DIR,ARGUS_USERSYNC_HOME, conf_dict
 	# These are set from the Monarch
 	conf_dict["HDP_RESOURCES_DIR"] = os.getenv("HDP_RESOURCES_DIR")
 	conf_dict["ARGUS_ADMIN_HOME"] = os.getenv("ARGUS_ADMIN_HOME")
-	conf_dict["ARGUS_UGSYNC_HOME"] = os.getenv("ARGUS_UGSYNC_HOME")
-	conf_dict["INSTALL_DIR"] = os.getenv("ARGUS_UGSYNC_HOME")
+	conf_dict["ARGUS_USERSYNC_HOME"] = os.getenv("ARGUS_USERSYNC_HOME")
+	conf_dict["INSTALL_DIR"] = os.getenv("ARGUS_USERSYNC_HOME")
 
 def get_class_path(paths):
     separator = ';' if sys.platform == 'win32' else ':';
@@ -89,9 +89,9 @@ if service_entry:
 	xmlDoc = dom.createDocument(None, 'service', None)
 	xmlDocRoot = xmlDoc.documentElement
 	arguments = ' '.join([' '.join(jdk_options), '-cp', class_path, java_class, class_arguments ])
-	appendTextElement('id', "argus-ugsync")
-	appendTextElement('name', "argus-ugsync")
-	appendTextElement('description', 'This service runs argus-ugsync')
+	appendTextElement('id', "argus-usersync")
+	appendTextElement('name', "argus-usersync")
+	appendTextElement('description', 'This service runs argus-usersync')
 	appendTextElement('executable', get_java_env())
 	appendTextElement('arguments', arguments)
 	uglyXml = xmlDoc.toprettyxml(indent='  ')
