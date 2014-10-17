@@ -306,7 +306,7 @@ function InstallHive(
 			Invoke-CmdChk $copy_cmd
 		}
 
-        if( Test-Path `"$ENV:HIVE_HOME\bin\ext\hs2service.cmd`")
+        if( Test-Path `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`")
 		{
 			$copy_cmd = "copy `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd.orig`""
 			Invoke-CmdChk $copy_cmd
@@ -1674,7 +1674,7 @@ function CreateAndConfigureHadoopService(
         $cmd="$ENV:WINDIR\system32\sc.exe failure $service reset= 30 actions= restart/5000"
         Invoke-CmdChk $cmd
 
-        $cmd="$ENV:WINDIR\system32\sc.exe config $service start= disabled"
+        $cmd="$ENV:WINDIR\system32\sc.exe config $service start= demand"
         Invoke-CmdChk $cmd
 
         Set-ServiceAcl $service
