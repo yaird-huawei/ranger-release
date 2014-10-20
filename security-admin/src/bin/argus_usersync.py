@@ -72,35 +72,38 @@ def get_java_env():
     if JAVA_HOME:
         return os.path.join(JAVA_HOME, 'bin', 'java')
     else:
-        os.sys.exit('java and jar commands are not available. Please configure JAVA_HOME')
+        log('java and jar commands are not available. Please configure JAVA_HOME','exception')
+        os.sys.exit(1)
 
 
 if service_entry:
-	#argus_install.run_setup(cmd, app_type)
-	#init_logfiles()
+	try:
+		#argus_install.run_setup(cmd, app_type)
+		#init_logfiles()
 
-	init_variables()
-	jdk_options = get_jdk_options()
-	class_path = get_argus_classpath()
-	java_class = 'com.xasecure.authentication.UnixAuthenticationService'
-	class_arguments = '' 
+		init_variables()
+		jdk_options = get_jdk_options()
+		class_path = get_argus_classpath()
+		java_class = 'com.xasecure.authentication.UnixAuthenticationService'
+		class_arguments = '' 
 
-	dom = getDOMImplementation()
-	xmlDoc = dom.createDocument(None, 'service', None)
-	xmlDocRoot = xmlDoc.documentElement
-	arguments = ' '.join([' '.join(jdk_options), '-cp', class_path, java_class, class_arguments ])
-	appendTextElement('id', "argus-usersync")
-	appendTextElement('name', "argus-usersync")
-	appendTextElement('description', 'This service runs argus-usersync')
-	appendTextElement('executable', get_java_env())
-	appendTextElement('arguments', arguments)
-	uglyXml = xmlDoc.toprettyxml(indent='  ')
-	text_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)    
-	prettyXml = text_re.sub('>\g<1></', uglyXml)
+		dom = getDOMImplementation()
+		xmlDoc = dom.createDocument(None, 'service', None)
+		xmlDocRoot = xmlDoc.documentElement
+		arguments = ' '.join([' '.join(jdk_options), '-cp', class_path, java_class, class_arguments ])
+		appendTextElement('id', "argus-usersync")
+		appendTextElement('name', "argus-usersync")
+		appendTextElement('description', 'This service runs argus-usersync')
+		appendTextElement('executable', get_java_env())
+		appendTextElement('arguments', arguments)
+		uglyXml = xmlDoc.toprettyxml(indent='  ')
+		text_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)    
+		prettyXml = text_re.sub('>\g<1></', uglyXml)
 
-	print prettyXml
-	sys.exit()
+		print prettyXml
+	except:	
+		sys.exit(1)
 	
 if configure_entry:
     #configure()
-    sys.exit()
+    sys.exit(0)

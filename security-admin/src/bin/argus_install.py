@@ -162,7 +162,8 @@ def get_java_env():
     if JAVA_HOME:
         return os.path.join(JAVA_HOME, 'bin', 'java')
     else:
-        os.sys.exit('java and jar commands are not available. Please configure JAVA_HOME')
+        log('java and jar commands are not available. Please configure JAVA_HOME','exception')
+        os.sys.exit(1)
 
 def get_class_path(paths):
     separator = ';' if sys.platform == 'win32' else ':';
@@ -192,7 +193,7 @@ def populate_config_dict_from_env():
     global config_dict
     conf_dict['ARGUS_ADMIN_DB_HOST'] = os.getenv("ARGUS_ADMIN_DB_HOST")
     conf_dict['ARGUS_AUDIT_DB_HOST'] = os.getenv("ARGUS_AUDIT_DB_HOST")
-    conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
+    conf_dict['MYSQL_BIN'] = 'mysql.exe'       #os.getenv("MYSQL_BIN")
     conf_dict['ARGUS_ADMIN_DB_USERNAME'] = os.getenv("ARGUS_ADMIN_DB_USERNAME")
     conf_dict['ARGUS_ADMIN_DB_PASSWORD'] = os.getenv("ARGUS_ADMIN_DB_PASSWORD")
     conf_dict['ARGUS_ADMIN_DB_NAME'] = os.getenv("ARGUS_ADMIN_DB_DBNAME")
@@ -231,10 +232,10 @@ def populate_config_dict_from_file():
                 value = ''
         value = value.strip()
         conf_dict[key] = value
-    if os.getenv("MYSQL_BIN") is not None:
-        conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
-    else:
-        os.sys.exit('Please set MYSQL_BIN variable in environment settings.')
+    #if os.getenv("MYSQL_BIN") is not None:
+    #    conf_dict['MYSQL_BIN'] = os.getenv("MYSQL_BIN")
+    #else:
+    #    os.sys.exit('Please set MYSQL_BIN variable in environment settings.')
 
 
 def init_variables(switch):
@@ -353,22 +354,26 @@ def sanity_check_configure_files():
     if os.path.isfile(db_core_file):
         log("DB core file " + db_core_file + " file found", 'info')
     else:
-        os.sys.exit('db_core_file: ' + db_core_file + ' file does not exist')
+        log('db_core_file: ' + db_core_file + ' file does not exist','exception')     
+        os.sys.exit(1)
 
     if os.path.isfile(db_create_user_file):
         log("DB create user file " + db_create_user_file + " file found", 'info')
     else:
-        os.sys.exit('db_create_user_file: ' + db_create_user_file + ' file does not exist')
+        log('db_create_user_file: ' + db_create_user_file + ' file does not exist','exception')
+        os.sys.exit(1)
 
     if os.path.isfile(db_audit_file):
         log("DB audit file " + db_audit_file + " file found", 'info')
     else:
-        os.sys.exit('db_audit_file: ' + db_audit_file + ' file does not exist')
+        log('db_audit_file: ' + db_audit_file + ' file does not exist','exception')
+        os.sys.exit(1)
 
     if os.path.isfile(db_asset_file):
         log("DB asset file " + db_asset_file + " file found", 'info')
     else:
-        os.sys.exit('db_asset_file: ' + db_asset_file + ' file does not exist')
+        log('db_asset_file: ' + db_asset_file + ' file does not exist','exception')
+        os.sys.exit(1)
 
 def get_mysql_cmd(user, password, host):
     global conf_dict
