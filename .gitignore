@@ -1,2 +1,7 @@
+*.class
+.settings
+.metadata
+.classpath
+.project
 /target/
 winpkg/target
