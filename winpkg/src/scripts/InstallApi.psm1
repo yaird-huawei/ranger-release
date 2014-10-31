@@ -23,11 +23,11 @@
 ###
 $ScriptDir = Resolve-Path (Split-Path $MyInvocation.MyCommand.Path)
 
-$FinalName = "argus-@argus.version@"
+$FinalName = "ranger-@ranger.version@"
 
 ###############################################################################
 ###
-### Installs argus.
+### Installs ranger.
 ###
 ### Arguments:
 ###     component: Component to be installed, it can be "core, "hdfs" or "mapreduce"
@@ -54,31 +54,31 @@ function Install(
     )
 {
 
-    if ( $component -eq "argus" )
+    if ( $component -eq "ranger" )
     {
-        InstallArgusCore $nodeInstallRoot $serviceCredential $roles
-	} 
-	elseif ( $component -eq "argus-hdfs" )
+        InstallRangerCore $nodeInstallRoot $serviceCredential $roles
+	}
+	elseif ( $component -eq "ranger-hdfs" )
 	{
         InstallHdfs $nodeInstallRoot $serviceCredential $roles
 	}
-	elseif ( $component -eq "argus-hive" )
+	elseif ( $component -eq "ranger-hive" )
 	{
         InstallHive $nodeInstallRoot $serviceCredential $roles
 	}
-	elseif ( $component -eq "argus-hbase" )
+	elseif ( $component -eq "ranger-hbase" )
 	{
         InstallHBase $nodeInstallRoot $serviceCredential $roles
 	}
-	elseif ( $component -eq "argus-knox" )
+	elseif ( $component -eq "ranger-knox" )
 	{
         InstallKnox $nodeInstallRoot $serviceCredential $roles
 	}
-	elseif ( $component -eq "argus-storm" )
+	elseif ( $component -eq "ranger-storm" )
 	{
         InstallStorm $nodeInstallRoot $serviceCredential $roles
 	}
-    elseif ( $component -eq "argus-usersync" )
+    elseif ( $component -eq "ranger-usersync" )
     {
         InstallUserSync $nodeInstallRoot $serviceCredential $roles
     }
@@ -91,16 +91,16 @@ function Install(
 
 ###############################################################################
 ###
-### Installs Argus HDFS component.
+### Installs Ranger HDFS component.
 ###
 ### Arguments:
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
 ###     serviceCredential: Credential object used for service creation
 ###     hdfsRole: Space separated list of  roles that should be installed.
-###               (for example, "argus")
+###               (for example, "ranger")
 ###
 ###############################################################################
-function InstallArgusCore(
+function InstallRangerCore(
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
@@ -114,35 +114,35 @@ function InstallArgusCore(
 {
 	$HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
 
-	### $argusInstallPath: the name of the folder containing the application, after unzipping
-	$argusInstallPath = Join-Path $nodeInstallRoot $FinalName
-	$argusAdmin = $FinalName + "-admin"
-	$argusAdminInstallPath = Join-Path "$argusInstallPath" "$argusAdmin" 
-	$argusInstallToBin = Join-Path "$argusAdminInstallPath" "bin"
+	### $rangerInstallPath: the name of the folder containing the application, after unzipping
+	$rangerInstallPath = Join-Path $nodeInstallRoot $FinalName
+	$rangerAdmin = $FinalName + "-admin"
+	$rangerAdminInstallPath = Join-Path "$rangerInstallPath" "$rangerAdmin"
+	$rangerInstallToBin = Join-Path "$rangerAdminInstallPath" "bin"
 	InstallBinaries $nodeInstallRoot $serviceCredential
 
 	if ($roles) {
 		###
-		### Create Argus Windows Services and grant user ACLS to start/stop
+		### Create Ranger Windows Services and grant user ACLS to start/stop
 		###
 		### TODO
-		Write-Log "Argus Role Services: $roles"
+		Write-Log "Ranger Role Services: $roles"
 
 		### Verify that roles are in the supported set
 		### TODO
-		CheckRole $roles @("argus")
+		CheckRole $roles @("ranger")
 
 
 
 		Write-Log "Role : $roles"
 		foreach( $service in empty-null ($roles -Split('\s+')))
 		{
-			CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
-			if ( $service -eq "argus" )
+			CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $rangerInstallToBin $serviceCredential
+			if ( $service -eq "ranger" )
 			{
-				$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+				$credStorePath = Join-Path $ENV:RANGER_HOME "jceks"
 				$credStorePath = $credStorePath -replace "\\", "/"
-				
+
 				### Create Credential Store  directory
 				if( -not (Test-Path "$credStorePath"))
 				{
@@ -151,48 +151,48 @@ function InstallArgusCore(
 					Invoke-CmdChk $cmd
 				}
 
-				CreateJCEKS "policyDB.jdbc.password" "${ENV:ARGUS_ADMIN_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
-				CreateJCEKS "auditDb.jdbc.password" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
-				[Environment]::SetEnvironmentVariable("ARGUS_ADMIN_CRED_KEYSTORE_FILE", "$credStorePath\xapolicymgr.jceks" , [EnvironmentVariableTarget]::Machine)
-				$ENV:ARGUS_ADMIN_CRED_KEYSTORE_FILE = "$credStorePath/xapolicymgr.jceks"
-				
+				CreateJCEKS "policyDB.jdbc.password" "${ENV:RANGER_ADMIN_DB_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+				CreateJCEKS "auditDb.jdbc.password" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+				[Environment]::SetEnvironmentVariable("RANGER_ADMIN_CRED_KEYSTORE_FILE", "$credStorePath\xapolicymgr.jceks" , [EnvironmentVariableTarget]::Machine)
+				$ENV:RANGER_ADMIN_CRED_KEYSTORE_FILE = "$credStorePath/xapolicymgr.jceks"
+
 			}
-			
+
 			###
-			### Setup argus service config
+			### Setup ranger service config
 			###
 			$ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
-			Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
+			Write-Log "Creating service config ${rangerInstallToBin}\$service.xml"
 			# TODO:WINDOWS take python from `which` or `where`
-			$cmd = "python $argusInstallToBin\argus_start.py --service > `"$argusInstallToBin\$service.xml`""
-			Invoke-CmdChk $cmd    
+			$cmd = "python $rangerInstallToBin\service_start.py --service > `"$rangerInstallToBin\$service.xml`""
+			Invoke-CmdChk $cmd
 
-			Write-Log "Configuring Argus"
-			$cmd = "python $argusInstallToBin\argus_start.py --configure"
-			Invoke-CmdChk $cmd    
+			Write-Log "Configuring Ranger"
+			$cmd = "python $rangerInstallToBin\service_start.py --configure"
+			Invoke-CmdChk $cmd
 
 		}
 		### end of roles loop
 	}
 	$username = $serviceCredential.UserName
-	GiveFullPermissions $argusInstallToBin $username $true
-	GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
-	GiveFullPermissions `"$ENV:ARGUS_HOME\tmp`" $username $true
+	GiveFullPermissions $rangerInstallToBin $username $true
+	GiveFullPermissions `"$ENV:RANGER_HOME\jceks`" $username $true
+	GiveFullPermissions `"$ENV:RANGER_HOME\tmp`" $username $true
 
-	Write-Log "Finished installing Argus Admin Tool"
+	Write-Log "Finished installing Ranger Admin Tool"
 
 }
 
 
 ###############################################################################
 ###
-### Installs Argus HDFS component.
+### Installs Ranger HDFS component.
 ###
 ### Arguments:
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
 ###     serviceCredential: Credential object used for service creation
 ###     hdfsRole: Space separated list of  roles that should be installed.
-###               (for example, "argus")
+###               (for example, "ranger")
 ###
 ###############################################################################
 function InstallHdfs(
@@ -209,15 +209,15 @@ function InstallHdfs(
 {
 
         $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
-		# This if will work on the assumption that $component ="argus" is installed
-		# so we have the ARGUS_HDFS_HOME properly set
-		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		# This if will work on the assumption that $component ="ranger" is installed
+		# so we have the RANGER_HDFS_HOME properly set
+		$credStorePath = Join-Path $ENV:RANGER_HOME "jceks"
 		$credStorePath = $credStorePath -replace "\\", "/"
 
 		# setup path variables
-        $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
+        $rangerInstallPath = Join-Path $nodeInstallRoot $FinalName
 
-        Write-Log "Copying argus-hdfs config files "
+        Write-Log "Copying ranger-hdfs config files "
 
 		Write-Log "Checking the HADOOP_HOME Installation."
         if( -not (Test-Path $ENV:HADOOP_HOME))
@@ -236,35 +236,35 @@ function InstallHdfs(
         }
 
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HDFS_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
 		$xcopy_cmd = "xcopy /EIYF `"$HDP_INSTALL_PATH\..\template\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR\`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
 
-		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HDFS_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
-		
-		$username = $serviceCredential.UserName
-		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+		CreateJCEKS "auditDBCred" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_HDFS_HOME}\install\lib" "$credStorePath/Repo_${ENV:RANGER_HDFS_REPO}.jceks"
 
-        [Environment]::SetEnvironmentVariable("ARGUS_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HDFS_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HDFS_REPO}.jceks"
+		$username = $serviceCredential.UserName
+		GiveFullPermissions `"$ENV:RANGER_HOME\jceks`" $username $true
+
+        [Environment]::SetEnvironmentVariable("RANGER_HDFS_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:RANGER_HDFS_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_HDFS_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:RANGER_HDFS_REPO}.jceks"
 
 }
 
 ###############################################################################
 ###
-### Installs Argus Hive component.
+### Installs Ranger Hive component.
 ###
 ### Arguments:
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
 ###     serviceCredential: Credential object used for service creation
 ###     hdfsRole: Space separated list of  roles that should be installed.
-###               (for example, "argus")
+###               (for example, "ranger")
 ###
 ###############################################################################
 function InstallHive(
@@ -280,11 +280,11 @@ function InstallHive(
     )
 {
         $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
-		# This if will work on the assumption that $component ="argus" is installed
-		# so we have the ARGUS_HIVE_HOME properly set
-		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		# This if will work on the assumption that $component ="ranger" is installed
+		# so we have the RANGER_HIVE_HOME properly set
+		$credStorePath = Join-Path $ENV:RANGER_HOME "jceks"
 		$credStorePath = $credStorePath -replace "\\", "/"
-        Write-Log "Copying argus-hive config files "
+        Write-Log "Copying ranger-hive config files "
 
 		Write-Log "Checking the HIVE_HOME Installation."
         if( -not (Test-Path $ENV:HIVE_HOME))
@@ -293,16 +293,16 @@ function InstallHive(
           throw "Install: HIVE_HOME not set properly; $ENV:HIVE_HOME does not exist."
         }
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HIVE_HOME\conf`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HIVE_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HIVE_HOME\conf`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\lib\*.jar`" `"$ENV:HIVE_HOME\lib\`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HIVE_HOME\lib\*.jar`" `"$ENV:HIVE_HOME\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
 
         if( -not (Test-Path `"$ENV:HIVE_HOME\conf\hiveserver2-site.xml`"))
 		{
-			$copy_cmd = "copy `"$ENV:ARGUS_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_HOME\conf\hiveserver2-site.xml`""
+			$copy_cmd = "copy `"$ENV:RANGER_HIVE_HOME\install\conf.templates\default\configuration.xml`" `"$ENV:HIVE_HOME\conf\hiveserver2-site.xml`""
 			Invoke-CmdChk $copy_cmd
 		}
 
@@ -312,19 +312,19 @@ function InstallHive(
 			Invoke-CmdChk $copy_cmd
 		}
 
-		$copy_cmd = "copy `"$HDP_INSTALL_PATH\..\template\hiveserver2-argus.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`""
+		$copy_cmd = "copy `"$HDP_INSTALL_PATH\..\template\hiveserver2-ranger.cmd`" `"$ENV:HIVE_HOME\bin\ext\hiveserver2.cmd`""
 		Invoke-CmdChk $copy_cmd
 
-		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HIVE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
-		
+		CreateJCEKS "auditDBCred" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_HIVE_HOME}\install\lib" "$credStorePath/Repo_${ENV:RANGER_HIVE_REPO}.jceks"
+
 		$username = $serviceCredential.UserName
-		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+		GiveFullPermissions `"$ENV:RANGER_HOME\jceks`" $username $true
 
-        [Environment]::SetEnvironmentVariable("ARGUS_HIVE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HIVE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HIVE_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HIVE_REPO}.jceks"
+        [Environment]::SetEnvironmentVariable("RANGER_HIVE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:RANGER_HIVE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_HIVE_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:RANGER_HIVE_REPO}.jceks"
 
 
-        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HIVE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HIVE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
 
@@ -332,13 +332,13 @@ function InstallHive(
 
 ###############################################################################
 ###
-### Installs Argus HBase component.
+### Installs Ranger HBase component.
 ###
 ### Arguments:
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
 ###     serviceCredential: Credential object used for service creation
 ###     hdfsRole: Space separated list of  roles that should be installed.
-###               (for example, "argus")
+###               (for example, "ranger")
 ###
 ###############################################################################
 function InstallHBase(
@@ -353,12 +353,12 @@ function InstallHBase(
     $roles
     )
 {
-		# This if will work on the assumption that $component ="argus" is installed
-		# so we have the ARGUS_HIVE_HOME properly set
-		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		# This if will work on the assumption that $component ="ranger" is installed
+		# so we have the RANGER_HIVE_HOME properly set
+		$credStorePath = Join-Path $ENV:RANGER_HOME "jceks"
 		$credStorePath = $credStorePath -replace "\\", "/"
 
-        Write-Log "Copying argus-hbase config files "
+        Write-Log "Copying ranger-hbase config files "
 
 		Write-Log "Checking the HBASE_HOME Installation."
         if( -not (Test-Path $ENV:HBASE_HOME))
@@ -374,22 +374,22 @@ function InstallHBase(
           throw "Install: HBASE_CONF_DIR not set properly; $ENV:HBASE_CONF_DIR does not exist."
         }
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HBASE_CONF_DIR`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HBASE_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HBASE_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\lib\*.jar`" `"$ENV:HBASE_HOME\lib\`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HBASE_HOME\lib\*.jar`" `"$ENV:HBASE_HOME\lib\`""
         Invoke-CmdChk $xcopy_cmd
 
-		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_HBASE_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
-		
+		CreateJCEKS "auditDBCred" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_HBASE_HOME}\install\lib" "$credStorePath/Repo_${ENV:RANGER_HBASE_REPO}.jceks"
+
 		$username = $serviceCredential.UserName
-		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+		GiveFullPermissions `"$ENV:RANGER_HOME\jceks`" $username $true
 
-        [Environment]::SetEnvironmentVariable("ARGUS_HBASE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_HBASE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HBASE_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_HBASE_REPO}.jceks"
+        [Environment]::SetEnvironmentVariable("RANGER_HBASE_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:RANGER_HBASE_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_HBASE_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:RANGER_HBASE_REPO}.jceks"
 
 
-        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_HBASE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HBASE_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
 
@@ -398,13 +398,13 @@ function InstallHBase(
 
 ###############################################################################
 ###
-### Installs Argus Knox component.
+### Installs Ranger Knox component.
 ###
 ### Arguments:
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
 ###     serviceCredential: Credential object used for service creation
 ###     hdfsRole: Space separated list of  roles that should be installed.
-###               (for example, "argus")
+###               (for example, "ranger")
 ###
 ###############################################################################
 function InstallKnox(
@@ -419,12 +419,12 @@ function InstallKnox(
     $roles
     )
 {
-		# This if will work on the assumption that $component ="argus" is installed
-		# so we have the ARGUS_HIVE_HOME properly set
-		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		# This if will work on the assumption that $component ="ranger" is installed
+		# so we have the RANGER_HIVE_HOME properly set
+		$credStorePath = Join-Path $ENV:RANGER_HOME "jceks"
 		$credStorePath = $credStorePath -replace "\\", "/"
 
-        Write-Log "Copying argus-knox config files "
+        Write-Log "Copying ranger-knox config files "
 
 		Write-Log "Checking the KNOX CONF DIR Installation."
         if( -not (Test-Path $ENV:KNOX_HOME\conf))
@@ -433,22 +433,22 @@ function InstallKnox(
           throw "Install: ${ENV:KNOX_HOME}\conf dir does not exist."
         }
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_KNOX_HOME\install\conf.templates\enable\*.xml`" `"${ENV:KNOX_HOME}\conf`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_KNOX_HOME\install\conf.templates\enable\*.xml`" `"${ENV:KNOX_HOME}\conf`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_KNOX_HOME\lib\*.jar`" `"$ENV:KNOX_HOME\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_KNOX_HOME\lib\*.jar`" `"$ENV:KNOX_HOME\lib`""
         Invoke-CmdChk $xcopy_cmd
 
-		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_KNOX_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_KNOX_REPO}.jceks"
-		
+		CreateJCEKS "auditDBCred" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_KNOX_HOME}\install\lib" "$credStorePath/Repo_${ENV:RANGER_KNOX_REPO}.jceks"
+
 		$username = $serviceCredential.UserName
-		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+		GiveFullPermissions `"$ENV:RANGER_HOME\jceks`" $username $true
 
-        [Environment]::SetEnvironmentVariable("ARGUS_KNOX_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_KNOX_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_KNOX_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_KNOX_REPO}.jceks"
+        [Environment]::SetEnvironmentVariable("RANGER_KNOX_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:RANGER_KNOX_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_KNOX_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:RANGER_KNOX_REPO}.jceks"
 
 
-        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_KNOX_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_KNOX_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
 
@@ -457,13 +457,13 @@ function InstallKnox(
 
 ###############################################################################
 ###
-### Installs Argus Storm component.
+### Installs Ranger Storm component.
 ###
 ### Arguments:
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
 ###     serviceCredential: Credential object used for service creation
 ###     hdfsRole: Space separated list of  roles that should be installed.
-###               (for example, "argus")
+###               (for example, "ranger")
 ###
 ###############################################################################
 function InstallStorm(
@@ -478,12 +478,12 @@ function InstallStorm(
     $roles
     )
 {
-		# This if will work on the assumption that $component ="argus" is installed
-		# so we have the ARGUS_HIVE_HOME properly set
-		$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+		# This if will work on the assumption that $component ="ranger" is installed
+		# so we have the RANGER_HIVE_HOME properly set
+		$credStorePath = Join-Path $ENV:RANGER_HOME "jceks"
 		$credStorePath = $credStorePath -replace "\\", "/"
 
-        Write-Log "Copying argus-storm config files "
+        Write-Log "Copying ranger-storm config files "
 
 		Write-Log "Checking the $ENV:STORM_HOME\conf Installation."
         if( -not (Test-Path $ENV:STORM_HOME\conf))
@@ -492,22 +492,22 @@ function InstallStorm(
           throw "Install: $ENV:STORM_HOME\conf not set properly; $ENV:STORM_HOME\conf does not exist."
         }
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_STORM_HOME\install\conf.templates\enable\*.xml`" `"$ENV:STORM_HOME\conf`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_STORM_HOME\install\conf.templates\enable\*.xml`" `"$ENV:STORM_HOME\conf`""
         Invoke-CmdChk $xcopy_cmd
 
-        $xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_STORM_HOME\lib\*.jar`" `"$ENV:STORM_HOME\lib`""
+        $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_STORM_HOME\lib\*.jar`" `"$ENV:STORM_HOME\lib`""
         Invoke-CmdChk $xcopy_cmd
 
-		CreateJCEKS "auditDBCred" "${ENV:ARGUS_AUDIT_DB_PASSWORD}" "${ENV:ARGUS_STORM_HOME}\install\lib" "$credStorePath/Repo_${ENV:ARGUS_STORM_REPO}.jceks"
-		
+		CreateJCEKS "auditDBCred" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_STORM_HOME}\install\lib" "$credStorePath/Repo_${ENV:RANGER_STORM_REPO}.jceks"
+
 		$username = $serviceCredential.UserName
-		GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+		GiveFullPermissions `"$ENV:RANGER_HOME\jceks`" $username $true
 
-        [Environment]::SetEnvironmentVariable("ARGUS_STORM_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:ARGUS_STORM_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_STORM_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:ARGUS_STORM_REPO}.jceks"
+        [Environment]::SetEnvironmentVariable("RANGER_STORM_CRED_KEYSTORE_FILE", "$credStorePath\Repo_${ENV:RANGER_STORM_REPO}.jceks" , [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_STORM_CRED_KEYSTORE_FILE = "$credStorePath/Repo_${ENV:RANGER_STORM_REPO}.jceks"
 
 
-        #$xcopy_cmd = "xcopy /EIYF `"$ENV:ARGUS_STORM_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
+        #$xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_STORM_HOME\template\configuration.xml`" `"$ENV:HADOOP_CONF_DIR`""
         #Invoke-CmdChk $xcopy_cmd
 
 
@@ -517,13 +517,13 @@ function InstallStorm(
 
 ###############################################################################
 ###
-### Installs Argus user-sync component.
+### Installs Ranger user-sync component.
 ###
 ### Arguments:
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
 ###     serviceCredential: Credential object used for service creation
 ###     hdfsRole: Space separated list of  roles that should be installed.
-###               (for example, "argus")
+###               (for example, "ranger")
 ###
 ###############################################################################
 function InstallUserSync(
@@ -538,35 +538,35 @@ function InstallUserSync(
     $roles
     )
 {
-		# This if will work on the assumption that $component ="argus" is installed
-		# so we have the ARGUS_USERSYNC_HOME properly set
+		# This if will work on the assumption that $component ="ranger" is installed
+		# so we have the RANGER_USERSYNC_HOME properly set
 		$HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
-        ### $argusInstallPath: the name of the folder containing the application, after unzipping
-        $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
-        $argusAdmin = $FinalName + "-admin"
-        $argusAdminInstallPath = Join-Path "$argusInstallPath" "$argusAdmin" 
-        $argusInstallToBin = Join-Path "$argusAdminInstallPath" "bin"
-		
+        ### $rangerInstallPath: the name of the folder containing the application, after unzipping
+        $rangerInstallPath = Join-Path $nodeInstallRoot $FinalName
+        $rangerAdmin = $FinalName + "-admin"
+        $rangerAdminInstallPath = Join-Path "$rangerInstallPath" "$rangerAdmin"
+        $rangerInstallToBin = Join-Path "$rangerAdminInstallPath" "bin"
+
 		if ($roles) {
 			###
-			### Create Argus-UserSync Windows Services and grant user ACLS to start/stop
+			### Create Ranger-UserSync Windows Services and grant user ACLS to start/stop
 			###
 			### TODO
-			Write-Log "argus-usersync Role Services: $roles"
+			Write-Log "ranger-usersync Role Services: $roles"
 
 			### Verify that roles are in the supported set
 			### TODO
-			CheckRole $roles @("argus-usersync")
+			CheckRole $roles @("ranger-usersync")
 
 			Write-Log "Role : $roles"
 			foreach( $service in empty-null ($roles -Split('\s+')))
 			{
-				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $argusInstallToBin $serviceCredential
-				if ( $service -eq "argus-usersync" )
+				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $rangerInstallToBin $serviceCredential
+				if ( $service -eq "ranger-usersync" )
 				{
-					$credStorePath = Join-Path $ENV:ARGUS_HOME "jceks"
+					$credStorePath = Join-Path $ENV:RANGER_HOME "jceks"
 					$credStorePath = $credStorePath -replace "\\", "/"
-					
+
 				    ### Create Credential Store  directory
 					if( -not (Test-Path "$credStorePath"))
 					{
@@ -575,37 +575,37 @@ function InstallUserSync(
 						Invoke-CmdChk $cmd
 					}
 
-					CreateJCEKS "ldap.bind.password" "${ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD}" "${ENV:ARGUS_ADMIN_HOME}\cred\lib" "$credStorePath/usersync.jceks"
-					
-					$username = $serviceCredential.UserName
-					GiveFullPermissions `"$ENV:ARGUS_HOME\jceks`" $username $true
+					CreateJCEKS "ldap.bind.password" "${ENV:RANGER_SYNC_LDAP_BIND_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/usersync.jceks"
 
-					[Environment]::SetEnvironmentVariable("ARGUS_USERSYNC_CRED_KEYSTORE_FILE", "$credStorePath\usersync.jceks" , [EnvironmentVariableTarget]::Machine)
-					$ENV:ARGUS_USERSYNC_CRED_KEYSTORE_FILE = "$credStorePath/usersync.jceks"
-					
+					$username = $serviceCredential.UserName
+					GiveFullPermissions `"$ENV:RANGER_HOME\jceks`" $username $true
+
+					[Environment]::SetEnvironmentVariable("RANGER_USERSYNC_CRED_KEYSTORE_FILE", "$credStorePath\usersync.jceks" , [EnvironmentVariableTarget]::Machine)
+					$ENV:RANGER_USERSYNC_CRED_KEYSTORE_FILE = "$credStorePath/usersync.jceks"
+
 				}
-				
+
 				###
-				### Setup argus usersync service config
+				### Setup ranger usersync service config
 				###
 				$ENV:PATH="$ENV:HADOOP_HOME\bin;" + $ENV:PATH
-				Write-Log "Creating service config ${argusInstallToBin}\$service.xml"
+				Write-Log "Creating service config ${rangerInstallToBin}\$service.xml"
 				# TODO:WINDOWS take python from `which` or `where`
-				$cmd = "python $argusInstallToBin\argus_usersync.py --service > `"$argusInstallToBin\$service.xml`""
-				Invoke-CmdChk $cmd    
+				$cmd = "python $rangerInstallToBin\ranger_usersync.py --service > `"$rangerInstallToBin\$service.xml`""
+				Invoke-CmdChk $cmd
 			}
 	        ### end of roles loop
         }
-		###	Install Argus UserSync ends
+		###	Install Ranger UserSync ends
 
 }
 ###############################################################################
 ###
-### Installs argus binaries.
+### Installs ranger binaries.
 ###
 ### Arguments:
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
-###     serviceCredential: 
+###     serviceCredential:
 ###
 ###############################################################################
 function InstallBinaries(
@@ -618,34 +618,34 @@ function InstallBinaries(
     )
 {
         $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
-    
+
         # setup path variables
-        $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
-        $argusInstallToBin = Join-Path "$argusInstallPath" "bin"
+        $rangerInstallPath = Join-Path $nodeInstallRoot $FinalName
+        $rangerInstallToBin = Join-Path "$rangerInstallPath" "bin"
 
-        $argusAdminFile = $FinalName + "-admin"
-        $argusAdminPath = Join-Path $argusInstallPath $argusAdminFile 
+        $rangerAdminFile = $FinalName + "-admin"
+        $rangerAdminPath = Join-Path $rangerInstallPath $rangerAdminFile
 
-        $argusHdfsAgentFile = $FinalName + "-hdfs-agent"
-        $argusHdfsAgentPath = Join-Path $argusInstallPath $argusHdfsAgentFile 
+        $rangerHdfsPluginFile = $FinalName + "-hdfs-plugin"
+        $rangerHdfsPluginPath = Join-Path $rangerInstallPath $rangerHdfsPluginFile
 
-        $argusHBaseAgentFile = $FinalName + "-hbase-agent"
-        $argusHBaseAgentPath = Join-Path $argusInstallPath $argusHBaseAgentFile 
+        $rangerHBasePluginFile = $FinalName + "-hbase-plugin"
+        $rangerHBasePluginPath = Join-Path $rangerInstallPath $rangerHBasePluginFile
 
-        $argusHiveAgentFile = $FinalName + "-hive-agent"
-        $argusHiveAgentPath = Join-Path $argusInstallPath $argusHiveAgentFile 
+        $rangerHivePluginFile = $FinalName + "-hive-plugin"
+        $rangerHivePluginPath = Join-Path $rangerInstallPath $rangerHivePluginFile
 
-        $argusKnoxAgentFile = $FinalName + "-knox-agent"
-        $argusKnoxAgentPath = Join-Path $argusInstallPath $argusKnoxAgentFile 
+        $rangerKnoxPluginFile = $FinalName + "-knox-plugin"
+        $rangerKnoxPluginPath = Join-Path $rangerInstallPath $rangerKnoxPluginFile
 
-        $argusStormAgentFile = $FinalName +"-storm-agent"
-        $argusStormAgentPath = Join-Path $argusInstallPath $argusStormAgentFile 
+        $rangerStormPluginFile = $FinalName +"-storm-plugin"
+        $rangerStormPluginPath = Join-Path $rangerInstallPath $rangerStormPluginFile
 
-        $argusUserSyncFile = $FinalName + "-usersync"
-        $argusUserSyncPath = Join-Path $argusInstallPath $argusUserSyncFile 
+        $rangerUserSyncFile = $FinalName + "-usersync"
+        $rangerUserSyncPath = Join-Path $rangerInstallPath $rangerUserSyncFile
 
-        Write-Log "Installing $FinalName to $argusInstallPath"
-        #argus: Installing argus-0.1.0.2.1.1.0-1111 to D:\HDP\\argus-0.1.0.2.1.1.0-1111
+        Write-Log "Installing $FinalName to $rangerInstallPath"
+        #ranger: Installing ranger-0.1.0.2.1.1.0-1111 to D:\HDP\\ranger-0.1.0.2.1.1.0-1111
 
         Write-Log "Checking the JAVA Installation."
         if( -not (Test-Path $ENV:JAVA_HOME\bin\java.exe))
@@ -662,48 +662,48 @@ function InstallBinaries(
         }
 
         ### Create Install Root directory
-        if( -not (Test-Path "$argusInstallPath"))
+        if( -not (Test-Path "$rangerInstallPath"))
         {
-            Write-Log "Creating Install Root directory: `"$argusInstallPath`""
-            $cmd = "mkdir `"$argusInstallPath`""
+            Write-Log "Creating Install Root directory: `"$rangerInstallPath`""
+            $cmd = "mkdir `"$rangerInstallPath`""
             Invoke-CmdChk $cmd
         }
 
-		### Create Argus tmp directory
-        if( -not (Test-Path "$argusInstallPath\tmp"))
+		### Create Ranger tmp directory
+        if( -not (Test-Path "$rangerInstallPath\tmp"))
         {
-            Write-Log "Creating Install Root directory: `"$argusInstallPath`"\tmp"
-            $cmd = "mkdir `"$argusInstallPath`"\tmp"
+            Write-Log "Creating Install Root directory: `"$rangerInstallPath`"\tmp"
+            $cmd = "mkdir `"$rangerInstallPath`"\tmp"
             Invoke-CmdChk $cmd
         }
 
-        $argusLogsDir = Join-Path $ENV:HDP_LOG_DIR "argus"
+        $rangerLogsDir = Join-Path $ENV:HDP_LOG_DIR "ranger"
         ###
-        ### ACL Argus logs directory such that machine users can write to it
+        ### ACL Ranger logs directory such that machine users can write to it
         ###
-        if( -not (Test-Path "$argusLogsDir"))
+        if( -not (Test-Path "$rangerLogsDir"))
         {
-            Write-Log "Creating Argus logs folder"
-            New-Item -Path "$argusLogsDir" -type directory | Out-Null
+            Write-Log "Creating Ranger logs folder"
+            New-Item -Path "$rangerLogsDir" -type directory | Out-Null
         }
-        GiveFullPermissions "$argusLogsDir" "Users"
-        Write-Log "Setting the ARGUS_LOG_DIR environment variable at machine scope to `"$argusLogDir`""
-        [Environment]::SetEnvironmentVariable("ARGUS_LOG_DIR", $argusLogsDir, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_LOG_DIR = "$argusLogsDir"
+        GiveFullPermissions "$rangerLogsDir" "Users"
+        Write-Log "Setting the RANGER_LOG_DIR environment variable at machine scope to `"$rangerLogDir`""
+        [Environment]::SetEnvironmentVariable("RANGER_LOG_DIR", $rangerLogsDir, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_LOG_DIR = "$rangerLogsDir"
 
-        $argusInstallPathParent = (Get-Item $argusInstallPath).parent.FullName
+        $rangerInstallPathParent = (Get-Item $rangerInstallPath).parent.FullName
 
         ###
-        ###  Unzip Argus secure from compressed archive
+        ###  Unzip Ranger secure from compressed archive
         ###
 
-        Write-Log "Extracting $argusAdminFile.zip to $argusInstallPath"
+        Write-Log "Extracting $rangerAdminFile.zip to $rangerInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusAdminFile.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$rangerAdminFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$rangerInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
             Invoke-Ps $unzipExpr
@@ -711,39 +711,39 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusAdminFile.zip")
-            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$rangerAdminFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($rangerInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
 
         ###
-        ### Set ARGUS_HOME environment variable
+        ### Set RANGER_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_HOME environment variable at machine scope to `"$argusInstallPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_HOME", $argusInstallPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HOME = "$argusInstallPath"
-
-
-        ###
-        ### Set ARGUS_ADMIN_HOME environment variable
-        ###
-        Write-Log "Setting the ARGUS_ADMIN_HOME environment variable at machine scope to `"$argusAdminPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_ADMIN_HOME", $argusAdminPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_ADMIN_HOME = "$argusAdminPath"
-
+        Write-Log "Setting the RANGER_HOME environment variable at machine scope to `"$rangerInstallPath`""
+        [Environment]::SetEnvironmentVariable("RANGER_HOME", $rangerInstallPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_HOME = "$rangerInstallPath"
 
 
         ###
-        ###  Unzip Argus HDFS Agent from compressed archive
+        ### Set RANGER_ADMIN_HOME environment variable
+        ###
+        Write-Log "Setting the RANGER_ADMIN_HOME environment variable at machine scope to `"$rangerAdminPath`""
+        [Environment]::SetEnvironmentVariable("RANGER_ADMIN_HOME", $rangerAdminPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_ADMIN_HOME = "$rangerAdminPath"
+
+
+
+        ###
+        ###  Unzip Ranger HDFS Plugin from compressed archive
         ###
 
-        Write-Log "Extracting $argusHdfsAgentFile.zip to $argusInstallPath"
+        Write-Log "Extracting $rangerHdfsPluginFile.zip to $rangerInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusHdfsAgentFile.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$rangerHdfsPluginFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$rangerInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
             Invoke-Ps $unzipExpr
@@ -751,31 +751,31 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusHdfsAgentFile.zip")
-            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$rangerHdfsPluginFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($rangerInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
 
         ###
-        ### Set ARGUS_HDFS_HOME environment variable
+        ### Set RANGER_HDFS_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_HDFS_HOME environment variable at machine scope to `"$argusHdfsAgentPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_HDFS_HOME", $argusHdfsAgentPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HDFS_HOME = "$argusHdfsAgentPath"
+        Write-Log "Setting the RANGER_HDFS_HOME environment variable at machine scope to `"$rangerHdfsPluginPath`""
+        [Environment]::SetEnvironmentVariable("RANGER_HDFS_HOME", $rangerHdfsPluginPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_HDFS_HOME = "$rangerHdfsPluginPath"
 
 
 
         ###
-        ###  Unzip Argus HIVE Agent from compressed archive
+        ###  Unzip Ranger HIVE Plugin from compressed archive
         ###
 
-        Write-Log "Extracting $argusHiveAgentFile.zip to $argusInstallPath"
+        Write-Log "Extracting $rangerHivePluginFile.zip to $rangerInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusHiveAgentFile.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$rangerHivePluginFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$rangerInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
             Invoke-Ps $unzipExpr
@@ -783,31 +783,31 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusHiveAgentFile.zip")
-            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$rangerHivePluginFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($rangerInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
 
         ###
-        ### Set ARGUS_HIVE_HOME environment variable
+        ### Set RANGER_HIVE_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_HIVE_HOME environment variable at machine scope to `"$argusHiveAgentPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_HIVE_HOME", $argusHiveAgentPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HIVE_HOME = "$argusHiveAgentPath"
+        Write-Log "Setting the RANGER_HIVE_HOME environment variable at machine scope to `"$rangerHivePluginPath`""
+        [Environment]::SetEnvironmentVariable("RANGER_HIVE_HOME", $rangerHivePluginPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_HIVE_HOME = "$rangerHivePluginPath"
 
 
 
         ###
-        ###  Unzip Argus HBASE Agent from compressed archive
+        ###  Unzip Ranger HBASE Plugin from compressed archive
         ###
 
-        Write-Log "Extracting $argusHBaseAgentFile.zip to $argusInstallPath"
+        Write-Log "Extracting $rangerHBasePluginFile.zip to $rangerInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusHBaseAgentFile.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$rangerHBasePluginFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$rangerInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
             Invoke-Ps $unzipExpr
@@ -815,29 +815,29 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusHBaseAgentFile.zip")
-            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$rangerHBasePluginFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($rangerInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
 
         ###
-        ### Set ARGUS_HBASE_HOME environment variable
+        ### Set RANGER_HBASE_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_HBASE_HOME environment variable at machine scope to `"$argusHBaseAgentPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_HBASE_HOME", $argusHBaseAgentPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_HBASE_HOME = "$argusHBaseAgentPath"
+        Write-Log "Setting the RANGER_HBASE_HOME environment variable at machine scope to `"$rangerHBasePluginPath`""
+        [Environment]::SetEnvironmentVariable("RANGER_HBASE_HOME", $rangerHBasePluginPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_HBASE_HOME = "$rangerHBasePluginPath"
 
         ###
-        ###  Unzip Argus Knox Agent from compressed archive
+        ###  Unzip Ranger Knox Plugin from compressed archive
         ###
 
-        Write-Log "Extracting $argusKnoxAgentFile.zip to $argusInstallPath"
+        Write-Log "Extracting $rangerKnoxPluginFile.zip to $rangerInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusKnoxAgentFile.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$rangerKnoxPluginFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$rangerInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
             Invoke-Ps $unzipExpr
@@ -845,29 +845,29 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusKnoxAgentFile.zip")
-            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$rangerKnoxPluginFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($rangerInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
 
         ###
-        ### Set ARGUS_KNOX_HOME environment variable
+        ### Set RANGER_KNOX_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_KNOX_HOME environment variable at machine scope to `"$argusKnoxAgentPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_KNOX_HOME", $argusKnoxAgentPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_KNOX_HOME = "$argusKnoxAgentPath"
+        Write-Log "Setting the RANGER_KNOX_HOME environment variable at machine scope to `"$rangerKnoxPluginPath`""
+        [Environment]::SetEnvironmentVariable("RANGER_KNOX_HOME", $rangerKnoxPluginPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_KNOX_HOME = "$rangerKnoxPluginPath"
 
         ###
-        ###  Unzip Argus Storm Agent from compressed archive
+        ###  Unzip Ranger Storm Plugin from compressed archive
         ###
 
-        Write-Log "Extracting $argusStormAgentFile.zip to $argusInstallPath"
+        Write-Log "Extracting $rangerStormPluginFile.zip to $rangerInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusStormAgentFile.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$rangerStormPluginFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$rangerInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
             Invoke-Ps $unzipExpr
@@ -875,29 +875,29 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusStormAgentFile.zip")
-            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$rangerStormPluginFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($rangerInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
 
         ###
-        ### Set ARGUS_STORM_HOME environment variable
+        ### Set RANGER_STORM_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_STORM_HOME environment variable at machine scope to `"$argusStormAgentPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_STORM_HOME", $argusStormAgentPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_STORM_HOME = "$argusStormAgentPath"
+        Write-Log "Setting the RANGER_STORM_HOME environment variable at machine scope to `"$rangerStormPluginPath`""
+        [Environment]::SetEnvironmentVariable("RANGER_STORM_HOME", $rangerStormPluginPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_STORM_HOME = "$rangerStormPluginPath"
 
         ###
-        ###  Unzip Argus UserSync from compressed archive
+        ###  Unzip Ranger UserSync from compressed archive
         ###
 
-        Write-Log "Extracting $argusUserSyncFile.zip to $argusInstallPath"
+        Write-Log "Extracting $rangerUserSyncFile.zip to $rangerInstallPath"
 
         if ( Test-Path ENV:UNZIP_CMD )
         {
             ### Use external unzip command if given
-            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$argusUserSyncFile.zip`"")
-            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$argusInstallPath`"")
+            $unzipExpr = $ENV:UNZIP_CMD.Replace("@SRC", "`"$HDP_RESOURCES_DIR\$rangerUserSyncFile.zip`"")
+            $unzipExpr = $unzipExpr.Replace("@DEST", "`"$rangerInstallPath`"")
             ### We ignore the error code of the unzip command for now to be
             ### consistent with prior behavior.
             Invoke-Ps $unzipExpr
@@ -905,17 +905,17 @@ function InstallBinaries(
         else
         {
             $shellApplication = new-object -com shell.application
-            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$argusUserSyncFile.zip")
-            $destinationFolder = $shellApplication.NameSpace($argusInstallPath)
+            $zipPackage = $shellApplication.NameSpace("$HDP_RESOURCES_DIR\$rangerUserSyncFile.zip")
+            $destinationFolder = $shellApplication.NameSpace($rangerInstallPath)
             $destinationFolder.CopyHere($zipPackage.Items(), 20)
         }
 
         ###
-        ### Set ARGUS_USERSYNC_HOME environment variable
+        ### Set RANGER_USERSYNC_HOME environment variable
         ###
-        Write-Log "Setting the ARGUS_USERSYNC_HOME environment variable at machine scope to `"$argusUserSyncPath`""
-        [Environment]::SetEnvironmentVariable("ARGUS_USERSYNC_HOME", $argusUserSyncPath, [EnvironmentVariableTarget]::Machine)
-        $ENV:ARGUS_USERSYNC_HOME = "$argusUserSyncPath"
+        Write-Log "Setting the RANGER_USERSYNC_HOME environment variable at machine scope to `"$rangerUserSyncPath`""
+        [Environment]::SetEnvironmentVariable("RANGER_USERSYNC_HOME", $rangerUserSyncPath, [EnvironmentVariableTarget]::Machine)
+        $ENV:RANGER_USERSYNC_HOME = "$rangerUserSyncPath"
 
 }
 
@@ -940,22 +940,22 @@ function Uninstall(
     $nodeInstallRoot
     )
 {
-    if ( $component -eq "argus" )
+    if ( $component -eq "ranger" )
     {
         $HDP_INSTALL_PATH, $HDP_RESOURCES_DIR = Initialize-InstallationEnv $scriptDir "$FinalName.winpkg.log"
 
-	    Write-Log "Uninstalling argus $FinalName"
-	    $argusInstallPath = Join-Path $nodeInstallRoot $FinalName
+	    Write-Log "Uninstalling ranger $FinalName"
+	    $rangerInstallPath = Join-Path $nodeInstallRoot $FinalName
 
-        ### If Argus Core root does not exist exit early
-        if ( -not (Test-Path $argusInstallPath) )
+        ### If Ranger Core root does not exist exit early
+        if ( -not (Test-Path $rangerInstallPath) )
         {
             return
         }
 
 		### Stop and delete services
         ###
-        foreach( $service in @("argus", "argus-usersync"))
+        foreach( $service in @("ranger", "ranger-usersync"))
         {
             StopAndDeleteHadoopService $service
         }
@@ -963,57 +963,57 @@ function Uninstall(
 	    ###
 	    ### Delete install dir
 	    ###
-	    $cmd = "rd /s /q `"$argusInstallPath`""
+	    $cmd = "rd /s /q `"$rangerInstallPath`""
 	    Invoke-Cmd $cmd
 
-        ### Removing ARGUS_HOME environment variable
-        Write-Log "Removing the ARGUS_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        ### Removing RANGER_HOME environment variable
+        Write-Log "Removing the RANGER_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
-        Write-Log "Removing the ARGUS_ADMIN_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_ADMIN_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the RANGER_ADMIN_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_ADMIN_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
-        Write-Log "Removing the ARGUS_HDFS_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_HDFS_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the RANGER_HDFS_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_HDFS_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
-        Write-Log "Removing the ARGUS_HBASE_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_HBASE_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the RANGER_HBASE_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_HBASE_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
-        Write-Log "Removing the ARGUS_HIVE_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_HIVE_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the RANGER_HIVE_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_HIVE_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
-        Write-Log "Removing the ARGUS_KNOX_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_KNOX_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the RANGER_KNOX_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_KNOX_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
-        Write-Log "Removing the ARGUS_STORM_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_STORM_HOME", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the RANGER_STORM_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_STORM_HOME", $null, [EnvironmentVariableTarget]::Machine )
 
-        Write-Log "Removing the ARGUS_USERSYNC_HOME environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_USERSYNC_HOME", $null, [EnvironmentVariableTarget]::Machine )
-        
-        Write-Log "Removing the ARGUS_ADMIN_CRED_KEYSTORE_FILE environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_ADMIN_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
-        
-        Write-Log "Removing the ARGUS_HDFS_CRED_KEYSTORE_FILE environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_HDFS_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
-        
-        Write-Log "Removing the ARGUS_HIVE_CRED_KEYSTORE_FILE environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_HIVE_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
-        
-        Write-Log "Removing the ARGUS_HBASE_CRED_KEYSTORE_FILE environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_HBASE_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
-        
-        Write-Log "Removing the ARGUS_KNOX_CRED_KEYSTORE_FILE environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_KNOX_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
-        
-        Write-Log "Removing the ARGUS_STORM_CRED_KEYSTORE_FILE environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_STORM_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
-        
-        Write-Log "Removing the ARGUS_USERSYNC_CRED_KEYSTORE_FILE environment variable"
-        [Environment]::SetEnvironmentVariable( "ARGUS_USERSYNC_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+        Write-Log "Removing the RANGER_USERSYNC_HOME environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_USERSYNC_HOME", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the RANGER_ADMIN_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_ADMIN_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the RANGER_HDFS_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_HDFS_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the RANGER_HIVE_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_HIVE_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the RANGER_HBASE_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_HBASE_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the RANGER_KNOX_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_KNOX_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the RANGER_STORM_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_STORM_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
+
+        Write-Log "Removing the RANGER_USERSYNC_CRED_KEYSTORE_FILE environment variable"
+        [Environment]::SetEnvironmentVariable( "RANGER_USERSYNC_CRED_KEYSTORE_FILE", $null, [EnvironmentVariableTarget]::Machine )
 
 
-        Write-Log "Successfully uninstalled argus"
+        Write-Log "Successfully uninstalled ranger"
 
     }
     else
@@ -1042,10 +1042,10 @@ function StartService(
 {
     Write-Log "Starting `"$component`" `"$roles`" services"
 
-    if ( $component -eq "argus" )
+    if ( $component -eq "ranger" )
     {
-        Write-Log "StartService: argus services"
-		CheckRole $roles @("argus")
+        Write-Log "StartService: ranger services"
+		CheckRole $roles @("ranger")
 
         foreach ( $role in $roles -Split("\s+") )
         {
@@ -1079,10 +1079,10 @@ function StopService(
 {
     Write-Log "Stopping `"$component`" `"$roles`" services"
 
-    if ( $component -eq "argus" )
+    if ( $component -eq "ranger" )
     {
         ### Verify that roles are in the supported set
-        CheckRole $roles @("argus")
+        CheckRole $roles @("ranger")
         foreach ( $role in $roles -Split("\s+") )
         {
             try
@@ -1114,10 +1114,10 @@ function StopService(
 
 ###############################################################################
 ###
-### Alters the configuration of the argus component.
+### Alters the configuration of the ranger component.
 ###
 ### Arguments:
-###     component: Component to be configured, it should be "argus"
+###     component: Component to be configured, it should be "ranger"
 ###     nodeInstallRoot: Target install folder (for example "C:\Hadoop")
 ###     serviceCredential: Credential object used for service creation
 ###     configs:
@@ -1142,40 +1142,40 @@ function Configure(
     )
 {
 
-    if ( $component -eq "argus" )
+    if ( $component -eq "ranger" )
     {
-        Write-Log "Configure: argus does not have any configurations"
+        Write-Log "Configure: ranger does not have any configurations"
 		### TODO
     }
-	elseif ( $component -eq "argus-hdfs" )
+	elseif ( $component -eq "ranger-hdfs" )
     {
-		Write-Log "Configuring Argus HDFS Agent"
-        ConfigureArgusHdfs $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+		Write-Log "Configuring Ranger HDFS Plugin"
+        ConfigureRangerHdfs $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
-	elseif ( $component -eq "argus-hive" )
+	elseif ( $component -eq "ranger-hive" )
     {
-		Write-Log "Configuring Argus Hive Agent"
-        ConfigureArgusHive $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+		Write-Log "Configuring Ranger Hive Plugin"
+        ConfigureRangerHive $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
-	elseif ( $component -eq "argus-hbase" )
+	elseif ( $component -eq "ranger-hbase" )
     {
-		Write-Log "Configuring Argus HBase Agent"
-        ConfigureArgusHbase $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+		Write-Log "Configuring Ranger HBase Plugin"
+        ConfigureRangerHbase $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
-	elseif ( $component -eq "argus-knox" )
+	elseif ( $component -eq "ranger-knox" )
     {
-		Write-Log "Configuring Argus Knox Agent"
-        ConfigureArgusKnox $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+		Write-Log "Configuring Ranger Knox Plugin"
+        ConfigureRangerKnox $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
-	elseif ( $component -eq "argus-storm" )
+	elseif ( $component -eq "ranger-storm" )
     {
-		Write-Log "Configuring Argus Storm Agent"
-        ConfigureArgusStorm $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+		Write-Log "Configuring Ranger Storm Plugin"
+        ConfigureRangerStorm $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
-    elseif ( $component -eq "argus-usersync" )
+    elseif ( $component -eq "ranger-usersync" )
     {
-		Write-Log "Configuring Argus User Sync Agent"
-        ConfigureArgusUserSync $nodeInstallRoot $serviceCredential $configs $aclAllFolders
+		Write-Log "Configuring Ranger User Sync Plugin"
+        ConfigureRangerUserSync $nodeInstallRoot $serviceCredential $configs $aclAllFolders
     }
     else
     {
@@ -1185,12 +1185,13 @@ function Configure(
 
 ###############################################################################
 ###
-### Alters the configuration of the Hadoop HDFS component for Argus.
+### Alters the configuration of the Hadoop HDFS component for Ranger.
 ###
 ### Arguments:
 ###   See Configure
 ###############################################################################
-function ConfigureArgusHdfs(
+function ConfigureRangerHdfs(
+>>>>>>> origin/apache-ref/master
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
@@ -1206,21 +1207,10 @@ function ConfigureArgusHdfs(
     )
 {
 
-
-	#TODO:WINDOWS Check if appropriate dirs are present and env set
-    #if( -not (Test-Path $hadoopInstallToDir ))
-    #{
-    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
-    #}
-
-	# Add line to invoke the xasecure-hadoop-env.cmd
-	# set HADOOP_NAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_NAMENODE_OPTS% 
-	# set HADOOP_SECONDARYNAMENODE_OPTS= %XASECURE_AGENT_OPTS% %HADOOP_SECONDARYNAMENODE_OPTS%
-    
 	Write-Log "Modifying hadoop-env.cmd to invoke xasecure-hadoop-env.cmd"
     $file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
 
-    #$line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
+    #$line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@ranger.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
     $line = "`if exist %HADOOP_CONF_DIR%\xasecure-hadoop-env.cmd CALL %HADOOP_CONF_DIR%\xasecure-hadoop-env.cmd"
 	#TODO:WINDOWS Should we guard against option already being present?
     Add-Content $file $line
@@ -1230,26 +1220,23 @@ function ConfigureArgusHdfs(
 	Write-Log "Regenerating service config ${ENV:HADOOP_HOME}\$service.xml"
 	$cmd = "$ENV:HADOOP_HOME\bin\hdfs.cmd --service $service > `"$ENV:HADOOP_HOME\bin\$service.xml`""
 	Invoke-CmdChk $cmd
-    #$line = "`set HADOOP_SECONDARYNAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@argus.version@.jar=authagent  %HADOOP_SECONDARYNAMENODE_OPTS%"
-	#TODO:WINDOWS Should we guard against option already being present?
-    #Add-Content $file $line
 
     ###
     ### Apply configuration changes to hdfs-site.xml
     ###
-	$xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "hdfs-site.xml" 
+	$xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "hdfs-site.xml"
     UpdateXmlConfig $xmlFile $configs["hdfsChanges"]
 
     ###
     ### Apply configuration changes to xasecure-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-audit.xml" 
+    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-audit.xml"
     UpdateXmlConfig $xmlFile $configs["hdfsAuditChanges"]
 
     ###
     ### Apply configuration changes to xasecure-hdfs-security.xml
     ###
-    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-hdfs-security.xml" 
+    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-hdfs-security.xml"
     UpdateXmlConfig $xmlFile $configs["hdfsSecurityChanges"]
 
 
@@ -1258,12 +1245,12 @@ function ConfigureArgusHdfs(
 
 ###############################################################################
 ###
-### Alters the configuration of the Hadoop Hive component for Argus.
+### Alters the configuration of the Hadoop Hive component for Ranger.
 ###
 ### Arguments:
 ###   See Configure
 ###############################################################################
-function ConfigureArgusHive(
+function ConfigureRangerHive(
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
@@ -1278,12 +1265,6 @@ function ConfigureArgusHive(
     $aclAllFolders = $True
     )
 {
-
-	#TODO:WINDOWS Check if appropriate dirs are present and env set
-    #if( -not (Test-Path $hadoopInstallToDir ))
-    #{
-    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
-    #}
 
 	### Regenerate the namenode.xml file
 	$service = "hiveserver2"
@@ -1295,25 +1276,25 @@ function ConfigureArgusHive(
     ### Apply configuration changes to hive-site.xml
     ###
 	# NOT SUPPORTED post Champlain
-	#$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "hive-site.xml" 
+	#$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "hive-site.xml"
     #UpdateXmlConfig $xmlFile $configs["hivechanges"]
 
     ###
     ### Apply configuration changes to hiveserver2-site.xml
     ###
-    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\hiveserver2-site.xml" 
+    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\hiveserver2-site.xml"
     UpdateXmlConfig $xmlFile $configs["hiveServerChanges"]
 
     ###
     ### Apply configuration changes to xasecure-hive-security.xml
     ###
-    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\xasecure-hive-security.xml" 
+    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\xasecure-hive-security.xml"
     UpdateXmlConfig $xmlFile $configs["hiveSecurityChanges"]
 
     ###
     ### Apply configuration changes to xasecure-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\xasecure-audit.xml" 
+    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\xasecure-audit.xml"
     UpdateXmlConfig $xmlFile $configs["hiveAuditChanges"]
 
  }
@@ -1321,12 +1302,12 @@ function ConfigureArgusHive(
 
 ###############################################################################
 ###
-### Alters the configuration of the Hadoop HBase component for Argus.
+### Alters the configuration of the Hadoop HBase component for Ranger.
 ###
 ### Arguments:
 ###   See Configure
 ###############################################################################
-function ConfigureArgusHbase(
+function ConfigureRangerHbase(
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
@@ -1342,28 +1323,22 @@ function ConfigureArgusHbase(
     )
 {
 
-	#TODO:WINDOWS Check if appropriate dirs are present and env set
-    #if( -not (Test-Path $hadoopInstallToDir ))
-    #{
-    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
-    #}
-
     ###
     ### Apply configuration changes to hbase-site.xml
     ###
-	$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "hbase-site.xml" 
+	$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "hbase-site.xml"
     UpdateXmlConfig $xmlFile $configs["hbaseChanges"]
 
     ###
     ### Apply configuration changes to xasecure-hbase-security.xml
     ###
-    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-hbase-security.xml" 
+    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-hbase-security.xml"
     UpdateXmlConfig $xmlFile $configs["hbaseSecurityChanges"]
 
     ###
     ### Apply configuration changes to xasecure-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml" 
+    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml"
     UpdateXmlConfig $xmlFile $configs["hbaseAuditChanges"]
 
 
@@ -1373,12 +1348,12 @@ function ConfigureArgusHbase(
 
 ###############################################################################
 ###
-### Alters the configuration of the Hadoop Knox component for Argus.
+### Alters the configuration of the Hadoop Knox component for Ranger.
 ###
 ### Arguments:
 ###   See Configure
 ###############################################################################
-function ConfigureArgusKnox(
+function ConfigureRangerKnox(
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
@@ -1394,22 +1369,16 @@ function ConfigureArgusKnox(
     )
 {
 
-	#TODO:WINDOWS Check if appropriate dirs are present and env set
-    #if( -not (Test-Path $hadoopInstallToDir ))
-    #{
-    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
-    #}
-
     ###
     ### Apply configuration changes to xasecure-hbase-security.xml
     ###
-    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-knox-security.xml" 
+    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-knox-security.xml"
     UpdateXmlConfig $xmlFile $configs["knoxSecurityChanges"]
 
     ###
     ### Apply configuration changes to xasecure-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-audit.xml" 
+    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-audit.xml"
     UpdateXmlConfig $xmlFile $configs["knoxAuditChanges"]
 
 	### TODO: Find a better way
@@ -1423,12 +1392,12 @@ function ConfigureArgusKnox(
 
 ###############################################################################
 ###
-### Alters the configuration of the Hadoop Storm component for Argus.
+### Alters the configuration of the Hadoop Storm component for Ranger.
 ###
 ### Arguments:
 ###   See Configure
 ###############################################################################
-function ConfigureArgusStorm(
+function ConfigureRangerStorm(
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
@@ -1444,22 +1413,16 @@ function ConfigureArgusStorm(
     )
 {
 
-	#TODO:WINDOWS Check if appropriate dirs are present and env set
-    #if( -not (Test-Path $hadoopInstallToDir ))
-    #{
-    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
-    #}
-
     ###
     ### Apply configuration changes to xasecure-hbase-security.xml
     ###
-    $xmlFile = Join-Path $ENV:STORM_HOME "conf\xasecure-storm-security.xml" 
+    $xmlFile = Join-Path $ENV:STORM_HOME "conf\xasecure-storm-security.xml"
     UpdateXmlConfig $xmlFile $configs["stormSecurityChanges"]
 
     ###
     ### Apply configuration changes to xasecure-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:STORM_HOME "conf\xasecure-audit.xml" 
+    $xmlFile = Join-Path $ENV:STORM_HOME "conf\xasecure-audit.xml"
     UpdateXmlConfig $xmlFile $configs["stormAuditChanges"]
 
 
@@ -1469,12 +1432,12 @@ function ConfigureArgusStorm(
 
 ###############################################################################
 ###
-### Alters the configuration of the Hadoop UserSync service for Argus.
+### Alters the configuration of the Hadoop UserSync service for Ranger.
 ###
 ### Arguments:
 ###   See Configure
 ###############################################################################
-function ConfigureArgusUserSync(
+function ConfigureRangerUserSync(
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
@@ -1495,24 +1458,24 @@ function ConfigureArgusUserSync(
     #TODO:WINDOWS Check if appropriate dirs are present and env set
     #if( -not (Test-Path $hadoopInstallToDir ))
     #{
-    #    throw "ConfigureArgusHdfs: Install must be called before ConfigureArgusHdfs"
+    #    throw "ConfigureRangerHdfs: Install must be called before ConfigureRangerHdfs"
     #}
 
-    #Write-Log "Modifying hadoop-env.cmd to invoke argus-usersync-hadoop-env.cmd"
+    #Write-Log "Modifying hadoop-env.cmd to invoke ranger-usersync-hadoop-env.cmd"
     #$file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
-    $ARGUS_USERSYNC_CONF_DIR = Join-Path $ENV:ARGUS_USERSYNC_HOME "conf"
-    $file = Join-Path  $ARGUS_USERSYNC_CONF_DIR "unixauthservice.properties"
+    $RANGER_USERSYNC_CONF_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "conf"
+    $file = Join-Path  $RANGER_USERSYNC_CONF_DIR "unixauthservice.properties"
 
     #TODO:WINDOWS Should we guard against option already being present?
-    
+
     $prop       = "usergroupSync.policymanager.baseURL"
-    $propVal    = $ENV:ARGUS_EXTERNAL_URL
+    $propVal    = $ENV:RANGER_EXTERNAL_URL
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "usergroupSync.sleepTimeInMillisBetweenSyncCycle"
-    $propVal    = $ENV:ARGUS_SYNC_INTERVAL
+    $propVal    = $ENV:RANGER_SYNC_INTERVAL
     ReplacePropertyVal $file $prop $propVal
-    
+
     ##Not there in ENV vars
     if($ENV:SYNCSOURCE.ToUpper() -eq 'LDAP') {
         $prop       = "usergroupSync.source.impl.class"
@@ -1525,62 +1488,62 @@ function ConfigureArgusUserSync(
         $propVal    = "com.xasecure.unixusersync.process.UnixUserGroupBuilder"
     }
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "ldapGroupSync.ldapUrl"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_URL
+    $propVal    = $ENV:RANGER_SYNC_LDAP_URL
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "ldapGroupSync.ldapBindDn"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_BIND_DN
+    $propVal    = $ENV:RANGER_SYNC_LDAP_BIND_DN
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "ldapGroupSync.ldapBindPassword"
-    $propVal    = "_" #$ENV:ARGUS_SYNC_LDAP_BIND_PASSWORD
+    $propVal    = "_" #$ENV:RANGER_SYNC_LDAP_BIND_PASSWORD
     ReplacePropertyVal $file $prop $propVal
-    
+
     ##Not there in ENV vars
-    $prop       = "ldapGroupSync.ldapBindKeystore" 
-    $propVal    = $ENV:ARGUS_USERSYNC_CRED_KEYSTORE_FILE
+    $prop       = "ldapGroupSync.ldapBindKeystore"
+    $propVal    = $ENV:RANGER_USERSYNC_CRED_KEYSTORE_FILE
     ReplacePropertyVal $file $prop $propVal
-    
+
     ##Not there in ENV vars
     $prop       = "ldapGroupSync.ldapBindAlias"
     $propVal    = "ldap.bind.password"
     ReplacePropertyVal $file $prop $propVal
-    
+
     ##Not there in ENV vars
     $prop       = "ldapGroupSync.userSearchBase"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_SEARCH_BASE
+    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_SEARCH_BASE
     ReplacePropertyVal $file $prop $propVal
-        
+
     $prop       = "ldapGroupSync.userSearchScope"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_SEARCH_SCOPE
+    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_SEARCH_SCOPE
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "ldapGroupSync.userObjectClass"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_OBJECT_CLASS
+    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_OBJECT_CLASS
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "ldapGroupSync.userObjectClass"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_OBJECT_CLASS
+    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_OBJECT_CLASS
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "ldapGroupSync.userNameAttribute"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_NAME_ATTRIBUTE
+    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_NAME_ATTRIBUTE
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "ldapGroupSync.userGroupNameAttribute"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE
+    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE
     ReplacePropertyVal $file $prop $propVal
-    
+
     $prop       = "ldapGroupSync.username.caseConversion"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_USERNAME_CASE_CONVERSION
+    $propVal    = $ENV:RANGER_SYNC_LDAP_USERNAME_CASE_CONVERSION
     ReplacePropertyVal $file $prop $propVal
-        
+
     $prop       = "ldapGroupSync.groupname.caseConversion"
-    $propVal    = $ENV:ARGUS_SYNC_LDAP_GROUPNAME_CASE_CONVERSION
+    $propVal    = $ENV:RANGER_SYNC_LDAP_GROUPNAME_CASE_CONVERSION
     ReplacePropertyVal $file $prop $propVal
-    
+
     #$prop       = "ldap.bind.password"
     #$propVal    = $ENV:SYNC_LDAP_BIND_ALIAS
     #ReplacePropertyVal $file $prop $propVal
@@ -1777,8 +1740,8 @@ function ReplacePropertyVal($file,$findProp,$replaceVal)
     $content = Get-Content $file
     for ($i=1; $i -le $content.Count; $i++)
     {
-        if($content[$i]) 
-        { 
+        if($content[$i])
+        {
             $prop = $content[$i].Split('=')[0]
             if ($prop.trim() -eq $findProp )
             {
@@ -1803,11 +1766,11 @@ function CreateJCEKS (
     $jceksFile
 	)
 {
-	
+
 	Write-Log "Creating alias $alias in jceks file : $jceksFile"
     $cmd = "${ENV:JAVA_HOME}\bin\java -cp `"${libPath}\*`" com.hortonworks.credentialapi.buildks create `"${alias}`" -value `"${password}`" -provider `"jceks://file/${jceksFile}`" "
 	Invoke-Cmd $cmd
-	
+
 }
 
 

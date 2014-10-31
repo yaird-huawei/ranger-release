@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,19 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-POLICYMGR_HOME=/usr/lib/xapolicymgr
-export POLICYMGR_HOME
+
+LINUX_USER=ranger
+BIN_PATH=/usr/bin
 
 case $1 in
 start)
-	/bin/su --login  xasecure "${POLICYMGR_HOME}/startpolicymgr.sh"
+	/bin/su --login  $LINUX_USER "${BIN_PATH}/ranger-admin-start"
 	;;
 stop)
-	/bin/su --login  xasecure "${POLICYMGR_HOME}/stoppolicymgr.sh"
+	/bin/su --login  $LINUX_USER "${BIN_PATH}/ranger-admin-stop"
     ;;
 restart)
-	/bin/su --login  xasecure "${POLICYMGR_HOME}/stoppolicymgr.sh"  && sleep 30
-	/bin/su --login  xasecure "${POLICYMGR_HOME}/startpolicymgr.sh"
+	/bin/su --login  $LINUX_USER "${BIN_PATH}/stop-ranger-admin.sh"  && sleep 30
+	/bin/su --login  $LINUX_USER "${BIN_PATH}/start-ranger-admin.sh"
 
 	;;
 *)

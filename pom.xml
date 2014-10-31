@@ -22,12 +22,12 @@
         <artifactId>apache</artifactId>
         <version>10</version>
   </parent>
-  <groupId>org.apache.argus</groupId>
-  <artifactId>argus</artifactId>
+  <groupId>org.apache.ranger</groupId>
+  <artifactId>ranger</artifactId>
   <version>0.4.0</version>
   <description>Security for Enforcing Enterprise Policies</description>
   <packaging>pom</packaging>
-  <name>argus</name>
+  <name>ranger</name>
   <prerequisites>
 	<maven>2.2.1</maven>
   </prerequisites>
@@ -97,7 +97,7 @@
 		<mysql-connector-java.version>5.1.31</mysql-connector-java.version>
 		<owasp-java-html-sanitizer.version>r239</owasp-java-html-sanitizer.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<security-agent-install-dir>hadoop-security/agents</security-agent-install-dir>
+		<security-agent-install-dir>hadoop-security/plugins</security-agent-install-dir>
 		<slf4j-api.version>1.7.5</slf4j-api.version>
 		<springframework.spring.version>2.5.6</springframework.spring.version>
 		<!--
@@ -143,7 +143,7 @@
                         </includes>
                     <replacements>
                         <replacement>
-                            <token>@argus.version@</token>
+                            <token>@ranger.version@</token>
                             <value>${project.version}</value>
                         </replacement>
                     </replacements>
@@ -228,6 +228,7 @@
              <descriptor>src/main/assembly/storm-agent.xml</descriptor>
              <descriptor>src/main/assembly/admin-web.xml</descriptor>
              <descriptor>src/main/assembly/usersync.xml</descriptor>
+             <descriptor>src/main/assembly/ranger-src.xml</descriptor>
            </descriptors>
          </configuration>
       </plugin>

@@ -16,15 +16,15 @@
 
 function Main( $scriptDir )
 {
-    Write-Log "Uninstalling  Argus argus-@argus.version@"
-    Uninstall "argus" $ENV:HADOOP_NODE_INSTALL_ROOT
-    Write-Log "Finished Uninstalling argus"
+    Write-Log "Uninstalling  Ranger ranger-@ranger.version@"
+    Uninstall "ranger" $ENV:HADOOP_NODE_INSTALL_ROOT
+    Write-Log "Finished Uninstalling ranger"
 }
 
 try
 {
     $scriptDir = Resolve-Path (Split-Path $MyInvocation.MyCommand.Path)
-    $utilsModule = Import-Module -Name "$scriptDir\..\resources\Winpkg.Utils.psm1" -ArgumentList ("argus") -PassThru
+    $utilsModule = Import-Module -Name "$scriptDir\..\resources\Winpkg.Utils.psm1" -ArgumentList ("ranger") -PassThru
     $apiModule = Import-Module -Name "$scriptDir\InstallApi.psm1" -PassThru
     Main $scriptDir
 }

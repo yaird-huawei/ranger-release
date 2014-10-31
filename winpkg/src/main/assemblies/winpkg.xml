@@ -46,14 +46,14 @@
             <include>**</include>
           </includes>
         </fileSet>
-        <!-- Argus Secure Zip -->
+        <!-- Ranger Secure Zip -->
         <fileSet>
           <directory>${basedir}/../target/</directory>
           <outputDirectory>/resources</outputDirectory>
           <includes>
-            <include>argus-*-usersync.zip</include>
-			<include>argus-*-admin.zip</include>
-			<include>argus*agent.zip</include>
+            <include>ranger-*-usersync.zip</include>
+			<include>ranger-*-admin.zip</include>
+			<include>ranger*plugin.zip</include>
           </includes>
           <excludes>
             <exclude>*-src.zip</exclude>

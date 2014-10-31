@@ -23,8 +23,8 @@
   <description>security-admin-tool java web application</description>
   <packaging>war</packaging>
   <parent>
-  	<groupId>org.apache.argus</groupId>
-  	<artifactId>argus</artifactId>
+	<groupId>org.apache.ranger</groupId>
+	<artifactId>ranger</artifactId>
   	<version>0.4.0</version>
   </parent>
   <dependencies>
@@ -325,7 +325,7 @@
     		<version>${codehaus.jackson.version}</version>
 		</dependency>
 		<dependency>
-    		<groupId>org.apache.argus</groupId>
+		<groupId>org.apache.ranger</groupId>
     		<artifactId>lookup-client</artifactId>
     		<version>${project.version}</version>
            <exclusions>
@@ -399,7 +399,7 @@
         	</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.argus</groupId>
+			<groupId>org.apache.ranger</groupId>
 			<artifactId>unixauthclient</artifactId>
 			<version>${project.version}</version>
 		</dependency>
