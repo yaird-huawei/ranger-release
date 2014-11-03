@@ -82,7 +82,7 @@ function Main( $scriptDir )
     ### Install and Configure ranger (Looks like this config will come from earlier HDP installation steps )
     ###
     if ( $ENV:IS_RANGER -eq "yes" ) {
-      $roles = "ranger" # TODO!!
+      $roles = "ranger-admin"  
     }
 
     Write-Log "Roles are $roles"
