@@ -450,8 +450,9 @@ function Main( $scriptDir )
     ####         Install and Configure ranger-usersync service              ###
     #####################################################################
     #
-
-    $roles = "ranger-usersync"
+    if ( $ENV:IS_RANGER -eq "yes" ) {
+      $roles = "ranger-usersync"
+    }
     Install "ranger-usersync" $nodeInstallRoot $serviceCredential $roles
     Configure "ranger-usersync" $nodeInstallRoot $serviceCredential
     Write-Log "Installation of ranger-usersync completed successfully"
