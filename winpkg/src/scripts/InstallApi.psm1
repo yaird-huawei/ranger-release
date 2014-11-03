@@ -1191,7 +1191,6 @@ function Configure(
 ###   See Configure
 ###############################################################################
 function ConfigureRangerHdfs(
->>>>>>> origin/apache-ref/master
     [String]
     [Parameter( Position=0, Mandatory=$true )]
     $nodeInstallRoot,
