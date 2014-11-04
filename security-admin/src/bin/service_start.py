@@ -29,6 +29,11 @@ configure_entry = '--configure' in sys.argv
 
 if service_entry:
 	try:
+		ranger_install.run_setup(cmd)
+		jdk_options = ranger_install.get_jdk_options()
+		class_path = ranger_install.get_ranger_classpath()
+		java_class = 'com.xasecure.server.tomcat.EmbeddedServer'
+		class_arguments = ''
 		from xml.dom.minidom import getDOMImplementation
 		dom = getDOMImplementation()
 		xmlDoc = dom.createDocument(None, 'service', None)
