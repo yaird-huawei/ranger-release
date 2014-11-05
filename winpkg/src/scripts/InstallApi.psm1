@@ -955,7 +955,7 @@ function Uninstall(
 
 		### Stop and delete services
         ###
-        foreach( $service in @("ranger", "ranger-usersync"))
+        foreach( $service in @("ranger-admin", "ranger-usersync"))
         {
             StopAndDeleteHadoopService $service
         }

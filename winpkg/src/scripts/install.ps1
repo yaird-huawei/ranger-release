@@ -94,7 +94,7 @@ function Main( $scriptDir )
     ###			Install and Configure ranger-hdfs plugin               ###
     ####################################################################
 
-    $roles = ' '
+    $roles = ''
 
     Install "ranger-hdfs" $nodeInstallRoot $serviceCredential $roles
     ###
@@ -156,7 +156,7 @@ function Main( $scriptDir )
     ###			Install and Configure ranger-hive plugin               ###
     ####################################################################
 
-    $roles = ' '
+    $roles = ''
     Install "ranger-hive" $nodeInstallRoot $serviceCredential $roles
 
     ####
@@ -238,7 +238,7 @@ function Main( $scriptDir )
 
 	if ("$ENV:HBASE" -eq "yes") {
 
-	    $roles = ' '
+	    $roles = ''
 	    Install "ranger-hbase" $nodeInstallRoot $serviceCredential $roles
 
 	    ####
@@ -319,7 +319,7 @@ function Main( $scriptDir )
 
 	if ("$ENV:KNOX" -eq "yes") {
 
-		$roles = ' '
+		$roles = ''
 		Install "ranger-knox" $nodeInstallRoot $serviceCredential $roles
 
 	    ####
@@ -386,7 +386,7 @@ function Main( $scriptDir )
     #
 
 	if ("$ENV:STORM" -eq "yes") {
-	    $roles = ' '
+	    $roles = ''
 	    Install "ranger-storm" $nodeInstallRoot $serviceCredential $roles
 
 	    ####
@@ -452,6 +452,8 @@ function Main( $scriptDir )
     #
     if ( $ENV:IS_RANGER -eq "yes" ) {
       $roles = "ranger-usersync"
+    } else {
+      $roles = ""
     }
     Install "ranger-usersync" $nodeInstallRoot $serviceCredential $roles
     Configure "ranger-usersync" $nodeInstallRoot $serviceCredential
