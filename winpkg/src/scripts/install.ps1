@@ -385,65 +385,67 @@ function Main( $scriptDir )
     #####################################################################
     #
 
-	if ("$ENV:STORM" -eq "yes") {
-	    $roles = ''
-	    Install "ranger-storm" $nodeInstallRoot $serviceCredential $roles
+	# Storm not yet supported on Windows
+	#
+	#if ("$ENV:STORM" -eq "yes") {
+	#    $roles = ''
+	#    Install "ranger-storm" $nodeInstallRoot $serviceCredential $roles
 
-	    ####
-	    #### Apply configuration changes to xasecure-audit.xml
-	    ####
-	    #$xmlFile = Join-Path $ENV:STORM_CONF_DIR "xasecure-audit.xml"
-	    $stormAuditChanges =   @{
-	        "xasecure.audit.db.is.enabled"                          = "true"
-	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
-			"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
-			"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
-			"xasecure.audit.repository.name"						= "${ENV:RANGER_STORM_REPO}"
-			"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:RANGER_STORM_CRED_KEYSTORE_FILE}"
-		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
-			"xasecure.audit.hdfs.is.enabled"                        = "false"
-			"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:RANGER_HDFS_DESTINATION_DIRECTORY}"
-			"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
-			"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_DIRECTORY}"
-			"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_FILE}"
-			"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_DIRECTORY}"
-			"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"
+	#    ####
+	#    #### Apply configuration changes to xasecure-audit.xml
+	#    ####
+	#    #$xmlFile = Join-Path $ENV:STORM_CONF_DIR "xasecure-audit.xml"
+	#    $stormAuditChanges =   @{
+	#        "xasecure.audit.db.is.enabled"                          = "true"
+	#        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+	#		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
+	#		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
+	#		"xasecure.audit.repository.name"						= "${ENV:RANGER_STORM_REPO}"
+	#		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:RANGER_STORM_CRED_KEYSTORE_FILE}"
+	#	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
+	#		"xasecure.audit.hdfs.is.enabled"                        = "false"
+	#		"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:RANGER_HDFS_DESTINATION_DIRECTORY}"
+	#		"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
+	#		"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
+	#		"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
+	#		"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
+	#		"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_DIRECTORY}"
+	#		"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_FILE}"
+	#		"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
+	#		"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
+	#		"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_DIRECTORY}"
+	#		"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"
 
 
-		}
+	#	}
 
-	    ####
-	    #### Apply configuration changes to xasecure-storm-security.xml
-	    ####
-		#
-	    #$xmlFile = Join-Path $ENV:STORM_CONF_DIR "xasecure-storm-security.xml"
-		#
-	    $stormSecurityChanges =     @{
-			"storm.authorization.verifier.classname"				= "com.xasecure.pdp.storm.XASecureAuthorizer"
-			"xasecure.storm.policymgr.url"							= "${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_STORM_REPO}"
-			"xasecure.storm.policymgr.url.saveAsFile"				= "${ENV:RANGER_HOME}\tmp\storm_${ENV:RANGER_STORM_REPO}"
-			"xasecure.storm.policymgr.url.laststoredfile"			= "${ENV:RANGER_HOME}\tmp\storm_${ENV:RANGER_STORM_REPO}_json"
-			"xasecure.storm.policymgr.url.reloadIntervalInMillis"	= "30000"
-			"xasecure.storm.update.xapolicies.on.grant.revoke"		= "true"
-			"xasecure.policymgr.url"								= "${ENV:RANGER_EXTERNAL_URL}"
-		}
+	#    ####
+	#    #### Apply configuration changes to xasecure-storm-security.xml
+	#    ####
+	#	#
+	#    #$xmlFile = Join-Path $ENV:STORM_CONF_DIR "xasecure-storm-security.xml"
+	#	#
+	#    $stormSecurityChanges =     @{
+	#		"storm.authorization.verifier.classname"				= "com.xasecure.pdp.storm.XASecureAuthorizer"
+	#		"xasecure.storm.policymgr.url"							= "${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_STORM_REPO}"
+	#		"xasecure.storm.policymgr.url.saveAsFile"				= "${ENV:RANGER_HOME}\tmp\storm_${ENV:RANGER_STORM_REPO}"
+	#		"xasecure.storm.policymgr.url.laststoredfile"			= "${ENV:RANGER_HOME}\tmp\storm_${ENV:RANGER_STORM_REPO}_json"
+	#		"xasecure.storm.policymgr.url.reloadIntervalInMillis"	= "30000"
+	#		"xasecure.storm.update.xapolicies.on.grant.revoke"		= "true"
+	#		"xasecure.policymgr.url"								= "${ENV:RANGER_EXTERNAL_URL}"
+	#	}
 
-		$configs = @{}
-	    $configs.Add("stormAuditChanges",$stormAuditChanges)
-	    $configs.Add("stormSecurityChanges",$stormSecurityChanges)
-	    Configure "ranger-storm" $nodeInstallRoot $serviceCredential $configs
-	    Write-Log "Installation of ranger-storm completed successfully"
+	#	$configs = @{}
+	#    $configs.Add("stormAuditChanges",$stormAuditChanges)
+	#    $configs.Add("stormSecurityChanges",$stormSecurityChanges)
+	#    Configure "ranger-storm" $nodeInstallRoot $serviceCredential $configs
+	#    Write-Log "Installation of ranger-storm completed successfully"
 
-	    Configure "ranger-storm" $nodeInstallRoot $serviceCredential $configs
-		Write-Log "Installation of ranger-storm completed successfully"
-	} else {
-	    Write-Log "Not installing ranger-storm, since Storm is not installed"
-	}
+	#    Configure "ranger-storm" $nodeInstallRoot $serviceCredential $configs
+	#	Write-Log "Installation of ranger-storm completed successfully"
+	#} else {
+	#    Write-Log "Not installing ranger-storm, since Storm is not installed"
+	#}
 
 
     #####################################################################
