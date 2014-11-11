@@ -60,7 +60,6 @@ if [%1]==[hiveserver2_help] goto :hiveserver2_help
 if [%1]==[hiveserver2_catservice] goto :hiveserver2_catservice
 
 :hiveserver2
-  echo "Starting Hive Thrift Server"
 
   @rem hadoop 20 or newer - skip the aux_jars option and hiveconf
   call %HIVE_BIN_PATH%\ext\util\execHiveCmd.cmd %CLASS%
@@ -77,7 +76,7 @@ goto :EOF
 @echo   ^<name^>HiveServer2^</name^>
 @echo   ^<description^>Hadoop HiveServer2 Service^</description^>
 @echo   ^<executable^>%JAVA_HOME%\bin\java^</executable^>
-@echo   ^<arguments^>%JAVA_HEAP_MAX% %HADOOP_OPTS% -classpath %CLASSPATH%;%HIVE_HBASE_PATH% %CLASS% -hiveconf hive.hadoop.classpath=%HIVE_LIB%\* -hiveconf hive.security.authenticator.manager=org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator -hiveconf hive.metastore.uris=" " %HIVE_OPTS%^</arguments^>
+@echo   ^<arguments^>%JAVA_HEAP_MAX% -XX:MaxPermSize=512m %HADOOP_OPTS% -classpath %CLASSPATH%;%HIVE_HBASE_PATH% %CLASS% -hiveconf hive.hadoop.classpath=%HIVE_LIB%\* -hiveconf hive.security.authenticator.manager=org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator -hiveconf hive.metastore.uris=" " %HIVE_OPTS%^</arguments^>
 @echo ^</service^>
 goto :EOF
 
