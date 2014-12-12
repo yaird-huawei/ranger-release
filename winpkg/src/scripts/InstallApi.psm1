@@ -1045,7 +1045,7 @@ function StartService(
     if ( $component -eq "ranger" )
     {
         Write-Log "StartService: ranger services"
-		CheckRole $roles @("ranger-admin", "ranger-usersync")
+		CheckRole $roles @("ranger-admin","ranger-usersync")
 
         foreach ( $role in $roles -Split("\s+") )
         {
@@ -1082,7 +1082,7 @@ function StopService(
     if ( $component -eq "ranger" )
     {
         ### Verify that roles are in the supported set
-		CheckRole $roles @("ranger-admin", "ranger-usersync")
+        CheckRole $roles @("ranger-admin", "ranger-usersync")
         foreach ( $role in $roles -Split("\s+") )
         {
             try
@@ -1478,13 +1478,13 @@ function ConfigureRangerUserSync(
     ##Not there in ENV vars
     if($ENV:SYNCSOURCE.ToUpper() -eq 'LDAP') {
         $prop       = "usergroupSync.source.impl.class"
-        $propVal    = "com.xasecure.ldapusersync.process.LdapUserGroupBuilder"
+        $propVal    = "org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"
     }elseif($ENV:SYNCSOURCE.ToUpper() -eq 'UNIX') {
         $prop       = "usergroupSync.source.impl.class"
-        $propVal    = "com.xasecure.unixusersync.process.UnixUserGroupBuilder"
+        $propVal    = "org.apache.ranger.unixusersync.process.UnixUserGroupBuilder"
     }else{
         $prop       = "usergroupSync.source.impl.class"
-        $propVal    = "com.xasecure.unixusersync.process.UnixUserGroupBuilder"
+        $propVal    = "org.apache.ranger.unixusersync.process.UnixUserGroupBuilder"
     }
     ReplacePropertyVal $file $prop $propVal
 
@@ -1767,7 +1767,7 @@ function CreateJCEKS (
 {
 
 	Write-Log "Creating alias $alias in jceks file : $jceksFile"
-    $cmd = "${ENV:JAVA_HOME}\bin\java -cp `"${libPath}\*`" com.hortonworks.credentialapi.buildks create `"${alias}`" -value `"${password}`" -provider `"jceks://file/${jceksFile}`" "
+    $cmd = "${ENV:JAVA_HOME}\bin\java -cp `"${libPath}\*`" org.apache.ranger.credentialapi.buildks create `"${alias}`" -value `"${password}`" -provider `"jceks://file/${jceksFile}`" "
 	Invoke-Cmd $cmd
 
 }
