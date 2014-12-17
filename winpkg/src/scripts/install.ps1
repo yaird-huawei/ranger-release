@@ -109,7 +109,7 @@ function Main( $scriptDir )
     ###
 	$hdfsAuditChanges = @{
 		"xasecure.audit.db.is.enabled"                          = "true"
-        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
 		"xasecure.audit.repository.name"						= "${ENV:RANGER_HDFS_REPO}"
@@ -185,7 +185,7 @@ function Main( $scriptDir )
     #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "xasecure-audit.xml"
     $hiveAuditChanges = @{
         "xasecure.audit.db.is.enabled"                          = "true"
-        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
 		"xasecure.audit.repository.name"						= "${ENV:RANGER_HIVE_REPO}"
@@ -259,7 +259,7 @@ function Main( $scriptDir )
 	    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml"
 	    $hbaseAuditChanges =   @{
 	        "xasecure.audit.db.is.enabled"                          = "false"
-	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
 			"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
 			"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
 			"xasecure.audit.repository.name"						= "${ENV:RANGER_HBASE_REPO}"
@@ -328,7 +328,7 @@ function Main( $scriptDir )
 	    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "xasecure-audit.xml"
 	    $knoxAuditChanges =   @{
 	        "xasecure.audit.db.is.enabled"                          = "true"
-	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
 			"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
 			"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
 			"xasecure.audit.repository.name"						= "${ENV:RANGER_KNOX_REPO}"
@@ -397,7 +397,7 @@ function Main( $scriptDir )
 	#    #$xmlFile = Join-Path $ENV:STORM_CONF_DIR "xasecure-audit.xml"
 	#    $stormAuditChanges =   @{
 	#        "xasecure.audit.db.is.enabled"                          = "true"
-	#        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+	#        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
 	#		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
 	#		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
 	#		"xasecure.audit.repository.name"						= "${ENV:RANGER_STORM_REPO}"
