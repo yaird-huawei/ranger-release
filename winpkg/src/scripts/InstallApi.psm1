@@ -1385,6 +1385,11 @@ function ConfigureRangerKnox(
 	Get-ChildItem -recurse -path $path -filter '*.xml' | % {
 		ReplaceString $_.FullName 'AclsAuthz' 'XASecurePDPKnox'
 	}
+    ###
+    ### Creating a hdpargus.xml topology
+    ###
+    Copy-Item -Path "$ENV:KNOX_HOME\conf\topologies\sandbox.xml" -Destination "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml" -Force -ErrorAction Stop
+    UpdateHdpArgusConfig "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml"
 
  }
 
@@ -1715,6 +1720,34 @@ function UpdateXmlConfig(
         }
     }
 
+    $xml.Save($fileName)
+    $xml.ReleasePath
+}
+
+function UpdateHdpArgusConfig(
+    [string]
+    [parameter( Position=0, Mandatory=$true )]
+    $fileName
+    )
+{
+    $xml = New-Object System.Xml.XmlDocument
+    $xml.PreserveWhitespace = $true
+    $xml.Load($fileName)
+    $nodes = $xml.SelectSingleNode('/topology/gateway')
+    $newItem = $xml.CreateElement("provider")
+    $newItem.AppendChild($xml.CreateSignificantWhitespace("`r`n    ")) | Out-Null
+    $newItem.AppendChild($xml.CreateElement("role")) | Out-Null
+    $newItem.AppendChild($xml.CreateSignificantWhitespace("`r`n    ")) | Out-Null
+    $newItem.AppendChild($xml.CreateElement("name")) | Out-Null
+    $newItem.AppendChild($xml.CreateSignificantWhitespace("`r`n  ")) | Out-Null
+    $newItem.AppendChild($xml.CreateElement("enabled")) | Out-Null
+    $newItem.AppendChild($xml.CreateSignificantWhitespace("`r`n  ")) | Out-Null
+    $newItem.role = "authorization"
+    $newItem.name = "XASecurePDPKnox"
+    $newItem.enabled = "true"
+    $nodes.AppendChild($xml.CreateSignificantWhitespace("`r`n  ")) | Out-Null
+    $nodes.AppendChild($newItem) | Out-Null
+    $nodes.AppendChild($xml.CreateSignificantWhitespace("`r`n")) | Out-Null
     $xml.Save($fileName)
     $xml.ReleasePath
 }
