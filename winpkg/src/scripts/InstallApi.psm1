@@ -1391,6 +1391,22 @@ function ConfigureRangerKnox(
     Copy-Item -Path "$ENV:KNOX_HOME\conf\topologies\sandbox.xml" -Destination "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml" -Force -ErrorAction Stop
     UpdateHdpArgusConfig "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml"
 
+    $configs = @{
+    "NAMENODE"="hdfs://${ENV:NAMENODE_HOST}:8020"
+    "JOBTRACKER"="rpc://${ENV:RESOURCEMANAGER_HOST}:8032"
+    "WEBHDFS"="hdfs://${ENV:NAMENODE_HOST}:50070/webhdfs"
+    "WEBHCAT"="hdfs://${ENV:WEBHCAT_HOST}:50111/templeton"
+    "OOZIE"="hdfs://${ENV:OOZIE_SERVER_HOST}:11000/oozie"
+    "HIVE"="hdfs://${ENV:HIVE_SERVER_HOST}:10001/cliservice"
+    "RESOURCEMANAGER"="hdfs://${ENV:RESOURCEMANAGER_HOST}:8088/ws"
+    }
+    if ("$ENV:HBASE" -eq "yes")
+    {
+        $configs+=@{
+        "WEBHBASE"="hdfs://${ENV:HBASE_MASTER}:8080"
+        }
+    }
+    UpdateKnoxArgusXmlConfig "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml" $configs
  }
 
 
@@ -1677,6 +1693,43 @@ function StopAndDeleteHadoopService(
 function empty-null($obj)
 {
    if ($obj -ne $null) { $obj }
+}
+
+function UpdateKnoxArgusXmlConfig(
+    [string]
+    [parameter( Position=0, Mandatory=$true )]
+    $fileName,
+    [hashtable]
+    [parameter( Position=1 )]
+    $config = @{} )
+{
+    $xml = New-Object System.Xml.XmlDocument
+    $xml.PreserveWhitespace = $true
+    $xml.Load($fileName)
+
+    foreach( $key in empty-null $config.Keys )
+    {
+        $value = $config[$key]
+        $found = $False
+        $xml.SelectNodes('/topology/service') | ? { $_.role -eq $key } | % { $_.url = $value; $found = $True }
+        if ( -not $found )
+        {
+            $xml["configuration"].AppendChild($xml.CreateWhitespace("`r`n  ")) | Out-Null
+            $newItem = $xml.CreateElement("property")
+            $newItem.AppendChild($xml.CreateWhitespace("`r`n    ")) | Out-Null
+            $newItem.AppendChild($xml.CreateElement("name")) | Out-Null
+            $newItem.AppendChild($xml.CreateWhitespace("`r`n    ")) | Out-Null
+            $newItem.AppendChild($xml.CreateElement("value")) | Out-Null
+            $newItem.AppendChild($xml.CreateWhitespace("`r`n  ")) | Out-Null
+            $newItem.name = $key
+            $newItem.value = $value
+            $xml["configuration"].AppendChild($newItem) | Out-Null
+            $xml["configuration"].AppendChild($xml.CreateWhitespace("`r`n")) | Out-Null
+        }
+    }
+
+    $xml.Save($fileName)
+    $xml.ReleasePath
 }
 
 ### Helper routine that updates the given fileName XML file with the given
