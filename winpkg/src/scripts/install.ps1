@@ -253,6 +253,7 @@ function Main( $scriptDir )
 			"hbase.coprocessor.region.classes"	= "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
 			"hbase.rpc.protection"				= "PRIVACY"
 		    "hbase.rpc.engine"					= "org.apache.hadoop.hbase.ipc.SecureRpcEngine"
+            "hbase.superuser"					= "$username"
 		}
 
 	    ####
