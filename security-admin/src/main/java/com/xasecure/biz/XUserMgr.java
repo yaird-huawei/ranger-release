@@ -32,6 +32,7 @@ import com.xasecure.common.PropertiesUtil;
 import com.xasecure.common.SearchCriteria;
 import com.xasecure.common.XAConstants;
 import com.xasecure.view.VXPortalUser;
+import com.xasecure.view.VXUserGroupInfo;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -303,7 +304,34 @@ public class XUserMgr extends XUserMgrBase {
 
 		return vXUser;
 	}
-
+	
+	public VXUserGroupInfo createXUserGroupFromMap(VXUserGroupInfo vXUserGroupInfo) {
+		
+		VXUserGroupInfo vxUGInfo = new VXUserGroupInfo();
+		
+		VXUser vXUser = vXUserGroupInfo.getXuserInfo();
+		
+		vXUser = xUserService.createXUserWithOutLogin(vXUser);
+		
+		vxUGInfo.setXuserInfo(vXUser);
+		
+		List<VXGroup> vxg = new ArrayList<VXGroup>();
+		
+		for(VXGroup vXGroup : vXUserGroupInfo.getXgroupInfo()){
+			VXGroup VvXGroup = xGroupService.createXGroupWithOutLogin(vXGroup);
+			vxg.add(VvXGroup);
+			VXGroupUser vXGroupUser = new VXGroupUser();
+			vXGroupUser.setUserId(vXUser.getId());
+			vXGroupUser.setName(VvXGroup.getName());
+			vXGroupUser = xGroupUserService.createXGroupUserWithOutLogin(vXGroupUser);
+		}
+		
+		vxUGInfo.setXgroupInfo(vxg);
+		
+		return vxUGInfo;
+	}
+	
+	
 	public VXUser createXUserWithOutLogin(VXUser vXUser) {		
 		return xUserService.createXUserWithOutLogin(vXUser);
 	}

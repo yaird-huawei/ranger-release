@@ -46,6 +46,10 @@ public class UserGroupSyncConfig  {
 
 	public static final String  UGSYNC_MOCK_RUN_PROP  = 	"usergroupSync.policymanager.mockRun" ;
 	
+	public static final String UGSYNC_SOURCE_FILE_PROC =	"usergroupSync.filesource.file";
+	
+	public static final String UGSYNC_SOURCE_FILE_DELIMITER = "usergroupSync.filesource.text.delimiter";
+	
 	private static final String SSL_KEYSTORE_PATH_PARAM = "keyStore" ;
 
 	private static final String SSL_KEYSTORE_PATH_PASSWORD_PARAM = "keyStorePassword" ;
@@ -107,6 +111,8 @@ public class UserGroupSyncConfig  {
 	 
 	private static final String DEFAULT_UGSYNC_USERNAME_CASE_CONVERSION_VALUE = UGSYNC_LOWER_CASE_CONVERSION_VALUE  ;
 	private static final String DEFAULT_UGSYNC_GROUPNAME_CASE_CONVERSION_VALUE = UGSYNC_LOWER_CASE_CONVERSION_VALUE ;
+	
+	private static final String DEFAULT_USER_GROUP_TEXTFILE_DELIMITER = ",";
 	
 	private static final String DEFAULT_USER_GROUP_NAME_ATTRIBUTE = "memberof,ismemberof";
 
@@ -174,6 +180,18 @@ public class UserGroupSyncConfig  {
 		return ret;
 	}
 	
+	public String getUserSyncFileSource(){
+		String val = prop.getProperty(UGSYNC_SOURCE_FILE_PROC) ;
+		return val;
+	}
+	
+	public String getUserSyncFileSourceDelimiter(){
+		String val = prop.getProperty(UGSYNC_SOURCE_FILE_DELIMITER) ;
+		if ( val == null) {
+			val = DEFAULT_USER_GROUP_TEXTFILE_DELIMITER;
+		}
+		return val;
+	}
 	
 	public boolean isUserSyncEnabled() {
 		String val = prop.getProperty(UGSYNC_ENABLED_PROP) ;

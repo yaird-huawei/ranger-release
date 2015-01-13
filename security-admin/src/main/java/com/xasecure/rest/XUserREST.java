@@ -200,6 +200,13 @@ public class XUserREST {
 	}
 	
 	@POST
+	@Path("/users/userinfo")
+	@Produces({ "application/xml", "application/json" })
+	public VXUserGroupInfo createXUserGroupFromMap(VXUserGroupInfo vXUserGroupInfo) {
+		return  xUserMgr.createXUserGroupFromMap(vXUserGroupInfo);
+	}
+	
+	@POST
 	@Path("/secure/users")
 	@Produces({ "application/xml", "application/json" })
 	public VXUser secureCreateXUser(VXUser vXUser) {
