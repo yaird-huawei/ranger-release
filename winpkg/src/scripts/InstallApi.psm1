@@ -1407,25 +1407,6 @@ function ConfigureRangerKnox(
         }
     }
     UpdateKnoxArgusXmlConfig "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml" $configs
-    
-    ###
-    ### Create and import Knox certificate
-    ###
-    Write-Log "Creating Knox certificate" 
-    $cmd = "echo $ENV:KNOX_MASTER_SECRET|%JAVA_HOME%\bin\keytool -export -alias gateway-identity -file $ENV:RANGER_ADMIN_HOME\knox.crt -keystore $ENV:KNOX_HOME\data\security\keystores\gateway.jks" 
-    Invoke-Cmd $cmd
-    if (-not (Test-Path $ENV:RANGER_ADMIN_HOME\knox.crt))
-    {
-        throw "Knox certificate creation failed"
-    }
-    
-    Write-Log "Importing Knox certificate" 
-    Copy-Item -Path "$ENV:JAVA_HOME\jre\lib\security\cacerts" -Destination "$ENV:RANGER_ADMIN_HOME\cacertswithknox" -ErrorAction Stop -Force
-    Out-File -FilePath "$ENV:RANGER_ADMIN_HOME\changeit.yes.txt" -InputObject "changeit`r`n`yes" -Force -ErrorAction Stop -Encoding Default
-    $cmd = "%JAVA_HOME%\bin\keytool -import -trustcacerts -file $ENV:RANGER_ADMIN_HOME\knox.crt -alias knox -keystore $ENV:RANGER_ADMIN_HOME\cacertswithknox `< $ENV:RANGER_ADMIN_HOME\changeit.yes.txt" 
-    Invoke-Cmd $cmd
-    Remove-Item -Path "$ENV:RANGER_ADMIN_HOME\changeit.yes.txt" -Force -ErrorAction SilentlyContinue
-
  }
 
 
