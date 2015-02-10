@@ -272,7 +272,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 	 * @throws HiveAuthzPluginException
 	 * @throws HiveAccessControlException
 	 */
-    //	@Override
+	@Override
 	public List<HivePrivilegeObject> filterListCmdObjects(List<HivePrivilegeObject> objs,
 														  HiveAuthzContext          context)
 		      throws HiveAuthzPluginException, HiveAccessControlException {
