@@ -20,14 +20,6 @@ package org.apache.ranger.authorization.hadoop.constants;
 
 public class RangerHadoopConstants {
 	
-	public static final String RANGER_AUDIT_FILE          = "xasecure-audit.xml" ; 
-	public static final String RANGER_HDFS_SECURITY_FILE  = "xasecure-hdfs-security.xml" ; 
-	public static final String RANGER_KNOX_SECURITY_FILE  = "xasecure-knox-security.xml" ; 
-	public static final String RANGER_HBASE_SECURITY_FILE = "xasecure-hbase-security.xml" ; 
-	public static final String RANGER_HIVE_SECURITY_FILE  = "xasecure-hive-security.xml" ; 
-	public static final String RANGER_POLICYMGR_SSL_FILE  = "xasecure-policymgr-ssl.xml"  ;
-	public static final String RANGER_STORM_SECURITY_FILE = "xasecure-storm-security.xml" ;
-	
 	public static final String RANGER_ADD_HDFS_PERMISSION_PROP = "xasecure.add-hadoop-authorization" ;
 	public static final boolean RANGER_ADD_HDFS_PERMISSION_DEFAULT = false ;
 	public static final String READ_ACCCESS_TYPE = "read";
@@ -37,12 +29,6 @@ public class RangerHadoopConstants {
 	public static final String HDFS_ROOT_FOLDER_PATH_ALT = "";
 	public static final String HDFS_ROOT_FOLDER_PATH = "/";
 	
-	public static final String HDFS_ACCESS_VERIFIER_CLASS_NAME_PROP 	= "hdfs.authorization.verifier.classname" ;
-	public static final String HDFS_ACCESS_VERIFIER_CLASS_NAME_DEFAULT_VALUE = "org.apache.ranger.pdp.hdfs.RangerAuthorizer" ;	
-
-	public static final String HIVE_ACCESS_VERIFIER_CLASS_NAME_PROP 	= "hive.authorization.verifier.classname" ;
-	public static final String HIVE_ACCESS_VERIFIER_CLASS_NAME_DEFAULT_VALUE = "org.apache.ranger.pdp.hive.RangerAuthorizer" ;
-
 	public static final String  HIVE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_PROP 	     = "xasecure.hive.update.xapolicies.on.grant.revoke" ;
 	public static final boolean HIVE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_DEFAULT_VALUE = true;
 
@@ -52,9 +38,6 @@ public class RangerHadoopConstants {
 	public static final String KNOX_ACCESS_VERIFIER_CLASS_NAME_PROP 	= "knox.authorization.verifier.classname" ;
 	public static final String KNOX_ACCESS_VERIFIER_CLASS_NAME_DEFAULT_VALUE = "org.apache.ranger.pdp.knox.RangerAuthorizer" ;
 
-	public static final String HBASE_ACCESS_VERIFIER_CLASS_NAME_PROP 	= "hbase.authorization.verifier.classname" ;
-	public static final String HBASE_ACCESS_VERIFIER_CLASS_NAME_DEFAULT_VALUE = "org.apache.ranger.pdp.hbase.RangerAuthorizer" ;
-	
 	public static final String STORM_ACCESS_VERIFIER_CLASS_NAME_PROP 	= "storm.authorization.verifier.classname" ;
 	public static final String STORM_ACCESS_VERIFIER_CLASS_NAME_DEFAULT_VALUE = "org.apache.ranger.pdp.storm.RangerAuthorizer" ;
 

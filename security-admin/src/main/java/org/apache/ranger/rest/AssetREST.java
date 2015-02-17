@@ -22,7 +22,7 @@
 import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
@@ -42,10 +42,12 @@ import org.apache.ranger.biz.AssetMgr;
 import org.apache.ranger.biz.RangerBizUtil;
 import org.apache.ranger.common.PropertiesUtil;
 import org.apache.ranger.common.RESTErrorUtil;
-import org.apache.ranger.common.RangerCommonEnums;
 import org.apache.ranger.common.RangerSearchUtil;
 import org.apache.ranger.common.SearchCriteria;
+import org.apache.ranger.common.ServiceUtil;
 import org.apache.ranger.common.StringUtil;
+import org.apache.ranger.plugin.model.RangerPolicy;
+import org.apache.ranger.plugin.model.RangerService;
 import org.apache.ranger.common.annotation.RangerAnnotationClassName;
 import org.apache.ranger.common.annotation.RangerAnnotationJSMgrName;
 import org.apache.ranger.service.AbstractBaseResourceService;
@@ -68,7 +70,6 @@ import org.apache.ranger.view.VXPolicyExportAuditList;
 import org.apache.ranger.view.VXResource;
 import org.apache.ranger.view.VXResourceList;
 import org.apache.ranger.view.VXResponse;
-import org.apache.ranger.view.VXStringList;
 import org.apache.ranger.view.VXTrxLogList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -120,26 +121,73 @@ public class AssetREST {
 
 	@Autowired
 	XAccessAuditService xAccessAuditService;
-	
+
+	@Autowired
+	ServiceUtil serviceUtil;
+
+	@Autowired
+	ServiceREST serviceREST;
+
+
 	@GET
 	@Path("/assets/{id}")
 	@Produces({ "application/xml", "application/json" })
 	public VXAsset getXAsset(@PathParam("id") Long id) {
-		return assetMgr.getXAsset(id);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.getXAsset(" + id + ")");
+		}
+
+		RangerService service = serviceREST.getService(id);
+
+		VXAsset ret = serviceUtil.toVXAsset(service);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.getXAsset(" + id + "): " + ret);
+		}
+
+		return ret;
 	}
 
 	@POST
 	@Path("/assets")
 	@Produces({ "application/xml", "application/json" })
 	public VXAsset createXAsset(VXAsset vXAsset) {
-		return assetMgr.createXAsset(vXAsset);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.createXAsset(" + vXAsset + ")");
+		}
+
+		RangerService service = serviceUtil.toRangerService(vXAsset);
+
+		RangerService createdService = serviceREST.createService(service);
+		
+		VXAsset ret = serviceUtil.toVXAsset(createdService);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.createXAsset(" + vXAsset + "): " + ret);
+		}
+
+		return ret;
 	}
 
 	@PUT
 	@Path("/assets/{id}")
 	@Produces({ "application/xml", "application/json" })
 	public VXAsset updateXAsset(VXAsset vXAsset) {
-		return assetMgr.updateXAsset(vXAsset);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.updateXAsset(" + vXAsset + ")");
+		}
+
+		RangerService service = serviceUtil.toRangerService(vXAsset);
+
+		RangerService updatedService = serviceREST.updateService(service);
+		
+		VXAsset ret = serviceUtil.toVXAsset(updatedService);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.updateXAsset(" + vXAsset + "): " + ret);
+		}
+
+		return ret;
 	}
 
 	@DELETE
@@ -148,79 +196,154 @@ public class AssetREST {
 	@RangerAnnotationClassName(class_name = VXAsset.class)
 	public void deleteXAsset(@PathParam("id") Long id,
 			@Context HttpServletRequest request) {
-		boolean force = true;
-		assetMgr.deleteXAsset(id, force);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.deleteXAsset(" + id + ")");
+		}
+
+		serviceREST.deleteService(id);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.deleteXAsset(" + id + ")");
+		}
 	}
 
 	@POST
 	@Path("/assets/testConfig")
 	@Produces({ "application/xml", "application/json" })
 	public VXResponse testConfig(VXAsset vXAsset) {
-		return assetMgr.testConfig(vXAsset);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.testConfig(" + vXAsset + ")");
+		}
+
+		RangerService service = serviceUtil.toRangerService(vXAsset);
+
+		VXResponse ret = serviceREST.validateConfig(service);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.testConfig(" + vXAsset + "): " + ret);
+		}
+
+		return ret;
 	}
 
 	@GET
 	@Path("/assets")
 	@Produces({ "application/xml", "application/json" })
-	@SuppressWarnings("rawtypes")
 	public VXAssetList searchXAssets(@Context HttpServletRequest request) {
-		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
-				request, xAssetService.sortFields);
-
-		searchUtil.extractIntList(request, searchCriteria, "status", "status",
-				"status");
-		// searchUtil.extractStringList(request, searchCriteria, "status",
-		// "status", "status", null, StringUtil.VALIDATION_TEXT);
-		Object status = searchCriteria.getParamValue("status");
-		if (status == null || ((Collection) status).size() == 0) {
-			ArrayList<Integer> valueList = new ArrayList<Integer>();
-			valueList.add(RangerCommonEnums.STATUS_DISABLED);
-			valueList.add(RangerCommonEnums.STATUS_ENABLED);
-			searchCriteria.addParam("status", valueList);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.searchXAssets()");
 		}
-		return assetMgr.searchXAssets(searchCriteria);
+
+		VXAssetList ret = new VXAssetList();
+
+		List<RangerService> services = serviceREST.getServices(request);
+
+		if(services != null) {
+			List<VXAsset> assets = new ArrayList<VXAsset>(services.size());
+
+			for(RangerService service : services) {
+				assets.add(serviceUtil.toVXAsset(service));
+			}
+
+			ret.setVXAssets(assets);
+		}
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.searchXAssets(): count=" + (ret == null ? 0 : ret.getListSize()));
+		}
+
+		return ret;
 	}
 
 	@GET
 	@Path("/assets/count")
 	@Produces({ "application/xml", "application/json" })
 	public VXLong countXAssets(@Context HttpServletRequest request) {
-		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
-				request, xAssetService.sortFields);
-		
-		searchUtil.extractIntList(request, searchCriteria, "status", "status",
-				"status");
-		Object status = searchCriteria.getParamValue("status");
-		if (status == null || ((Collection) status).size() == 0) {
-			ArrayList<Integer> valueList = new ArrayList<Integer>();
-			valueList.add(RangerCommonEnums.STATUS_DISABLED);
-			valueList.add(RangerCommonEnums.STATUS_ENABLED);
-			searchCriteria.addParam("status", valueList);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.countXAssets()");
 		}
-		return assetMgr.getXAssetSearchCount(searchCriteria);
+
+		VXLong ret = new VXLong();
+
+		Long svcCount = serviceREST.countServices(request);
+
+		ret.setValue(svcCount == null ? 0 : svcCount.longValue());
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.countXAssets(): " + ret);
+		}
+
+		return ret;
 	}
 
 	@GET
 	@Path("/resources/{id}")
 	@Produces({ "application/xml", "application/json" })
 	public VXResource getXResource(@PathParam("id") Long id) {
-		return assetMgr.getXResource(id);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.getXResource(" + id + ")");
+		}
+
+		RangerPolicy  policy  = null;
+		RangerService service = null;
+
+		policy = serviceREST.getPolicy(id);
+		
+		if(policy != null) {
+			service = serviceREST.getServiceByName(policy.getService());
+		}
+
+		VXResource ret = serviceUtil.toVXResource(policy, service);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.getXResource(" + id + "): " + ret);
+		}
+
+		return ret;
 	}
 
 	@POST
 	@Path("/resources")
 	@Produces({ "application/xml", "application/json" })
 	public VXResource createXResource(VXResource vXResource) {
-		vXResource=assetMgr.createXResource(vXResource);
-		return vXResource;
-		
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.createXResource(" + vXResource + ")");
+		}
+
+		RangerService service = serviceREST.getService(vXResource.getAssetId());
+		RangerPolicy  policy  = serviceUtil.toRangerPolicy(vXResource, service);
+
+		RangerPolicy createdPolicy = serviceREST.createPolicy(policy);
+
+		VXResource ret = serviceUtil.toVXResource(createdPolicy, service);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.createXResource(" + vXResource + "): " + ret);
+		}
+
+		return ret;
 	}
 	
 	@PUT
 	@Path("/resources/{id}")
 	@Produces({ "application/xml", "application/json" })
 	public VXResource updateXResource(VXResource vXResource) {
-		return assetMgr.updateXResource(vXResource);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.updateXResource(" + vXResource + ")");
+		}
+
+		RangerService service = serviceREST.getService(vXResource.getAssetId());
+		RangerPolicy  policy  = serviceUtil.toRangerPolicy(vXResource, service);
+
+		RangerPolicy updatedPolicy = serviceREST.updatePolicy(policy);
+		
+		VXResource ret = serviceUtil.toVXResource(updatedPolicy, service);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.updateXResource(" + vXResource + "): " + ret);
+		}
+
+		return ret;
 	}
 
 	@DELETE
@@ -229,171 +352,70 @@ public class AssetREST {
 	@RangerAnnotationClassName(class_name = VXResource.class)
 	public void deleteXResource(@PathParam("id") Long id,
 			@Context HttpServletRequest request) {
-		boolean force = false;
-		assetMgr.deleteXResource(id, force);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.deleteXResource(" + id + ")");
+		}
+
+		serviceREST.deletePolicy(id);
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.deleteXResource(" + id + ")");
+		}
 	}
 
 	@GET
 	@Path("/resources")
 	@Produces({ "application/xml", "application/json" })
 	public VXResourceList searchXResources(@Context HttpServletRequest request) {
-		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
-				request, xResourceService.sortFields);
-		// searchUtil.extractStringList(request, searchCriteria, "name", "Name",
-		// "name", null, StringUtil.VALIDATION_TEXT);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.searchXResources()");
+		}
 
-		searchUtil.extractString(request, searchCriteria, "name",
-				"Resource Path", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractString(request, searchCriteria, "policyName",
-				"Policy name", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractString(request, searchCriteria, "columns",
-				"Column name", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractString(request, searchCriteria, "columnFamilies",
-				"Column Family", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractString(request, searchCriteria, "tables", 
-				"Tables", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractString(request, searchCriteria, "udfs", 
-				"UDFs", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractString(request, searchCriteria, "databases",
-				"Databases", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractString(request, searchCriteria, "groupName",
-				"Group Name", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractInt(request, searchCriteria, "resourceType",
-				"Resource Type");
-		searchUtil.extractInt(request, searchCriteria, "assetType",
-				"Asset Type");
-		searchUtil.extractInt(request, searchCriteria, "isEncrypt",
-				"Is Encrypt");
-		searchUtil.extractInt(request, searchCriteria, "isRecursive",
-				"Is Recursive");
-		searchUtil.extractLong(request, searchCriteria, "assetId", "Asset Id");
-		searchUtil.extractString(request, searchCriteria, "userName",
-				"User Name", StringUtil.VALIDATION_TEXT);
+		VXResourceList ret = new VXResourceList();
 
-		searchUtil.extractLongList(request, searchCriteria, "userId",
-				"User Id", "userId");
-		// searchUtil.extractLong(request, searchCriteria, "userId",
-		// "User Id");
-		// searchUtil.extractLong(request, searchCriteria, "groupId",
-		// "Group Id");
-		searchUtil.extractLongList(request, searchCriteria, "groupId",
-				"Group Id", "groupId");
-		
-		searchUtil.extractString(request, searchCriteria, "topologies",
-				"Topology Name", StringUtil.VALIDATION_TEXT);
-		searchUtil.extractString(request, searchCriteria, "services",
-				"Service Name", StringUtil.VALIDATION_TEXT);
+		String arg     = request.getParameter("assetId");
+		Long   assetId = (arg == null || arg.isEmpty()) ? null : Long.parseLong(arg);
 
-		// searchUtil.extractIntList(request, searchCriteria, "status",
-		// "status", "status");
+		List<RangerPolicy> policies = assetId != null ? serviceREST.getServicePolicies(assetId, request) : serviceREST.getPolicies(request);
 
-		// SearchGroup outerGroup = new SearchGroup(SearchGroup.CONDITION.OR);
-		// // Get the search fields for objectClassType and objectId
-		// SearchField userId = null;
-		// SearchField groupId = null;
-		// SearchField resourceId = null;
-		// List<SearchField> searchFields = xResourceService.searchFields;
-		// for (SearchField searchField : searchFields) {
-		// if (searchField.getClientFieldName().equals("userId") &&
-		// request.getParameterValues("userId")!=null) {
-		// userId = searchField;
-		// } else if (searchField.getClientFieldName().equals("groupId") &&
-		// request.getParameterValues("groupId")!=null) {
-		// groupId = searchField;
-		// }else if (searchField.getClientFieldName().equals("name") &&
-		// request.getParameterValues("name")!=null) {
-		// resourceId = searchField;
-		// }
-		// }
-		// if (groupId != null || userId != null || resourceId != null) {
-		// SearchGroup innerGroup = new SearchGroup(SearchGroup.CONDITION.AND);
-		// SearchValue searchValue=null;
-		// if(userId!=null){
-		// searchValue = new SearchValue(userId,
-		// searchCriteria.getParamValue("userId"));
-		//
-		// innerGroup.addValue(searchValue);
-		// }
-		// if(groupId!=null){
-		// searchValue = new SearchValue(groupId,
-		// searchCriteria.getParamValue("groupId"));
-		// innerGroup.addValue(searchValue);
-		// }
-		// if(resourceId!=null){
-		//
-		// searchValue = new SearchValue(resourceId,
-		// searchCriteria.getParamValue("name"));
-		// innerGroup.addValue(searchValue);
-		// }
-		//
-		// outerGroup.addSearchGroup(innerGroup);
-		// searchUtil.addSearchGroup(searchCriteria, outerGroup);
-		//
-		// }
-		searchCriteria.setDistinct(true);
+		if(policies != null) {
+			List<VXResource> resources = new ArrayList<VXResource>(policies.size());
 
-		return assetMgr.searchXResources(searchCriteria);
+			for(RangerPolicy policy : policies) {
+				RangerService service = serviceREST.getServiceByName(policy.getService());
+
+				resources.add(serviceUtil.toVXResource(policy, service));
+			}
+
+			ret.setVXResources(resources);
+		}
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.searchXResources(): count=" + ret.getResultSize());
+		}
+
+		return ret;
 	}
 
-	@GET
-	@Path("/hdfs/resources")
-	@Produces({ "application/xml", "application/json" })
-	public VXStringList pullHdfsResources(@Context HttpServletRequest request) {
-		String dataSourceName = request.getParameter("dataSourceName");
-		String baseDir = request.getParameter("baseDirectory");
-		return assetMgr.getHdfsResources(dataSourceName, baseDir);
-	}
-
-	@GET
-	@Path("/hive/resources")
-	@Produces({ "application/xml", "application/json" })
-	public VXStringList pullHiveResources(@Context HttpServletRequest request) {
-		String dataSourceName = request.getParameter("dataSourceName");
-		String databaseName = request.getParameter("databaseName");
-		String tableName = request.getParameter("tableName");
-		String columnName = request.getParameter("columnName");
-		return assetMgr.getHiveResources(dataSourceName, databaseName,
-				tableName, columnName);
-	}
-
-	@GET
-	@Path("/hbase/resources")
-	@Produces({ "application/xml", "application/json" })
-	public VXStringList pullHBaseResources(@Context HttpServletRequest request) {
-		String dataSourceName = request.getParameter("dataSourceName");
-		String tableName = request.getParameter("tableName");
-		String columnFamiles = request.getParameter("columnFamilies");
-		return assetMgr.getHBaseResources(dataSourceName, tableName,
-				columnFamiles);
-	}
-
-	@GET
-	@Path("/knox/resources")
-	@Produces({ "application/xml", "application/json" })
-	public VXStringList pullKnoxResources(@Context HttpServletRequest request) {
-		String dataSourceName = request.getParameter("dataSourceName");
-		String topologyName = request.getParameter("topologyName");
-		String serviceName = request.getParameter("serviceName");		
-		return assetMgr.getKnoxResources(dataSourceName, topologyName, serviceName);
-	}
-	
-    @GET
-    @Path("/storm/resources")
-    @Produces({ "application/xml", "application/json" })
-    public VXStringList pullStormResources(@Context HttpServletRequest request) {
-        String dataSourceName = request.getParameter("dataSourceName");
-        String topologyName = request.getParameter("topologyName");
-        return assetMgr.getStormResources(dataSourceName, topologyName);
-    }
-	
 	@GET
 	@Path("/resources/count")
 	@Produces({ "application/xml", "application/json" })
 	public VXLong countXResources(@Context HttpServletRequest request) {
-		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
-				request, xResourceService.sortFields);
+		if(logger.isDebugEnabled()) {
+			logger.debug("==> AssetREST.countXResources()");
+		}
 
-		return assetMgr.getXResourceSearchCount(searchCriteria);
+		VXLong ret = new VXLong();
+
+		Long count = serviceREST.countPolicies(request);
+
+		ret.setValue(count == null ? 0 : count.longValue());
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("<== AssetREST.countXAssets(): " + ret);
+		}
+
+		return ret;
 	}
 
 	@GET
@@ -456,7 +478,10 @@ public class AssetREST {
 				new SearchCriteria(), "fileType", "File type",
 				StringUtil.VALIDATION_TEXT);
 
-		File file = assetMgr.getXResourceFile(id, fileType);
+		VXResource resource = getXResource(id);
+
+		File file = assetMgr.getXResourceFile(resource, fileType);
+
 		return Response
 				.ok(file, MediaType.APPLICATION_OCTET_STREAM)
 				.header("Content-Disposition",
@@ -469,32 +494,33 @@ public class AssetREST {
 	public String getResourceJSON(@Context HttpServletRequest request,
 			@PathParam("repository") String repository) {
 		
-		boolean httpEnabled = PropertiesUtil.getBooleanProperty("http.enabled",true);
-		String epoch = request.getParameter("epoch");
+		String            epoch       = request.getParameter("epoch");
+		X509Certificate[] certchain   = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
+		String            ipAddress   = request.getHeader("X-FORWARDED-FOR");  
+		boolean           isSecure    = request.isSecure();
+		String            policyCount = request.getParameter("policyCount");
+		String            agentId     = request.getParameter("agentId");
 
-		X509Certificate[] certchain = (X509Certificate[]) request.getAttribute(
-				"javax.servlet.request.X509Certificate");
-		
-		String ipAddress = request.getHeader("X-FORWARDED-FOR");  
 		if (ipAddress == null) {  
 			ipAddress = request.getRemoteAddr();
 		}
 
-		boolean isSecure = request.isSecure();
-		
-		String policyCount = request.getParameter("policyCount");
-		String agentId = request.getParameter("agentId");
-		
-//		File file = assetMgr.getLatestRepoPolicy(repository, 
-//				certchain, httpEnabled, epoch, ipAddress, isSecure, policyCount, agentId);
-		
+		boolean httpEnabled = PropertiesUtil.getBooleanProperty("http.enabled",true);
 
-//		return Response
-//				.ok(file, MediaType.APPLICATION_OCTET_STREAM)
-//				.header("Content-Disposition",
-//						"attachment;filename=" + file.getName()).build();
+		RangerService      service  = serviceREST.getServiceByName(repository);
+		List<RangerPolicy> policies = serviceREST.getServicePolicies(repository, request);
+
+		long             policyUpdTime = (service != null && service.getPolicyUpdateTime() != null) ? service.getPolicyUpdateTime().getTime() : 0l;
+		VXAsset          vAsset        = serviceUtil.toVXAsset(service);
+		List<VXResource> vResourceList = new ArrayList<VXResource>();
 		
-		String file = assetMgr.getLatestRepoPolicy(repository, 
+		if(policies != null) {
+			for(RangerPolicy policy : policies) {
+				vResourceList.add(serviceUtil.toVXResource(policy, service));
+			}
+		}
+
+		String file = assetMgr.getLatestRepoPolicy(vAsset, vResourceList, policyUpdTime,
 				certchain, httpEnabled, epoch, ipAddress, isSecure, policyCount, agentId);
 		
 		return file;

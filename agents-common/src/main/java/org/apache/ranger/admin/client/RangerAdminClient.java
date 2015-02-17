@@ -20,13 +20,16 @@
  package org.apache.ranger.admin.client;
 
 
-import org.apache.ranger.admin.client.datatype.GrantRevokeData;
+import org.apache.ranger.plugin.util.GrantRevokeRequest;
+import org.apache.ranger.plugin.util.ServicePolicies;
 
 
 public interface RangerAdminClient {
-	String getPolicies(String repositoryName, long lastModifiedTime, int policyCount, String agentName);
+	void init(String configPropertyPrefix);
 
-	void grantPrivilege(GrantRevokeData grData) throws Exception;
+	ServicePolicies getServicePoliciesIfUpdated(String serviceName, long lastKnownVersion) throws Exception;
 
-	void revokePrivilege(GrantRevokeData grData) throws Exception;
+	void grantAccess(String serviceName, GrantRevokeRequest request) throws Exception;
+
+	void revokeAccess(String serviceName, GrantRevokeRequest request) throws Exception;
 }

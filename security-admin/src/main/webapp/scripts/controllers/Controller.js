@@ -53,401 +53,7 @@ define(function(require) {
 			
             App.rContent.show(new vDashboardLayout({}));
         },
-		
-	   //************** Policy Related *********************/
-	   policyManagerAction :function(){
-		   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   console.log('Policy Manager action called..');
-		   var view 		= require('views/policymanager/PolicyManagerLayout');
-		   var VXAssetList 	= require('collections/VXAssetList');
-		   var collection 	= new VXAssetList();
-		   
-		   collection.fetch({
-			   cache : false,
-			   async:false
-		   }).done(function(){
-			   if(App.rContent.currentView) App.rContent.currentView.close();
-			   App.rContent.show(new view({
-				   collection : collection
-			   }));
-		   });
-	   },
 	   
-	   hdfsManageAction :function(assetId){
-		   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/hdfs/HDFSTableLayout');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   var resourceListForAsset = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   assetModel.fetch({cache : true}).done(function(){
-			   App.rContent.show(new view({
-				   collection : resourceListForAsset,
-				   assetModel : assetModel
-			   }));
-			   resourceListForAsset.fetch({
-//				   cache : true
-			   });
-		   });   
-	   },
-
-	   policyCreateAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-
-		   var view 			= require('views/policy/PolicyCreate');
-		   var VXResource 		= require('models/VXResource');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 	  		= require('models/VXAsset');
-		   
-		   var assetModel 	= new VXAsset({id:assetId});
-		   var resource		= new VXResource();
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   
-		   assetModel.fetch({cache : true}).done(function(){
-			   App.rContent.show(new view({
-				   model : resource,
-				   assetModel : assetModel
-			   }));
-		   });
-	   },
-	   
-	   policyEditAction :function(){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view = require('views/policy/PolicyCreate');
-		   App.rContent.show(new view({
-		   }));
-	   },
-
-	   policyViewAction :function(assetId,id){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-
-		   var VXResource 	  = require('models/VXResource');
-		   var VXResourceList = require('collections/VXResourceList');
-		   var VXAsset 	  	  = require('models/VXAsset');
-		   var view = require('views/policy/PolicyCreate');
-		   
-		   var resource = new VXResource({id : id });
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   
-		   var assetModel = new VXAsset({id:assetId});
-		   resource.fetch({
-//			   cache:true
-			   }).done(function(){
-			   assetModel.fetch({cache : true}).done(function(){
-				   App.rContent.show(new view({
-					   model : resource,
-					   assetModel : assetModel
-				   }));
-			   });
-		   });
-	   },
-	   //************** Policy Related ( HIVE )*********************/
-	   hiveManageAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/hive/HiveTableLayout');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   var resourceListForAsset = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   assetModel.fetch({cache : true}).done(function(){
-			   App.rContent.show(new view({
-				   collection : resourceListForAsset,
-				   assetModel : assetModel
-			   }));
-			   resourceListForAsset.fetch({
-//				   cache : true
-			   });
-		   });   
-	   },
-	   hivePolicyCreateAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/hive/HivePolicyCreate');
-		   var VXResource 		= require('models/VXResource');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   
-		   var assetModel = new VXAsset({id:assetId});
-		   var resource	  = new VXResource();
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   assetModel.fetch({cache : true}).done(function(){
-			   App.rContent.show(new view({
-				   model : resource,
-			   		assetModel : assetModel
-			   }));
-		   });	   
-	   },
-	   hivePolicyEditAction :function(assetId,id){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-    	   var VXResource 		= require('models/VXResource');
-    	   var VXResourceList 	= require('collections/VXResourceList');
-    	   var VXAsset 		  	= require('models/VXAsset');
-		   var view 			= require('views/hive/HivePolicyCreate');
-		   var resource 		= new VXResource({id : id });
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   resource.fetch({
-//			   cache:true
-			   }).done(function(){
-			   assetModel.fetch({cache : true}).done(function(){
-				   App.rContent.show(new view({
-					   model : resource,
-					   assetModel : assetModel
-				   }));
-			   });
-		   });
-	   },
-	   
-	   //************** Policy Related ( KNOX )*********************/
-	   knoxManageAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/knox/KnoxTableLayout');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   
-		   var resourceListForAsset = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   assetModel.fetch({cache : true}).done(function(){
-			   App.rContent.show(new view({
-				   collection  :resourceListForAsset,
-				   assetModel : assetModel
-			   }));
-			   resourceListForAsset.fetch({
-//				   cache : true
-			   });
-		   });   
-	   },
-	   knoxPolicyCreateAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/knox/KnoxPolicyCreate');
-		   var VXResource 		= require('models/VXResource');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   
-		   var assetModel = new VXAsset({id:assetId});
-		   var resource	  = new VXResource();
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   assetModel.fetch({cache : true}).done(function(){
-			   App.rContent.show(new view({
-				   model : resource,
-			   		assetModel : assetModel
-			   }));
-		   });	   
-	   },
-	   knoxPolicyEditAction :function(assetId,id){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-    	   var VXResource 		= require('models/VXResource');
-    	   var VXResourceList 	= require('collections/VXResourceList');
-    	   var VXAsset 		  	= require('models/VXAsset');
-		   var view 			= require('views/knox/KnoxPolicyCreate');
-		   var resource 		= new VXResource({id : id });
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   resource.fetch({
-//			   cache:true
-			   }).done(function(){
-			   assetModel.fetch({cache : true}).done(function(){
-				   App.rContent.show(new view({
-					   model : resource,
-					   assetModel : assetModel
-				   }));
-			   });
-		   });
-	   },
-	 //************** Policy Related ( STORM )*********************/
-	   stormManageAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/storm/StormTableLayout');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   
-		   var resourceListForAsset = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   assetModel.fetch({cache : true}).done(function(){
-			   App.rContent.show(new view({
-				   collection  :resourceListForAsset,
-				   assetModel : assetModel
-			   }));
-			   resourceListForAsset.fetch({
-//				   cache : true
-			   });
-		   });   
-	   },
-	   stormPolicyCreateAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/storm/StormPolicyCreate');
-		   var VXResource 		= require('models/VXResource');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   
-		   var assetModel = new VXAsset({id:assetId});
-		   var resource	  = new VXResource();
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   assetModel.fetch({cache : true}).done(function(){
-			   App.rContent.show(new view({
-				   model : resource,
-			   		assetModel : assetModel
-			   }));
-		   });	   
-	   },
-	   stormPolicyEditAction :function(assetId,id){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-    	   var VXResource 		= require('models/VXResource');
-    	   var VXResourceList 	= require('collections/VXResourceList');
-    	   var VXAsset 		  	= require('models/VXAsset');
-		   var view 			= require('views/storm/StormPolicyCreate');
-		   var resource 		= new VXResource({id : id });
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   resource.fetch({
-//			   cache:true
-			   }).done(function(){
-			   assetModel.fetch({cache : true}).done(function(){
-				   App.rContent.show(new view({
-					   model : resource,
-					   assetModel : assetModel
-				   }));
-			   });
-		   });
-	   },
-	   //************** Asset Related ( Repository )*********************/
-	   assetCreateAction :function(assetType){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view		= require('views/asset/AssetCreate');
-		   var VXAsset	= require('models/VXAsset');
-		   App.rContent.show(new view({
-			   model : new VXAsset().set('assetType',assetType)
-		   }));
-	   },
-
-	   assetEditAction :function(id){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view		= require('views/asset/AssetCreate');
-		   var VXAsset	= require('models/VXAsset');
-
-		   var model = new VXAsset({id : id });
-		   model.fetch({cache:true}).done(function(){
-			   App.rContent.show(new view({
-				   model : model
-			   }));
-		   });
-	   },
- //************** Policy Related ( HBASE)*********************/
-	   hbaseManageAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/hbase/HbaseTableLayout');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   var resourceListForAsset = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   assetModel.fetch({cache:true}).done(function(){
-			   App.rContent.show(new view({
-				   collection : resourceListForAsset,
-				   assetModel : assetModel
-			   }));
-			   resourceListForAsset.fetch({
-//				   cache : true
-			   });
-		   });   
-		   
-	   },
-	   hbasePolicyCreateAction :function(assetId){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-		   var view 			= require('views/hbase/HbasePolicyCreate');
-		   var VXResource 		= require('models/VXResource');
-		   var VXResourceList 	= require('collections/VXResourceList');
-		   var VXAsset 		  	= require('models/VXAsset');
-		   var resource	  		= new VXResource();
-		   resource.collection  = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   var assetModel = new VXAsset({id:assetId});
-		   assetModel.fetch({cache:true}).done(function(){
-			   App.rContent.show(new view({
-				   model : resource,
-			   		assetModel : assetModel
-			   }));
-		   }); 
-	   },
-	   hbasePolicyEditAction :function(assetId,id){
-    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
-    	   var VXResource 		= require('models/VXResource');
-    	   var VXResourceList 	= require('collections/VXResourceList');
-    	   var VXAsset 		  	= require('models/VXAsset');
-		   var view 			= require('views/hbase/HbasePolicyCreate');
-		   var resource 		= new VXResource({id : id });
-		   var assetModel 		= new VXAsset({id:assetId});
-
-		   resource.collection = new VXResourceList([],{
-			   queryParams : {
-				   'assetId' : assetId 
-			   }
-		   });
-		   resource.fetch({
-//			   cache:true
-			  }).done(function(){
-			   assetModel.fetch({cache:true}).done(function(){
-				   App.rContent.show(new view({
-					   model : resource,
-					   assetModel : assetModel
-				   }));
-			   });
-		   });
-	   },
-
 	   //************** Analytics(reports)  Related *********************/
 	   userAccessReportAction : function(){
 		   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.Analytics.value });
@@ -611,6 +217,135 @@ define(function(require) {
 				   model : group
 			   }));
 		   });	   
-	   }
+	   },
+
+
+   	   /************************************************************/
+   	   //************** Generic design Related *********************/
+   	   /************************************************************/
+
+	   serviceManagerAction :function(){
+		   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
+		   console.log('Policy Manager action called..');
+		   var view 				= require('views/policymanager/ServiceLayout');
+		   var RangerServiceDefList	= require('collections/RangerServiceDefList');
+		   var collection 			= new RangerServiceDefList();
+		   collection.queryParams.sortBy = 'id';
+		   collection.fetch({
+			   cache : false,
+			   async:false
+		   }).done(function(){
+			   if(App.rContent.currentView) App.rContent.currentView.close();
+			   //TODO FROM SERVER SIDE IT SHOULD GIVE SORTBY `ID` BY DEFAULT
+//			   collection = collection.sort()
+			   App.rContent.show(new view({
+				   collection : collection
+			   }));
+		   });
+	   },
+
+	   serviceCreateAction :function(serviceTypeId){
+    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
+		   var view				= require('views/service/ServiceCreate');
+		   var RangerServiceDef	= require('models/RangerServiceDef');
+		   var RangerService	= require('models/RangerService');
+		   
+		   var rangerServiceDefModel	= new RangerServiceDef({id:serviceTypeId});
+		   var rangerServiceModel 	= new RangerService();
+
+		   App.rContent.show(new view({
+			   model 		: rangerServiceModel,
+			   serviceTypeId : serviceTypeId
+		   }));
+	   },
+	   serviceEditAction :function(serviceTypeId, serviceId){
+    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
+		   var view				= require('views/service/ServiceCreate');
+		   var RangerServiceDef	= require('models/RangerServiceDef');
+		   var RangerService	= require('models/RangerService');
+		   
+		   var rangerServiceDefModel	= new RangerServiceDef({ id : serviceTypeId });
+		   var rangerService = new RangerService({ 'id' : serviceId });
+
+		   rangerService.fetch({
+			   cache:false
+		   }).done(function(){
+			   App.rContent.show(new view({
+				   model 			: rangerService,
+				   serviceTypeId	:serviceTypeId
+			   }));
+		   });
+	   },
+	   
+	   policyManageAction :function(serviceId){
+		   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
+		   var XAUtil			= require('utils/XAUtils');
+		   var view 			= require('views/policies/RangerPolicyTableLayout');
+		   var RangerService	= require('models/RangerService');
+		   var RangerPolicyList	= require('collections/RangerPolicyList');
+		   
+		   var rangerService = new RangerService({id : serviceId});
+		   var rangerPolicyList = new RangerPolicyList();
+		   /*var rangerPolicyList = new RangerPolicyList([],{
+			   queryParams : {
+				   'serviceId' : serviceId 
+			   }
+		   });*/
+		   rangerPolicyList.url = XAUtil.getServicePoliciesURL(serviceId);
+		   
+		   rangerService.fetch({
+			  cache : false,
+			  async : false
+		   });
+		   
+		   rangerPolicyList.fetch({
+			   cache : false,
+		   }).done(function(){
+			   App.rContent.show(new view({
+				   collection : rangerPolicyList,
+				   rangerService : rangerService
+			   }));
+		   });   
+	   },
+	   RangerPolicyCreateAction :function(serviceId){
+    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
+
+		   var view 			= require('views/policies/RangerPolicyCreate');
+		   var RangerService	= require('models/RangerService');
+		   var RangerPolicy		= require('models/RangerPolicy');
+		   
+		   var rangerService = new RangerService({id : serviceId});
+		   rangerService.fetch({
+				  cache : false,
+		   }).done(function(){
+			   App.rContent.show(new view({
+				   model : new RangerPolicy(),
+				   rangerService : rangerService,
+			   }));
+		   });
+	   },
+	   RangerPolicyEditAction :function(serviceId, policyId){
+    	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.PolicyManager.value });
+
+		   var view 			= require('views/policies/RangerPolicyCreate');
+		   var RangerService	= require('models/RangerService');
+		   var RangerPolicy		= require('models/RangerPolicy');
+		   
+		   var rangerService = new RangerService({id : serviceId});
+		   var rangerPolicy = new RangerPolicy({ id : policyId});
+		   rangerService.fetch({
+			   cache : false,
+			   async : false,
+		   });
+		   rangerPolicy.fetch({
+				  cache : false,
+		   }).done(function(){
+			   App.rContent.show(new view({
+				   model : rangerPolicy,
+				   rangerService :rangerService
+			   }));
+		   });
+	   },
+	   
 	});
 });

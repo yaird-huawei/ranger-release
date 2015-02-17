@@ -35,6 +35,8 @@ define(function(require) {
 	var VXTrxLogList   			= require('collections/VXTrxLogList');
 	var VXAssetList 			= require('collections/VXAssetList');
 	var VXPolicyExportAuditList = require('collections/VXPolicyExportAuditList');
+	var RangerServiceDefList 	= require('collections/RangerServiceDefList');
+	var RangerService			= require('models/RangerService');
 	var AuditlayoutTmpl 		= require('hbs!tmpl/reports/AuditLayout_tmpl');
 	var vOperationDiffDetail	= require('views/reports/OperationDiffDetail');
 
@@ -106,6 +108,7 @@ define(function(require) {
 			this.currentTab = '#'+this.tab;
 			var date = new Date().toString();
 			this.timezone = date.replace(/^.*GMT.*\(/, "").replace(/\)$/, "");
+			this.initializeServiceDefColl();
 		},
 
 		/** all events binding here */
@@ -129,6 +132,14 @@ define(function(require) {
 				//that.initializeCollection();
 				//that.onSearch();
 			},XAGlobals.settings.AUDIT_REPORT_POLLING);
+		},
+		initializeServiceDefColl : function() {
+			this.serviceDefList 			= new RangerServiceDefList();
+			this.serviceDefList.fetch({ 
+				cache : false,
+				async:false
+			});
+			return this.serviceDefList;
 		},
 		/** on render callback */
 		onRender : function() {
@@ -162,6 +173,7 @@ define(function(require) {
 		  },
 		modifyTableForSubcolumns : function(){
 			this.$el.find('[data-id="r_tableList"] table thead').prepend('<tr>\
+					<th class="renderable pid"></th>\
 					<th class="renderable ruser"></th>\
 					<th class="renderable ruser"></th>\
 					<th class="renderable cip">Repository</th>\
@@ -257,12 +269,12 @@ define(function(require) {
 		},
 		addSearchForBigDataTab :function(){
 			var that = this;
-			
+			var serverListForRepoType =  this.serviceDefList.map(function(serviceDef){ return {'label' : serviceDef.get('name').toUpperCase(), 'value' : serviceDef.get('id')}; })
 			var serverAttrName = [{text : 'Start Date',label :'startDate'},{text : 'End Date',label :'endDate'},
 			                      {text : 'Today',label :'today'},{text : 'User',label :'requestUser'},
 			                      {text : 'Resource Name',label :'resourcePath'},{text : 'Policy ID',label :'policyId'},
 			                      {text : 'Resource Type',label :'resourceType'},{text : 'Repository Name',label :'repoName'},
-			                      {text : 'Repository Type',label :'repoType','multiple' : true, 'optionsArr' : XAUtils.enumToSelectLabelValuePairs(XAEnums.AssetType)},
+			                      {text : 'Repository Type',label :'repoType','multiple' : true, 'optionsArr' : serverListForRepoType},
 			                      {text : 'Result',label :'accessResult', 'multiple' : true, 'optionsArr' : XAUtils.enumToSelectLabelValuePairs(XAEnums.AccessResult)},
 			                      {text : 'Access Type',label :'accessType'},{text : 'Access Enforcer',label :'aclEnforcer'},
 			                      {text : 'Audit Type',label :'auditType'},{text : 'Session ID',label :'sessionId'},
@@ -295,12 +307,8 @@ define(function(require) {
 								});
 								break;
 							case 'Repository Type':
-								var assetTypeList = _.filter(XAEnums.AssetType, function(obj){
-									if(obj.label != XAEnums.AssetType.ASSET_UNKNOWN.label 
-												&& obj.label != XAEnums.AssetType.ASSET_AGENT.label)
-										return obj;
-								});
-								callback(XAUtils.hackForVSLabelValuePairs(assetTypeList));
+								var serviceList =  that.serviceDefList.map(function(serviceDef){ return {'label' : serviceDef.get('name').toUpperCase(), 'value' : serviceDef.get('name').toUpperCase()}; })
+								callback(serviceList);
 								break;
 							case 'Result':
 				                callback(XAUtils.hackForVSLabelValuePairs(XAEnums.AccessResult));
@@ -723,6 +731,27 @@ define(function(require) {
 		getColumns : function(){
 			var that = this;
 			var cols = {
+					policyId : {
+						cell : "html",
+						formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
+							fromRaw: function (rawValue, model) {
+								if(rawValue == -1){
+									return '--';
+								}	
+								var rangerService = new RangerService();
+								rangerService.urlRoot += '/name/'+model.get('repoName'); 
+								rangerService.fetch({
+								  cache : false,
+								  async : false
+								});
+								var href = '#!/service/'+rangerService.get('id')+'/policies/'+model.get('policyId')+'/edit';
+								return '<a href="'+href+'" title="'+rawValue+'">'+rawValue+'</a>';
+							}
+						}),
+						label	: localization.tt("lbl.policyId"),
+						editable: false,
+						sortable : false
+					},
 					eventTime : {
 						label : 'Event Time',// localization.tt("lbl.eventTime"),
 						cell: "String",
@@ -756,10 +785,10 @@ define(function(require) {
 							fromRaw: function (rawValue, model) {
 								var html='';
 								var repoType = model.get('repoType');
-								_.each(_.toArray(XAEnums.AssetType),function(m){
-									if(parseInt(repoType) == m.value){
+								that.serviceDefList.each(function(m){
+									if(parseInt(repoType) == m.id){
 										html =  '<div title="'+rawValue+'">'+rawValue+'</div>\
-										<div title="'+rawValue+'" style="border-top: 1px solid #ddd;">'+m.label+'</div>';
+										<div title="'+rawValue+'" style="border-top: 1px solid #ddd;">'+m.get('name')+'</div>';
 										return ;
 									}	
 								});

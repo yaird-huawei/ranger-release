@@ -78,7 +78,6 @@
   <module>agents-audit</module>
   <module>agents-common</module>
   <module>agents-cred</module>
-  <module>agents-impl</module>
   <module>agents-installer</module>
   <module>credentialbuilder</module>
   <module>embeddedwebserver</module>
@@ -163,6 +162,7 @@
 		<tomcat.embed.version>7.0.55</tomcat.embed.version>
 		<velocity.version>1.7</velocity.version>
 		<powermock.version>1.5.6</powermock.version>
+		<aspectj.version>1.8.2</aspectj.version>
 		<distMgmtStagingId>apache.staging.https</distMgmtStagingId>
     	<distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
     	<distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>

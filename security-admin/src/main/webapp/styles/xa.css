@@ -285,8 +285,8 @@ body {
 .toggle-xa .toggle-slide .toggle-off,
 .toggle-xa .toggle-slide .toggle-blob {
   color: rgba(0, 0, 0, 0.7);
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
 }
 .toggle-xa .toggle-slide .toggle-on {
   background: #3ea211;
@@ -491,7 +491,7 @@ body {
 
 .table-permission {
   float: left;
-  width: 45%
+  width: 90%
 }
 
 /* toggle */
@@ -1677,4 +1677,77 @@ td.html-cell.renderable:last-child {
 .connection-error-font {
 	font-size: 11px;
 	font-family: monospace;
+}
+/**************/
+.policy-form .field-name{
+	float: left;
+	margin-bottom: 0 !important;
+}
+.policy-form .field-isEnabled{
+float: left;
+margin-bottom: 0 !important;
+}
+.policy-form .field-isEnabled .controls{
+	margin-left:30px;
+}
+.margin-bottom-5{
+margin-bottom: 5px;
+}
+
+.popover-content {
+	overflow-y: auto;
+	padding-right: 25px;
+	max-height: 250px;
+}
+.margin-bottom-57 {
+	margin-bottom:57px;
+}
+.table .table {
+	width:auto;
+}
+.width-25{
+	width:25%;
+}
+.margin-left-0{
+	margin-left:0%!important;
+}
+
+.policy-manager .row-fluid [class*="span"]:first-child {
+	margin-left: 1%;
+}
+.policy-manager .row-fluid [class*="span"] {
+	margin-left: 1%;
+	margin-right: 1%;
+}
+.policy-manager .row-fluid [class*="span"]:nth-child(3n+4) {
+	clear: both;
+}
+.field-isEnabled + div {
+   clear:both;
+}
+.include-toggle{
+	margin-left: 264px;
+	margin-top: -29px;
+}
+.recursive-toggle{
+	margin-left: 363px;
+	margin-top: -20px;
+}
+.recursive-toggle-path {
+margin-left: 347px;
+margin-top: -29px;
+}
+.policy-form .help-inline {
+	position: relative;
+	top: 10px;
+}
+.hideResource{
+	display:none;
+}
+.btn-mini {
+	padding: 0px 8px;
+	font-size: 11.05px;
+}
+.label-ranger {
+	background-color: #3C9C11;
 }

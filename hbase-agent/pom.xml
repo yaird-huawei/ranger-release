@@ -19,8 +19,8 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>security_plugins.ranger-hbase-plugin</groupId>
   <artifactId>ranger-hbase-plugin</artifactId>
-  <name>HBaseSecurityAgents</name>
-  <description>HBase Security Agents</description>
+  <name>HBase Security Plugin</name>
+  <description>HBase Security Plugins</description>
   <packaging>jar</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -51,6 +51,19 @@
       <groupId>security_plugins.ranger-plugins-audit</groupId>
       <artifactId>ranger-plugins-audit</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>${gson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-integration</artifactId>
     </dependency>
   </dependencies>
 </project>

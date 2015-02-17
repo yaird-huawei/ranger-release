@@ -206,7 +206,8 @@ define(function(require) {
 				topologyName					: 'Topology Name',
 				serivceName						: 'Service Name',
 				ipAddress						: 'IP Address',
-					
+				delegatedAdmin					: 'Delegate Admin',
+				policyId						: 'Policy ID'
 			},
 			btn : {
 				add							: 'Add',
@@ -235,6 +236,7 @@ define(function(require) {
 				analytics					: 'Analytics',
 				audit						: 'Audit',
 				repositoryManager			: 'Manage Repository',
+				serviceManager				: 'Service Manager',
 				hdfs  						: 'HDFS',
 				hive  						: 'Hive',
 				createPolicy 				: 'Create Policy',
@@ -258,7 +260,8 @@ define(function(require) {
 				searchForPolicy				:"Search for your policy...",
 				searchForYourUser 			:"Search for your users...",
 				searchForYourGroup 			:"Search for your groups...",
-				access						: 'Access'
+				access						: 'Access',
+				policyCondition				: 'Policy Condtions'
 				
 				
 			},
@@ -295,14 +298,10 @@ define(function(require) {
 				searchByResourcePath		:'Search by resource path'
 			},
 			dialogMsg :{
-				preventNavPolicyForm : 'HDFS policy form edit is in progress. Kindly save/cancel changes before navigating away!',
-				preventNavHivePolicyForm : 'HIVE policy form edit is in progress. Kindly save/cancel changes before navigating away!',
-				preventNavHbasePolicyForm : 'HBASE policy form edit is in progress. Kindly save/cancel changes before navigating away!',
-				preventNavKnoxPolicyForm : 'KNOX policy form edit is in progress. Kindly save/cancel changes before navigating away!',
-				preventNavStormPolicyForm : 'STORM policy form edit is in progress. Kindly save/cancel changes before navigating away!',
-				preventNavRepositoryForm : 'Repository form edit is in progress. Kindly save/cancel changes before navigating away!',
-				preventNavUserForm : 'User form edit is in progress. Kindly save/cancel changes before navigating away!',
-				preventNavGroupForm : 'Group form edit is in progress. Kindly save/cancel changes before navigating away!'
+				preventNavPolicyForm : 'Policy form edit is in progress. Please save/cancel changes before navigating away!',
+				preventNavRepositoryForm : 'Repository form edit is in progress. Please save/cancel changes before navigating away!',
+				preventNavUserForm : 'User form edit is in progress. Please save/cancel changes before navigating away!',
+				preventNavGroupForm : 'Group form edit is in progress. Please save/cancel changes before navigating away!'
 				
 			},	
 			validationMessages : {
