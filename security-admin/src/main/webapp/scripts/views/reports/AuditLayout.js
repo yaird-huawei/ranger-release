@@ -758,12 +758,12 @@ define(function(require) {
 								var repoType = model.get('repoType');
 								_.each(_.toArray(XAEnums.AssetType),function(m){
 									if(parseInt(repoType) == m.value){
-										html =  '<div title="'+rawValue+'">'+rawValue+'</div>\
-										<div title="'+rawValue+'" style="border-top: 1px solid #ddd;">'+m.label+'</div>';
+										html =  '<div title="'+_.escape(rawValue)+'">'+_.escape(rawValue)+'</div>\
+										<div title="'+_.escape(rawValue)+'" style="border-top: 1px solid #ddd;">'+_.escape(m.label)+'</div>';
 										return ;
 									}	
 								});
-								return _.escape(html);
+								return html;
 							}
 						})
 					},
