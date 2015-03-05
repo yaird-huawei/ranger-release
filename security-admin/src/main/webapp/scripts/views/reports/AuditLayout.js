@@ -615,18 +615,18 @@ define(function(require) {
 							var html = '';
 							var label = XAUtils.enumValueToLabel(XAEnums.ClassTypes,rawValue);
 							if(rawValue == XAEnums.ClassTypes.CLASS_TYPE_XA_ASSET.value)
-								html = 	'Repository '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'Repository '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue == XAEnums.ClassTypes.CLASS_TYPE_XA_RESOURCE.value)
-								html = 	'Policy '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'Policy '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue == XAEnums.ClassTypes.CLASS_TYPE_XA_USER.value)
-								html = 	'User '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'User '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue == XAEnums.ClassTypes.CLASS_TYPE_XA_GROUP.value)
-								html = 	'Group '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'Group '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue  == XAEnums.ClassTypes.CLASS_TYPE_USER_PROFILE.value)
-								html = 	'User profile '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'User profile '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue  == XAEnums.ClassTypes.CLASS_TYPE_PASSWORD_CHANGE.value)
-								html = 	'User profile '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
-							return _.escape(html);
+								html = 	'User profile '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+							return html;
 						}
 					})
 				},
