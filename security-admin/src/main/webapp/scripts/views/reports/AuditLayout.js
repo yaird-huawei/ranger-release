@@ -626,7 +626,7 @@ define(function(require) {
 								html = 	'User profile '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue  == XAEnums.ClassTypes.CLASS_TYPE_PASSWORD_CHANGE.value)
 								html = 	'User profile '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
-							return html;
+							return _.escape(html);
 						}
 					})
 				},
@@ -763,7 +763,7 @@ define(function(require) {
 										return ;
 									}	
 								});
-								return html;
+								return _.escape(html);
 							}
 						})
 					},
@@ -803,7 +803,7 @@ define(function(require) {
 						editable:false,
 						formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 							fromRaw: function (rawValue) {
-								return _.isUndefined(rawValue) ? '--': '<span title="'+rawValue+'">'+rawValue+'</span>';  
+								return _.isUndefined(rawValue) ? '--': '<span title="'+_.escape(rawValue)+'">'+_.escape(rawValue)+'</span>';  
 							}
 						})
 					},
@@ -1113,8 +1113,8 @@ define(function(require) {
 							return _.isUndefined(rawValue) ? '--': 
 								/*'<div data-id="'+model.id+'" data-container="body" data-toggle="popover" data-placement="right" data-content="'+rawValue+'" style="cursor:pointer;">\
 									'+rawValue+'</div>';*/
-							'<span title="'+rawValue
-							+'" class="showMore">'+rawValue+'</span>';
+							'<span title="'+_.escape(rawValue)
+							+'" class="showMore">'+_.escape(rawValue)+'</span>';
 						}
 					})
 				},
@@ -1168,7 +1168,7 @@ define(function(require) {
 						sortable:false,
 						formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 							fromRaw: function (rawValue, model) {
-								return '<span title="'+rawValue+'">'+rawValue+'</span>';
+								return '<span title="'+_.escape(rawValue)+'">'+_.escape(rawValue)+'</span>';
 							}
 						}),
 						

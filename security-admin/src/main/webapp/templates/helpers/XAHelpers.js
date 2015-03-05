@@ -153,7 +153,7 @@
 	
 	
 	Handlebars.registerHelper('tt', function(str) {
-		return localization.tt(str);
+		return localization.tt(_.escape(str));
 		return str;
 	});
 	
@@ -380,7 +380,7 @@
 			}else
 				html = '<span class="">'+oldValue+'</span>';
 		}
-	    return html;
+	    return _.escape(html);
 	});
 	Handlebars.registerHelper('highlightNewForObj', function(prop, newValue, oldValue, hightlightValue) {
 		var html='';
@@ -395,7 +395,7 @@
 			}else
 				html = '<span class="">'+newValue+'</span>';
 		}
-	    return html;
+	    return _.escape(html);
 	});
 	Handlebars.registerHelper('highlightUsersForArr', function(val, arr, hightlightValue) {
 		var html = val;
