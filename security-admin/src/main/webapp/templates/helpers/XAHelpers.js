@@ -371,31 +371,31 @@
 		var html='';
 		if(hightlightValue == 'new'){
 			if(_.isNull(oldValue) || oldValue == '--' || oldValue == "" || _.isUndefined(oldValue)){
-				html = '<span class="add-text">'+newValue+'</span>';
+				html = '<span class="add-text">'+_.escape(newValue)+'</span>';
 			}else
-				html = '<span class="">'+newValue+'</span>';
+				html = '<span class="">'+_.escape(newValue)+'</span>';
 		}else{
 			if(_.isNull(newValue) || newValue == '--' || newValue == ""){
-				html = '<span class="delete-text">'+oldValue+'</span>';
+				html = '<span class="delete-text">'+_.escape(oldValue)+'</span>';
 			}else
-				html = '<span class="">'+oldValue+'</span>';
+				html = '<span class="">'+_.escape(oldValue)+'</span>';
 		}
-	    return _.escape(html);
+	    return html;
 	});
 	Handlebars.registerHelper('highlightNewForObj', function(prop, newValue, oldValue, hightlightValue) {
 		var html='';
 		if(hightlightValue == 'new'){
 			if(_.isNull(oldValue[prop]) || oldValue[prop] == ""){
-				html = '<span class="add-text">'+newValue+'</span>';
+				html = '<span class="add-text">'+_.escape(newValue)+'</span>';
 			}else
-				html = '<span class="">'+newValue+'</span>';
+				html = '<span class="">'+_.escape(newValue)+'</span>';
 		}else{
 			if(_.isNull(oldValue[prop]) || oldValue[prop] == ""){
-				html = '<span class="delete-text">'+newValue+'</span>';
+				html = '<span class="delete-text">'+_.escape(newValue)+'</span>';
 			}else
-				html = '<span class="">'+newValue+'</span>';
+				html = '<span class="">'+_.escape(newValue)+'</span>';
 		}
-	    return _.escape(html);
+	    return html;
 	});
 	Handlebars.registerHelper('highlightUsersForArr', function(val, arr, hightlightValue) {
 		var html = val;
