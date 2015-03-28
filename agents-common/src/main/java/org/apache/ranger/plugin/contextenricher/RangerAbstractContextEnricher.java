@@ -34,11 +34,7 @@ import org.apache.ranger.plugin.model.RangerServiceDef.RangerContextEnricherDef;
 public abstract class RangerAbstractContextEnricher implements RangerContextEnricher {
 	private static final Log LOG = LogFactory.getLog(RangerAbstractContextEnricher.class);
 
-	public final static String OPTIONS_SEP        = ";";
-	public final static String OPTION_NV_SEP      = "=";
-
-	private String                   optionsString  = null;
-	private Map<String, String>      options        = null;
+	private Map<String, String> options = null;
 
 	@Override
 	public void init(RangerContextEnricherDef enricherDef) {
@@ -46,27 +42,7 @@ public abstract class RangerAbstractContextEnricher implements RangerContextEnri
 			LOG.debug("==> RangerAbstractContextEnricher.init(" + enricherDef + ")");
 		}
 
-		this.optionsString  = enricherDef.getEnricherOptions();
-		options             = new HashMap<String, String>();
-
-		if(optionsString != null) {
-			for(String optionString : optionsString.split(OPTIONS_SEP)) {
-				if(StringUtils.isEmpty(optionString)) {
-					continue;
-				}
-
-				String[] nvArr = optionString.split(OPTION_NV_SEP);
-
-				String name  = (nvArr != null && nvArr.length > 0) ? nvArr[0].trim() : null;
-				String value = (nvArr != null && nvArr.length > 1) ? nvArr[1].trim() : null;
-
-				if(StringUtils.isEmpty(name)) {
-					continue;
-				}
-
-				options.put(name, value);
-			}
-		}
+		options = enricherDef.getEnricherOptions();
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAbstractContextEnricher.init(" + enricherDef + ")");
