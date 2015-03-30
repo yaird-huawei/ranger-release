@@ -530,6 +530,12 @@ define(function(require) {
 	   
 	   /************** UserORGroups Related *********************/
 	   userManagerAction :function(tab){
+		   var SessionMgr = require('mgrs/SessionMgr')
+		   var XAUtils = require('utils/XAUtils')
+		   if(!SessionMgr.isSystemAdmin()){
+			   XAUtils.defaultErrorHandler(undefined, {'status':404});
+			   return;
+		   }
 		   MAppState.set({
 				'currentTab' : XAGlobals.AppTabs.Users.value
 			});
@@ -611,6 +617,11 @@ define(function(require) {
 				   model : group
 			   }));
 		   });	   
-	   }
+	   },
+	   /**************** ERROR PAGE ******************************/
+	   pageNotFoundAction	: function() {
+		   var XAUtils			= require('utils/XAUtils');
+		   XAUtils.defaultErrorHandler(undefined, { 'status' : 404 });
+	   },
 	});
 });

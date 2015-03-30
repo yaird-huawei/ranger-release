@@ -2229,10 +2229,12 @@ public class AssetMgr extends AssetMgrBase {
 
 		}
 
-		VXTrxLogList vXTrxLogList = xTrxLogService
-				.searchXTrxLogs(searchCriteria);
-		Long count=xTrxLogService
-				.searchXTrxLogsCount(searchCriteria);
+		VXTrxLogList vXTrxLogList = xTrxLogService.searchXTrxLogs(searchCriteria);
+		
+		List<VXTrxLog> newList = validateXXTrxLogList(vXTrxLogList.getVXTrxLogs());
+		vXTrxLogList.setVXTrxLogs(newList);
+		
+		Long count=xTrxLogService.searchXTrxLogsCount(searchCriteria);
 		vXTrxLogList.setTotalCount(count);
 		return vXTrxLogList;
 	}
@@ -2268,56 +2270,75 @@ public class AssetMgr extends AssetMgrBase {
 		return xAccessAuditService.searchXAccessAudits(searchCriteria);
 	}
 
+	public List<VXTrxLog> validateXXTrxLogList(List<VXTrxLog> xTrxLogList) {
+
+		List<VXTrxLog> vXTrxLogs = new ArrayList<VXTrxLog>();
+
+		for (VXTrxLog xTrxLog : xTrxLogList) {
+			VXTrxLog vXTrxLog = new VXTrxLog();
+			vXTrxLog = xTrxLog;
+			if (vXTrxLog.getPreviousValue() == null || vXTrxLog.getPreviousValue().equalsIgnoreCase("null")) {
+				vXTrxLog.setPreviousValue("");
+			}
+			if (vXTrxLog.getAttributeName() != null && vXTrxLog.getAttributeName().equalsIgnoreCase("Password")) {
+				vXTrxLog.setPreviousValue("*********");
+				vXTrxLog.setNewValue("***********");
+			}
+			if (vXTrxLog.getAttributeName() != null
+					&& vXTrxLog.getAttributeName().equalsIgnoreCase("Connection Configurations")) {
+				if (vXTrxLog.getPreviousValue() != null && vXTrxLog.getPreviousValue().contains("password")) {
+					String tempPreviousStr = vXTrxLog.getPreviousValue();
+					String tempPreviousArr[] = vXTrxLog.getPreviousValue().split(",");
+					for (int i = 0; i < tempPreviousArr.length; i++) {
+						if (tempPreviousArr[i].contains("{\"password")) {
+							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i],
+									"{\"password\":\"*****\"}"));
+							break;
+						} else if (tempPreviousArr[i].contains("\"password") && tempPreviousArr[i].contains("}")) {
+							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i],
+									"\"password\":\"******\"}"));
+							break;
+						} else if (tempPreviousArr[i].contains("\"password")) {
+							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i],
+									"\"password\":\"******\""));
+							break;
+						}
+					}
+				}
+				if (vXTrxLog.getNewValue() != null && vXTrxLog.getNewValue().contains("password")) {
+					String tempNewStr = vXTrxLog.getNewValue();
+					String tempNewArr[] = vXTrxLog.getNewValue().split(",");
+					for (int i = 0; i < tempNewArr.length; i++) {
+						if (tempNewArr[i].contains("{\"password")) {
+							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "{\"password\":\"*****\"}"));
+							break;
+						} else if (tempNewArr[i].contains("\"password") && tempNewArr[i].contains("}")) {
+							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "\"password\":\"******\"}"));
+							break;
+						} else if (tempNewArr[i].contains("\"password")) {
+							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "\"password\":\"******\""));
+							break;
+						}
+					}
+				}
+			}
+			vXTrxLogs.add(vXTrxLog);
+		}
+		return vXTrxLogs;
+	}
+
 	public VXTrxLogList getTransactionReport(String transactionId) {
 		List<XXTrxLog> xTrxLogList = xADaoManager.getXXTrxLog()
 				.findByTransactionId(transactionId);
 		VXTrxLogList vXTrxLogList = new VXTrxLogList();
-		List<VXTrxLog> vXTrxLogs = vXTrxLogList.getVXTrxLogs();
-		for (XXTrxLog xTrxLog : xTrxLogList) {
-			VXTrxLog vXTrxLog = xTrxLogService.populateViewBean(xTrxLog);
-			if(vXTrxLog.getPreviousValue()==null || vXTrxLog.getPreviousValue().equalsIgnoreCase("null")){
-				vXTrxLog.setPreviousValue("");
-			}
-			if(vXTrxLog.getAttributeName()!=null && vXTrxLog.getAttributeName().equalsIgnoreCase("Password")){
-				vXTrxLog.setPreviousValue("*********");
-				vXTrxLog.setNewValue("***********");
-			}
-			if(vXTrxLog.getAttributeName()!=null && vXTrxLog.getAttributeName().equalsIgnoreCase("Connection Configurations")){
-				if(vXTrxLog.getPreviousValue()!=null && vXTrxLog.getPreviousValue().contains("password")){
-					String tempPreviousStr=vXTrxLog.getPreviousValue();					
-					String tempPreviousArr[]=vXTrxLog.getPreviousValue().split(",");					
-					for(int i=0;i<tempPreviousArr.length;i++){
-						if(tempPreviousArr[i].contains("{\"password")){
-							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i], "{\"password\":\"*****\"}"));
-							break;
-						}else if(tempPreviousArr[i].contains("\"password") && tempPreviousArr[i].contains("}")){
-							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i], "\"password\":\"******\"}"));
-							break;
-						}else if(tempPreviousArr[i].contains("\"password")){
-							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i], "\"password\":\"******\""));
-							break;
-						}
-					}			
-				}
-				if(vXTrxLog.getNewValue()!=null && vXTrxLog.getNewValue().contains("password")){
-					String tempNewStr=vXTrxLog.getNewValue();
-					String tempNewArr[]=vXTrxLog.getNewValue().split(",");
-					for(int i=0;i<tempNewArr.length;i++){
-						if(tempNewArr[i].contains("{\"password")){
-							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "{\"password\":\"*****\"}"));
-							break;
-						}else if(tempNewArr[i].contains("\"password") && tempNewArr[i].contains("}")){
-							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "\"password\":\"******\"}"));
-							break;
-						}else if(tempNewArr[i].contains("\"password")){
-							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "\"password\":\"******\""));
-							break;
-						}
-					}	
-				}
-			}			
-			vXTrxLogs.add(vXTrxLog);
+		List<VXTrxLog> trxLogList = new ArrayList<VXTrxLog>();
+		
+		for(XXTrxLog xTrxLog : xTrxLogList) {
+			trxLogList.add(xTrxLogService.populateViewBean(xTrxLog));
 		}
+		
+		List<VXTrxLog> vXTrxLogs = validateXXTrxLogList(trxLogList);
+		
 		vXTrxLogList.setVXTrxLogs(vXTrxLogs);
 		return vXTrxLogList;
 	}

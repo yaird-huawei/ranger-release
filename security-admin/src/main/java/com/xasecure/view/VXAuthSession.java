@@ -81,10 +81,7 @@ public class VXAuthSession extends VXDataObject implements java.io.Serializable 
 	 * Family name of the user
 	 */
 	protected String familyScreenName;
-	/**
-	 * External session id. Mostly Spring/HTTP session
-	 */
-	protected String extSessionId;
+	
 	/**
 	 * Date and time of authentication
 	 */
@@ -278,23 +275,6 @@ public class VXAuthSession extends VXDataObject implements java.io.Serializable 
 	}
 
 	/**
-	 * This method sets the value to the member attribute <b>extSessionId</b>.
-	 * You cannot set null to the attribute.
-	 * @param extSessionId Value to set member attribute <b>extSessionId</b>
-	 */
-	public void setExtSessionId( String extSessionId ) {
-		this.extSessionId = extSessionId;
-	}
-
-	/**
-	 * Returns the value for the member attribute <b>extSessionId</b>
-	 * @return String - value of member attribute <b>extSessionId</b>.
-	 */
-	public String getExtSessionId( ) {
-		return this.extSessionId;
-	}
-
-	/**
 	 * This method sets the value to the member attribute <b>authTime</b>.
 	 * You cannot set null to the attribute.
 	 * @param authTime Value to set member attribute <b>authTime</b>
@@ -484,7 +464,6 @@ public class VXAuthSession extends VXDataObject implements java.io.Serializable 
 		str += "lastName={" + lastName + "} ";
 		str += "publicScreenName={" + publicScreenName + "} ";
 		str += "familyScreenName={" + familyScreenName + "} ";
-		str += "extSessionId={" + extSessionId + "} ";
 		str += "authTime={" + authTime + "} ";
 		str += "authStatus={" + authStatus + "} ";
 		str += "authType={" + authType + "} ";

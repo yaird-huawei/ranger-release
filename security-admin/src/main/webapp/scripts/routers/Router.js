@@ -79,7 +79,10 @@ function(Backbone){
 			"!/user/:id"		: "userEditAction",
 			
 			"!/group/create"	: "groupCreateAction",
-			"!/group/:id"		: "groupEditAction"
+			"!/group/:id"		: "groupEditAction",
+			
+			/*************** ERROR PAGE ****************************************/
+			"*actions"					: "pageNotFoundAction"
 		}
 	});
 });
