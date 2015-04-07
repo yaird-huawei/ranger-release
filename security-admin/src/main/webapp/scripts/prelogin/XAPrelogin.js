@@ -74,7 +74,7 @@ function doLogin() {
 			if(location.hash.length > 2)
 				window.location.replace('index.html'+location.hash);
 			else
-				window.location.replace('index.html'+'#!/policymanager');
+				window.location.replace('index.html');
 		},
 		error : function(jqXHR, textStatus, err ) {
 			$('#signIn').removeAttr('disabled');
@@ -84,6 +84,8 @@ function doLogin() {
 				$('#errorBox').hide();
 				$('#errorBoxUnsynced').show();
 			} else {
+				var resp = JSON.parse(jqXHR.responseText);
+				$('#errorBox .errorMsg').text(resp.msgDesc);
 				$('#errorBox').show();
 				$('#errorBoxUnsynced').hide();
 			}

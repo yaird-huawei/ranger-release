@@ -99,7 +99,7 @@
 		},
 		{
 			"id": 4,
-			"name":"certificate.cn",
+			"name":"commonNameForCertificate",
 			"type":"string",
 			"mandatory":false,
 			"validationRegEx":"",
@@ -118,15 +118,14 @@
 	"policyConditions":[
 		{
 			"id": 1,
-			"name":"ip-range",
-			"evaluator":"org.apache.ranger.plugin.conditionevaluator.RangerIpMatcher",
-			"evaluatorOptions":"",
+			"name": "ip-range",
+			"evaluator": "org.apache.ranger.plugin.conditionevaluator.RangerIpMatcher",
+			"evaluatorOptions": { },
 			"validationRegEx":"",
-			"validationMessage":"",
+			"validationMessage": "",
 			"uiHint":"",
-			"label":"IP Address Range",
-			"description":"IP Address Range"
+			"label": "IP Address Range",
+			"description": "IP Address Range"
 		}
-		
 	]
 }

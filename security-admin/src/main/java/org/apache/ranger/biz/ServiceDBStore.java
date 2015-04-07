@@ -96,13 +96,15 @@ import org.apache.ranger.plugin.model.RangerServiceDef.RangerPolicyConditionDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerResourceDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerServiceConfigDef;
 import org.apache.ranger.plugin.store.EmbeddedServiceDefsUtil;
-import org.apache.ranger.plugin.store.ServiceStore;
+import org.apache.ranger.plugin.store.AbstractServiceStore;
 import org.apache.ranger.plugin.util.ServicePolicies;
+import org.apache.ranger.service.RangerPolicyWithAssignedIdService;
 import org.apache.ranger.service.RangerAuditFields;
 import org.apache.ranger.service.RangerDataHistService;
 import org.apache.ranger.service.RangerPolicyService;
 import org.apache.ranger.service.RangerServiceDefService;
 import org.apache.ranger.service.RangerServiceService;
+import org.apache.ranger.service.RangerServiceWithAssignedIdService;
 import org.apache.ranger.service.XUserService;
 import org.apache.ranger.view.RangerPolicyList;
 import org.apache.ranger.view.RangerServiceDefList;
@@ -120,7 +122,7 @@ import org.apache.ranger.plugin.util.SearchFilter;
 
 
 @Component
-public class ServiceDBStore implements ServiceStore {
+public class ServiceDBStore extends AbstractServiceStore {
 	private static final Log LOG = LogFactory.getLog(ServiceDBStore.class);
 
 	@Autowired
@@ -159,6 +161,12 @@ public class ServiceDBStore implements ServiceStore {
     
     @Autowired
     RangerBizUtil bizUtil;
+    
+    @Autowired
+    RangerPolicyWithAssignedIdService assignedIdPolicyService;
+    
+    @Autowired
+    RangerServiceWithAssignedIdService svcServiceWithAssignedId;
 
 	private static volatile boolean legacyServiceDefsInitDone = false;
 	private Boolean populateExistingBaseFields = false;
@@ -391,6 +399,9 @@ public class ServiceDBStore implements ServiceStore {
 		}
 
 		RangerServiceDefList svcDefList = serviceDefService.searchRangerServiceDefs(filter);
+
+		applyFilter(svcDefList.getServiceDefs(), filter);
+
 		List<RangerServiceDef> ret = svcDefList.getServiceDefs();
 
 		if (LOG.isDebugEnabled()) {
@@ -406,6 +417,8 @@ public class ServiceDBStore implements ServiceStore {
 		}
 
 		RangerServiceDefList svcDefList = serviceDefService.searchRangerServiceDefs(filter);
+
+		applyFilter(svcDefList.getServiceDefs(), filter);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getPaginatedServiceDefs(" + filter + ")");
@@ -439,9 +452,9 @@ public class ServiceDBStore implements ServiceStore {
 			service.setVersion(new Long(1));
 			
 			if(populateExistingBaseFields) {
-				svcService.setPopulateExistingBaseFields(true);
-				service = svcService.create(service);
-				svcService.setPopulateExistingBaseFields(false);
+				svcServiceWithAssignedId.setPopulateExistingBaseFields(true);
+				service = svcServiceWithAssignedId.create(service);
+				svcServiceWithAssignedId.setPopulateExistingBaseFields(false);
 				createDefaultPolicy = false;
 			} else {
 				service = svcService.create(service);
@@ -543,9 +556,9 @@ public class ServiceDBStore implements ServiceStore {
 		service.setVersion(version);
 
 		if(populateExistingBaseFields) {
-			svcService.setPopulateExistingBaseFields(true);
-			service = svcService.update(service);
-			svcService.setPopulateExistingBaseFields(false);
+			svcServiceWithAssignedId.setPopulateExistingBaseFields(true);
+			service = svcServiceWithAssignedId.update(service);
+			svcServiceWithAssignedId.setPopulateExistingBaseFields(false);
 		} else {
 			service = svcService.update(service);
 		}
@@ -654,8 +667,16 @@ public class ServiceDBStore implements ServiceStore {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getServices()");
 		}
+
 		RangerServiceList serviceList = svcService.searchRangerServices(filter);
+
+		applyFilter(serviceList.getServices(), filter);
+
 		List<RangerService> ret = serviceList.getServices();
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("<== ServiceDBStore.getServices()");
+		}
 
 		return ret;
 	}
@@ -664,11 +685,15 @@ public class ServiceDBStore implements ServiceStore {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getPaginatedServices()");
 		}
+
 		RangerServiceList serviceList = svcService.searchRangerServices(filter);
+
+		applyFilter(serviceList.getServices(), filter);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDBStore.getPaginatedServices()");
 		}
+
 		return serviceList;
 	}
 
@@ -699,9 +724,9 @@ public class ServiceDBStore implements ServiceStore {
 		policy.setVersion(new Long(1));
 
 		if(populateExistingBaseFields) {
-			policyService.setPopulateExistingBaseFields(true);
-			policy = policyService.create(policy);
-			policyService.setPopulateExistingBaseFields(false);
+			assignedIdPolicyService.setPopulateExistingBaseFields(true);
+			policy = assignedIdPolicyService.create(policy);
+			assignedIdPolicyService.setPopulateExistingBaseFields(false);
 		} else {
 			policy = policyService.create(policy);
 		}
@@ -846,6 +871,9 @@ public class ServiceDBStore implements ServiceStore {
 		}
 
 		RangerPolicyList policyList = policyService.searchRangerPolicies(filter);
+
+		applyFilter(policyList.getPolicies(), filter);
+
 		List<RangerPolicy> ret = policyList.getPolicies();
 
 		if(LOG.isDebugEnabled()) {
@@ -861,6 +889,8 @@ public class ServiceDBStore implements ServiceStore {
 		}
 
 		RangerPolicyList policyList = policyService.searchRangerPolicies(filter);
+
+		applyFilter(policyList.getPolicies(), filter);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDBStore.getPaginatedPolicies()");
@@ -1018,13 +1048,16 @@ public class ServiceDBStore implements ServiceStore {
 			RangerPolicyResource polRes = new RangerPolicyResource();
 			polRes.setIsExcludes(false);
 			polRes.setIsRecursive(false);
-			
-			String value;
+
+			String value = "*";
 			if("path".equalsIgnoreCase(resDef.getName())) {
 				value = "/*";
-			} else {
-				value = "*";
 			}
+
+			if(resDef.getRecursivesupported()) {
+				polRes.setIsRecursive(Boolean.TRUE);
+			}
+
 			polRes.setValue(value);
 			resources.put(resDef.getName(), polRes);
 		}

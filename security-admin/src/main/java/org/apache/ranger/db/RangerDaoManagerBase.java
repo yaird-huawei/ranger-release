@@ -143,7 +143,21 @@ public abstract class RangerDaoManagerBase {
 		if (classType == AppConstants.CLASS_TYPE_XA_DATA_HIST) {
 			return getXXDataHist();
 		}
-		
+		if (classType == AppConstants.CLASS_TYPE_RANGER_POLICY_WITH_ASSIGNED_ID) {
+			return getXXPolicyWithAssignedId();
+		}
+		if (classType == AppConstants.CLASS_TYPE_RANGER_SERVICE_WITH_ASSIGNED_ID) {
+			return getXXServiceWithAssignedId();
+		}
+		if (classType == AppConstants.CLASS_TYPE_RANGER_MODULE_DEF) {
+			return getXXModuleDef();
+		}
+		if (classType == AppConstants.CLASS_TYPE_RANGER_USER_PERMISSION) {
+			return getXXUserPermission();
+		}
+		if (classType == AppConstants.CLASS_TYPE_RANGER_GROUP_PERMISSION) {
+			return getXXUserPermission();
+		}
 		
 		logger.error("No DaoManager found for classType=" + classType, new Throwable());
 		return null;
@@ -254,6 +268,21 @@ public abstract class RangerDaoManagerBase {
 		}
 		if (className.equals("XXDataHist")) {
 			return getXXDataHist();
+		}
+		if (className.equals("XXPolicyWithAssignedId")) {
+			return getXXPolicyWithAssignedId();
+		}
+		if (className.equals("XXServiceWithAssignedId")) {
+			return getXXServiceWithAssignedId();
+		}
+		if (className.equals("XXModuleDef")) {
+			return getXXModuleDef();
+		}
+		if (className.equals("XXUserPermission")) {
+			return getXXUserPermission();
+		}
+		if (className.equals("XXGroupPermission")) {
+			return getXXGroupPermission();
 		}
 		
 		logger.error("No DaoManager found for className=" + className, new Throwable());
@@ -405,6 +434,26 @@ public abstract class RangerDaoManagerBase {
 
 	public XXDataHistDao getXXDataHist() {
 		return new XXDataHistDao(this);
+	}
+	
+	public XXPolicyWithAssignedIdDao getXXPolicyWithAssignedId() {
+		return new XXPolicyWithAssignedIdDao(this);
+	}
+	
+	public XXServiceWithAssignedIdDao getXXServiceWithAssignedId() {
+		return new XXServiceWithAssignedIdDao(this);
+	}
+
+	public XXModuleDefDao getXXModuleDef(){
+		return new XXModuleDefDao(this);
+	}
+
+	public XXUserPermissionDao getXXUserPermission(){
+		return new XXUserPermissionDao(this);
+	}
+
+	public XXGroupPermissionDao getXXGroupPermission(){
+		return new XXGroupPermissionDao(this);
 	}
 
 }

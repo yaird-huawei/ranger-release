@@ -87,6 +87,7 @@
   <module>hive-agent</module>
   <module>knox-agent</module>
   <module>storm-agent</module>
+  <module>plugin-kafka</module>
   <module>plugin-solr</module>
   <module>plugin-yarn</module>
   <module>ranger_solrj</module>
@@ -95,6 +96,7 @@
   <module>unixauthclient</module>
   <module>unixauthservice</module>
   <module>ranger-util</module>
+  <module>plugin-kms</module>
   </modules>
   <properties>
         <javac.source.version>1.7</javac.source.version>
@@ -376,7 +378,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.17</version>
         <configuration>
-           <argLine>-Djava.library.path=${hadoop.library.path}${path.separator}${java.library.path}</argLine>
+           <argLine>-Djava.library.path="${hadoop.library.path}${path.separator}${java.library.path}"</argLine>
            <skipTests>${skipTests}</skipTests>
            <encoding>UTF-8</encoding>
            <systemProperties>
@@ -397,6 +399,7 @@
              <descriptor>src/main/assembly/hbase-agent.xml</descriptor>
              <descriptor>src/main/assembly/knox-agent.xml</descriptor>
              <descriptor>src/main/assembly/storm-agent.xml</descriptor>
+	     <descriptor>src/main/assembly/plugin-kafka.xml</descriptor>
              <descriptor>src/main/assembly/plugin-yarn.xml</descriptor>
 	     <descriptor>src/main/assembly/plugin-solr.xml</descriptor>
              <descriptor>src/main/assembly/admin-web.xml</descriptor>
@@ -404,6 +407,7 @@
              <descriptor>src/main/assembly/migration-util.xml</descriptor>
              <descriptor>src/main/assembly/kms.xml</descriptor>
              <descriptor>src/main/assembly/ranger-src.xml</descriptor>
+	     <descriptor>src/main/assembly/plugin-kms.xml</descriptor>
            </descriptors>
          </configuration>
       </plugin>

@@ -30,6 +30,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ranger.plugin.client.HadoopException;
 import org.apache.ranger.plugin.model.RangerService;
 import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.service.RangerBaseService;
@@ -94,8 +95,14 @@ public class ServiceMgr {
 
 				ret = generateResponseForTestConn(responseData, "");
 			} catch (Exception e) {
+				String msg = "Unable to connect repository with given config for " + svc.getServiceName();
+						
+				HashMap<String, Object> respData = new HashMap<String, Object>();
+				if (e instanceof HadoopException) {
+					respData = ((HadoopException) e).responseData;
+				}
+				ret = generateResponseForTestConn(respData, msg);
 				LOG.error("==> ServiceMgr.validateConfig Error:" + e);
-				throw e;
 			} finally {
 				Thread.currentThread().setContextClassLoader(clsLoader);
 			}
@@ -280,19 +287,33 @@ public class ServiceMgr {
 			HashMap<String, Object> responseData, String msg) {
 		VXResponse vXResponse = new VXResponse();
 
-		Long objId = (responseData.get("objectId") != null) ? Long
-				.parseLong(responseData.get("objectId").toString()) : null;
-		boolean connectivityStatus = (responseData.get("connectivityStatus") != null) ? Boolean
-				.parseBoolean(responseData.get("connectivityStatus").toString())
-				: false;
-		int statusCode = (connectivityStatus) ? VXResponse.STATUS_SUCCESS
-				: VXResponse.STATUS_ERROR;
-		String message = (responseData.get("message") != null) ? responseData
-				.get("message").toString() : msg;
-		String description = (responseData.get("description") != null) ? responseData
-				.get("description").toString() : msg;
-		String fieldName = (responseData.get("fieldName") != null) ? responseData
-				.get("fieldName").toString() : null;
+		Long objId = null;
+		boolean connectivityStatus = false;
+		int statusCode = VXResponse.STATUS_ERROR;
+		String message = msg;
+		String description = msg;
+		String fieldName = null;
+
+		if (responseData != null) {
+			if (responseData.get("objectId") != null) {
+				objId = Long.parseLong(responseData.get("objectId").toString());
+			}
+			if (responseData.get("connectivityStatus") != null) {
+				connectivityStatus = Boolean.parseBoolean(responseData.get("connectivityStatus").toString());
+			}
+			if (connectivityStatus) {
+				statusCode = VXResponse.STATUS_SUCCESS;
+			}
+			if (responseData.get("message") != null) {
+				message = responseData.get("message").toString();
+			}
+			if (responseData.get("description") != null) {
+				description = responseData.get("description").toString();
+			}
+			if (responseData.get("fieldName") != null) {
+				fieldName = responseData.get("fieldName").toString();
+			}
+		}
 
 		VXMessage vXMsg = new VXMessage();
 		List<VXMessage> vXMsgList = new ArrayList<VXMessage>();
