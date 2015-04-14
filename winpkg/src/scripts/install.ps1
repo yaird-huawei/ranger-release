@@ -105,7 +105,7 @@ function Main( $scriptDir )
 		"dfs.permissions" = "true"
 	}
     ###
-    ### Apply configuration changes to xasecure-audit.xml
+    ### Apply configuration changes to ranger-hdfs-audit.xml
     ###
 	$hdfsAuditChanges = @{
 		"xasecure.audit.db.is.enabled"                          = "true"
@@ -130,7 +130,7 @@ function Main( $scriptDir )
 
 	}
     ###
-    ### Apply configuration changes to xasecure-hdfs-security.xml
+    ### Apply configuration changes to ranger-hdfs-security.xml
     ###
 	$hdfsSecurityChanges = @{
 		"hdfs.authorization.verifier.classname"					= "org.apache.ranger.pdp.hdfs.RangerAuthorizer"
@@ -182,9 +182,9 @@ function Main( $scriptDir )
 	}
 
     ####
-    #### Apply configuration changes to xasecure-audit.xml
+    #### Apply configuration changes to ranger-hive-audit.xml
     ####
-    #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "xasecure-audit.xml"
+    #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "ranger-hive-audit.xml"
     $hiveAuditChanges = @{
         "xasecure.audit.db.is.enabled"                          = "true"
         "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
@@ -209,10 +209,10 @@ function Main( $scriptDir )
 	}
 
     ####
-    #### Apply configuration changes to xasecure-hive-security.xml
+    #### Apply configuration changes to ranger-hive-security.xml
     ####
 	#
-    #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "xasecure-hive-security.xml"
+    #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "ranger-hive-security.xml"
 	#
     $hiveSecurityChanges = @{
 		"hive.authorization.verifier.classname"					= "org.apache.ranger.pdp.hive.RangerAuthorizer"
@@ -257,9 +257,9 @@ function Main( $scriptDir )
 		}
 
 	    ####
-	    #### Apply configuration changes to xasecure-audit.xml
+	    #### Apply configuration changes to ranger-hbase-audit.xml
 	    ####
-	    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml"
+	    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "ranger-hbase-audit.xml"
 	    $hbaseAuditChanges =   @{
 	        "xasecure.audit.db.is.enabled"                          = "false"
 	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
@@ -285,10 +285,10 @@ function Main( $scriptDir )
 		}
 
 	    ####
-	    #### Apply configuration changes to xasecure-hbase-security.xml
+	    #### Apply configuration changes to ranger-hbase-security.xml
 	    ####
 		#
-	    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-hbase-security.xml"
+	    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "ranger-hbase-security.xml"
 		#
 	    $hbaseSecurityChanges =     @{
 			"hbase.authorization.verifier.classname"				= "org.apache.ranger.pdp.hbase.RangerAuthorizer"
@@ -327,9 +327,9 @@ function Main( $scriptDir )
 		Install "ranger-knox" $nodeInstallRoot $serviceCredential $roles
 
 	    ####
-	    #### Apply configuration changes to xasecure-audit.xml
+	    #### Apply configuration changes to ranger-knox-audit.xml
 	    ####
-	    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "xasecure-audit.xml"
+	    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "ranger-knox-audit.xml"
 	    $knoxAuditChanges =   @{
 	        "xasecure.audit.db.is.enabled"                          = "true"
 	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
@@ -355,10 +355,10 @@ function Main( $scriptDir )
 		}
 
 	    ####
-	    #### Apply configuration changes to xasecure-knox-security.xml
+	    #### Apply configuration changes to ranger-knox-security.xml
 	    ####
 		#
-	    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "xasecure-knox-security.xml"
+	    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "ranger-knox-security.xml"
 		#
 	    $knoxSecurityChanges =     @{
 			"knox.authorization.verifier.classname"				= "org.apache.ranger.pdp.knox.RangerAuthorizer"

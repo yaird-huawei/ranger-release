@@ -168,9 +168,13 @@ function InstallRangerCore(
 			Invoke-CmdChk $cmd
 
 			Write-Log "Configuring Ranger"
-			$cmd = "python $rangerInstallToBin\service_start.py --configure"
+			#$cmd = "python $rangerInstallToBin\service_start.py --configure"
+            #if ($ENV:SETUP_MODE -eq "TRUE"){
+            # $cmd = "python ${ENV:RANGER_ADMIN_HOME}\dba_script.py -q"
+            # Invoke-CmdChk $cmd
+            #}
+            $cmd = "python ${ENV:RANGER_ADMIN_HOME}\db_setup.py"
 			Invoke-CmdChk $cmd
-
 		}
 		### end of roles loop
 	}
@@ -1227,15 +1231,15 @@ function ConfigureRangerHdfs(
     UpdateXmlConfig $xmlFile $configs["hdfsChanges"]
 
     ###
-    ### Apply configuration changes to xasecure-audit.xml
+    ### Apply configuration changes to ranger-hdfs-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-audit.xml"
+    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "ranger-hdfs-audit.xml"
     UpdateXmlConfig $xmlFile $configs["hdfsAuditChanges"]
 
     ###
-    ### Apply configuration changes to xasecure-hdfs-security.xml
+    ### Apply configuration changes to ranger-hdfs-security.xml
     ###
-    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "xasecure-hdfs-security.xml"
+    $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "ranger-hdfs-security.xml"
     UpdateXmlConfig $xmlFile $configs["hdfsSecurityChanges"]
 
 
@@ -1285,15 +1289,15 @@ function ConfigureRangerHive(
     UpdateXmlConfig $xmlFile $configs["hiveServerChanges"]
 
     ###
-    ### Apply configuration changes to xasecure-hive-security.xml
+    ### Apply configuration changes to ranger-hive-security.xml
     ###
-    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\xasecure-hive-security.xml"
+    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\ranger-hive-security.xml"
     UpdateXmlConfig $xmlFile $configs["hiveSecurityChanges"]
 
     ###
-    ### Apply configuration changes to xasecure-audit.xml
+    ### Apply configuration changes to ranger-hive-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\xasecure-audit.xml"
+    $xmlFile = Join-Path $ENV:HIVE_HOME "conf\ranger-hive-audit.xml"
     UpdateXmlConfig $xmlFile $configs["hiveAuditChanges"]
 
  }
@@ -1329,15 +1333,15 @@ function ConfigureRangerHbase(
     UpdateXmlConfig $xmlFile $configs["hbaseChanges"]
 
     ###
-    ### Apply configuration changes to xasecure-hbase-security.xml
+    ### Apply configuration changes to ranger-hbase-security.xml
     ###
-    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-hbase-security.xml"
+    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "ranger-hbase-security.xml"
     UpdateXmlConfig $xmlFile $configs["hbaseSecurityChanges"]
 
     ###
-    ### Apply configuration changes to xasecure-audit.xml
+    ### Apply configuration changes to ranger-hbase-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "xasecure-audit.xml"
+    $xmlFile = Join-Path $ENV:HBASE_CONF_DIR "ranger-hbase-audit.xml"
     UpdateXmlConfig $xmlFile $configs["hbaseAuditChanges"]
 
 
@@ -1369,15 +1373,15 @@ function ConfigureRangerKnox(
 {
 
     ###
-    ### Apply configuration changes to xasecure-hbase-security.xml
+    ### Apply configuration changes to ranger-hbase-security.xml
     ###
-    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-knox-security.xml"
+    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\ranger-knox-security.xml"
     UpdateXmlConfig $xmlFile $configs["knoxSecurityChanges"]
 
     ###
-    ### Apply configuration changes to xasecure-audit.xml
+    ### Apply configuration changes to ranger-knox-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\xasecure-audit.xml"
+    $xmlFile = Join-Path $ENV:KNOX_HOME "conf\ranger-knox-audit.xml"
     UpdateXmlConfig $xmlFile $configs["knoxAuditChanges"]
 
 	### TODO: Find a better way
@@ -1418,15 +1422,15 @@ function ConfigureRangerStorm(
 {
 
     ###
-    ### Apply configuration changes to xasecure-hbase-security.xml
+    ### Apply configuration changes to ranger-hbase-security.xml
     ###
-    $xmlFile = Join-Path $ENV:STORM_HOME "conf\xasecure-storm-security.xml"
+    $xmlFile = Join-Path $ENV:STORM_HOME "conf\ranger-storm-security.xml"
     UpdateXmlConfig $xmlFile $configs["stormSecurityChanges"]
 
     ###
-    ### Apply configuration changes to xasecure-audit.xml
+    ### Apply configuration changes to ranger-storm-audit.xml
     ###
-    $xmlFile = Join-Path $ENV:STORM_HOME "conf\xasecure-audit.xml"
+    $xmlFile = Join-Path $ENV:STORM_HOME "conf\ranger-storm-audit.xml"
     UpdateXmlConfig $xmlFile $configs["stormAuditChanges"]
 
 
