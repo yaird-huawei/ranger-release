@@ -1385,46 +1385,6 @@ function ConfigureRangerKnox(
 	Get-ChildItem -recurse -path $path -filter '*.xml' | % {
 		ReplaceString $_.FullName 'AclsAuthz' 'XASecurePDPKnox'
 	}
-    ###
-    ### Creating a hdpargus.xml topology
-    ###
-    Copy-Item -Path "$ENV:KNOX_HOME\conf\topologies\sandbox.xml" -Destination "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml" -Force -ErrorAction Stop
-    UpdateHdpArgusConfig "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml"
-
-    $configs = @{
-    "NAMENODE"="hdfs://${ENV:NAMENODE_HOST}:8020"
-    "JOBTRACKER"="rpc://${ENV:RESOURCEMANAGER_HOST}:8032"
-    "WEBHDFS"="hdfs://${ENV:NAMENODE_HOST}:50070/webhdfs"
-    "WEBHCAT"="hdfs://${ENV:WEBHCAT_HOST}:50111/templeton"
-    "OOZIE"="hdfs://${ENV:OOZIE_SERVER_HOST}:11000/oozie"
-    "HIVE"="hdfs://${ENV:HIVE_SERVER_HOST}:10001/cliservice"
-    "RESOURCEMANAGER"="hdfs://${ENV:RESOURCEMANAGER_HOST}:8088/ws"
-    }
-    if ("$ENV:HBASE" -eq "yes")
-    {
-        $configs+=@{
-        "WEBHBASE"="hdfs://${ENV:HBASE_MASTER}:8080"
-        }
-    }
-    UpdateKnoxArgusXmlConfig "$ENV:KNOX_HOME\conf\topologies\hdpargus.xml" $configs
-    
-    ###
-    ### Create and import Knox certificate
-    ###
-    Write-Log "Creating Knox certificate" 
-    $cmd = "echo $ENV:KNOX_MASTER_SECRET|%JAVA_HOME%\bin\keytool -export -alias gateway-identity -file $ENV:RANGER_ADMIN_HOME\knox.crt -keystore $ENV:KNOX_HOME\data\security\keystores\gateway.jks" 
-    Invoke-Cmd $cmd
-    if (-not (Test-Path $ENV:RANGER_ADMIN_HOME\knox.crt))
-    {
-        throw "Knox certificate creation failed"
-    }
-    
-    Write-Log "Importing Knox certificate" 
-    Copy-Item -Path "$ENV:JAVA_HOME\jre\lib\security\cacerts" -Destination "$ENV:RANGER_ADMIN_HOME\cacertswithknox" -ErrorAction Stop -Force
-    Out-File -FilePath "$ENV:RANGER_ADMIN_HOME\changeit.yes.txt" -InputObject "changeit`r`n`yes" -Force -ErrorAction Stop -Encoding Default
-    $cmd = "%JAVA_HOME%\bin\keytool -import -trustcacerts -file $ENV:RANGER_ADMIN_HOME\knox.crt -alias knox -keystore $ENV:RANGER_ADMIN_HOME\cacertswithknox `< $ENV:RANGER_ADMIN_HOME\changeit.yes.txt" 
-    Invoke-Cmd $cmd
-    Remove-Item -Path "$ENV:RANGER_ADMIN_HOME\changeit.yes.txt" -Force -ErrorAction SilentlyContinue
 
  }
 
@@ -1714,43 +1674,6 @@ function empty-null($obj)
    if ($obj -ne $null) { $obj }
 }
 
-function UpdateKnoxArgusXmlConfig(
-    [string]
-    [parameter( Position=0, Mandatory=$true )]
-    $fileName,
-    [hashtable]
-    [parameter( Position=1 )]
-    $config = @{} )
-{
-    $xml = New-Object System.Xml.XmlDocument
-    $xml.PreserveWhitespace = $true
-    $xml.Load($fileName)
-
-    foreach( $key in empty-null $config.Keys )
-    {
-        $value = $config[$key]
-        $found = $False
-        $xml.SelectNodes('/topology/service') | ? { $_.role -eq $key } | % { $_.url = $value; $found = $True }
-        if ( -not $found )
-        {
-            $xml["configuration"].AppendChild($xml.CreateWhitespace("`r`n  ")) | Out-Null
-            $newItem = $xml.CreateElement("property")
-            $newItem.AppendChild($xml.CreateWhitespace("`r`n    ")) | Out-Null
-            $newItem.AppendChild($xml.CreateElement("name")) | Out-Null
-            $newItem.AppendChild($xml.CreateWhitespace("`r`n    ")) | Out-Null
-            $newItem.AppendChild($xml.CreateElement("value")) | Out-Null
-            $newItem.AppendChild($xml.CreateWhitespace("`r`n  ")) | Out-Null
-            $newItem.name = $key
-            $newItem.value = $value
-            $xml["configuration"].AppendChild($newItem) | Out-Null
-            $xml["configuration"].AppendChild($xml.CreateWhitespace("`r`n")) | Out-Null
-        }
-    }
-
-    $xml.Save($fileName)
-    $xml.ReleasePath
-}
-
 ### Helper routine that updates the given fileName XML file with the given
 ### key/value configuration values. The XML file is expected to be in the
 ### Hadoop format. For example:
@@ -1792,34 +1715,6 @@ function UpdateXmlConfig(
         }
     }
 
-    $xml.Save($fileName)
-    $xml.ReleasePath
-}
-
-function UpdateHdpArgusConfig(
-    [string]
-    [parameter( Position=0, Mandatory=$true )]
-    $fileName
-    )
-{
-    $xml = New-Object System.Xml.XmlDocument
-    $xml.PreserveWhitespace = $true
-    $xml.Load($fileName)
-    $nodes = $xml.SelectSingleNode('/topology/gateway')
-    $newItem = $xml.CreateElement("provider")
-    $newItem.AppendChild($xml.CreateSignificantWhitespace("`r`n    ")) | Out-Null
-    $newItem.AppendChild($xml.CreateElement("role")) | Out-Null
-    $newItem.AppendChild($xml.CreateSignificantWhitespace("`r`n    ")) | Out-Null
-    $newItem.AppendChild($xml.CreateElement("name")) | Out-Null
-    $newItem.AppendChild($xml.CreateSignificantWhitespace("`r`n  ")) | Out-Null
-    $newItem.AppendChild($xml.CreateElement("enabled")) | Out-Null
-    $newItem.AppendChild($xml.CreateSignificantWhitespace("`r`n  ")) | Out-Null
-    $newItem.role = "authorization"
-    $newItem.name = "XASecurePDPKnox"
-    $newItem.enabled = "true"
-    $nodes.AppendChild($xml.CreateSignificantWhitespace("`r`n  ")) | Out-Null
-    $nodes.AppendChild($newItem) | Out-Null
-    $nodes.AppendChild($xml.CreateSignificantWhitespace("`r`n")) | Out-Null
     $xml.Save($fileName)
     $xml.ReleasePath
 }

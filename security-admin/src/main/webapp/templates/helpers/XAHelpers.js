@@ -153,7 +153,7 @@
 	
 	
 	Handlebars.registerHelper('tt', function(str) {
-		return localization.tt(str);
+		return localization.tt(_.escape(str));
 		return str;
 	});
 	
@@ -371,14 +371,14 @@
 		var html='';
 		if(hightlightValue == 'new'){
 			if(_.isNull(oldValue) || oldValue == '--' || oldValue == "" || _.isUndefined(oldValue)){
-				html = '<span class="add-text">'+newValue+'</span>';
+				html = '<span class="add-text">'+_.escape(newValue)+'</span>';
 			}else
-				html = '<span class="">'+newValue+'</span>';
+				html = '<span class="">'+_.escape(newValue)+'</span>';
 		}else{
 			if(_.isNull(newValue) || newValue == '--' || newValue == ""){
-				html = '<span class="delete-text">'+oldValue+'</span>';
+				html = '<span class="delete-text">'+_.escape(oldValue)+'</span>';
 			}else
-				html = '<span class="">'+oldValue+'</span>';
+				html = '<span class="">'+_.escape(oldValue)+'</span>';
 		}
 	    return html;
 	});
@@ -386,14 +386,14 @@
 		var html='';
 		if(hightlightValue == 'new'){
 			if(_.isNull(oldValue[prop]) || oldValue[prop] == ""){
-				html = '<span class="add-text">'+newValue+'</span>';
+				html = '<span class="add-text">'+_.escape(newValue)+'</span>';
 			}else
-				html = '<span class="">'+newValue+'</span>';
+				html = '<span class="">'+_.escape(newValue)+'</span>';
 		}else{
 			if(_.isNull(oldValue[prop]) || oldValue[prop] == ""){
-				html = '<span class="delete-text">'+newValue+'</span>';
+				html = '<span class="delete-text">'+_.escape(newValue)+'</span>';
 			}else
-				html = '<span class="">'+newValue+'</span>';
+				html = '<span class="">'+_.escape(newValue)+'</span>';
 		}
 	    return html;
 	});

@@ -245,7 +245,7 @@ define(function(require){
 //					attrs = ['userName','passwordKeytabfile','authorization', 'authentication', 'auth_to_local', 'datanode', 'namenode', 'secNamenode',
 //								'masterKerberos','rpcEngine','rpcProtection','securityAuthentication','zookeeperProperty','zookeeperQuorum','zookeeperZnodeParent','commonnameforcertificate'];
 					attrs = ['userName','passwordKeytabfile', 'authentication', 'masterKerberos',
-					         'securityAuthentication','zookeeperProperty','zookeeperQuorum','zookeeperZnodeParent'];
+					         'securityAuthentication','zookeeperProperty','zookeeperQuorum','zookeeperZnodeParent', 'commonnameforcertificate'];
 					break;
 				case XAEnums.AssetType.ASSET_KNOX.value :
 					attrs = ['userName','passwordKeytabfile','knoxUrl','commonnameforcertificate'];
@@ -312,7 +312,7 @@ define(function(require){
 					this.fields.hadoopRpcProtection.$el.hide();
 					this.fields.rpcEngine.$el.hide();
 					this.fields.rpcProtection.$el.hide();
-					this.fields.commonnameforcertificate.$el.hide();
+					//this.fields.commonnameforcertificate.$el.hide();
 					break;
 				case XAEnums.AssetType.ASSET_KNOX.value :
 					this.fields.fsDefaultName.editor.validators = this.removeElementFromArr(this.fields.fsDefaultName.editor.validators , 'required');

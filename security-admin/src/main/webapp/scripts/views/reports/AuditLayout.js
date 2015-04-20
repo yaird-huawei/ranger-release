@@ -615,17 +615,17 @@ define(function(require) {
 							var html = '';
 							var label = XAUtils.enumValueToLabel(XAEnums.ClassTypes,rawValue);
 							if(rawValue == XAEnums.ClassTypes.CLASS_TYPE_XA_ASSET.value)
-								html = 	'Repository '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'Repository '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue == XAEnums.ClassTypes.CLASS_TYPE_XA_RESOURCE.value)
-								html = 	'Policy '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'Policy '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue == XAEnums.ClassTypes.CLASS_TYPE_XA_USER.value)
-								html = 	'User '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'User '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue == XAEnums.ClassTypes.CLASS_TYPE_XA_GROUP.value)
-								html = 	'Group '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'Group '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue  == XAEnums.ClassTypes.CLASS_TYPE_USER_PROFILE.value)
-								html = 	'User profile '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'User profile '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							if(rawValue  == XAEnums.ClassTypes.CLASS_TYPE_PASSWORD_CHANGE.value)
-								html = 	'User profile '+action+'d '+'<b>'+name+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
+								html = 	'User profile '+action+'d '+'<b>'+_.escape(name)+'</b>';//'<a tabindex="-1" href="javascript:;" title="'+name+'">'+name+'</a>';
 							return html;
 						}
 					})
@@ -758,8 +758,8 @@ define(function(require) {
 								var repoType = model.get('repoType');
 								_.each(_.toArray(XAEnums.AssetType),function(m){
 									if(parseInt(repoType) == m.value){
-										html =  '<div title="'+rawValue+'">'+rawValue+'</div>\
-										<div title="'+rawValue+'" style="border-top: 1px solid #ddd;">'+m.label+'</div>';
+										html =  '<div title="'+_.escape(rawValue)+'">'+_.escape(rawValue)+'</div>\
+										<div title="'+_.escape(rawValue)+'" style="border-top: 1px solid #ddd;">'+_.escape(m.label)+'</div>';
 										return ;
 									}	
 								});
@@ -803,7 +803,7 @@ define(function(require) {
 						editable:false,
 						formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 							fromRaw: function (rawValue) {
-								return _.isUndefined(rawValue) ? '--': '<span title="'+rawValue+'">'+rawValue+'</span>';  
+								return _.isUndefined(rawValue) ? '--': '<span title="'+_.escape(rawValue)+'">'+_.escape(rawValue)+'</span>';  
 							}
 						})
 					},
@@ -1113,8 +1113,8 @@ define(function(require) {
 							return _.isUndefined(rawValue) ? '--': 
 								/*'<div data-id="'+model.id+'" data-container="body" data-toggle="popover" data-placement="right" data-content="'+rawValue+'" style="cursor:pointer;">\
 									'+rawValue+'</div>';*/
-							'<span title="'+rawValue
-							+'" class="showMore">'+rawValue+'</span>';
+							'<span title="'+_.escape(rawValue)
+							+'" class="showMore">'+_.escape(rawValue)+'</span>';
 						}
 					})
 				},
@@ -1168,7 +1168,7 @@ define(function(require) {
 						sortable:false,
 						formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 							fromRaw: function (rawValue, model) {
-								return '<span title="'+rawValue+'">'+rawValue+'</span>';
+								return '<span title="'+_.escape(rawValue)+'">'+_.escape(rawValue)+'</span>';
 							}
 						}),
 						

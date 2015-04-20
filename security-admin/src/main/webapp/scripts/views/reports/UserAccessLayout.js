@@ -424,7 +424,7 @@ define(function(require) {'use strict';
 					sortable : false,
 					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 						fromRaw: function (rawValue) {
-							return _.isUndefined(rawValue) ? '--': '<span title="'+rawValue+'">'+rawValue+'</span>';  
+							return _.isUndefined(rawValue) ? '--': '<span title="'+_.escape(rawValue)+'">'+_.escape(rawValue)+'</span>';  
 						}
 					})
 				},
