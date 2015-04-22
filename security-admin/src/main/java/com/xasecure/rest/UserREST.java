@@ -185,7 +185,6 @@ public class UserREST {
 	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public VXPortalUser createDefaultAccountUser(VXPortalUser userProfile,
 			@Context HttpServletRequest servletRequest) {
-		logger.info("create:" + userProfile.getEmailAddress());
 		return userManager.createDefaultAccountUser(userProfile);
 	}
 

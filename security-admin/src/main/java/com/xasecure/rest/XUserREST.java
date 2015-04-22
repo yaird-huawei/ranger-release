@@ -112,6 +112,7 @@ public class XUserREST {
 	@POST
 	@Path("/groups")
 	@Produces({ "application/xml", "application/json" })
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public VXGroup createXGroup(VXGroup vXGroup) {
 		return xUserMgr.createXGroupWithoutLogin(vXGroup);
 	}
@@ -119,6 +120,7 @@ public class XUserREST {
 	@POST
 	@Path("/secure/groups")
 	@Produces({ "application/xml", "application/json" })
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public VXGroup secureCreateXGroup(VXGroup vXGroup) {
 		return xUserMgr.createXGroup(vXGroup);
 	}
@@ -195,6 +197,7 @@ public class XUserREST {
 	@POST
 	@Path("/users")
 	@Produces({ "application/xml", "application/json" })
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public VXUser createXUser(VXUser vXUser) {
 		return xUserMgr.createXUserWithOutLogin(vXUser);
 	}
@@ -202,6 +205,7 @@ public class XUserREST {
 	@POST
 	@Path("/users/userinfo")
 	@Produces({ "application/xml", "application/json" })
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public VXUserGroupInfo createXUserGroupFromMap(VXUserGroupInfo vXUserGroupInfo) {
 		return  xUserMgr.createXUserGroupFromMap(vXUserGroupInfo);
 	}
@@ -209,6 +213,7 @@ public class XUserREST {
 	@POST
 	@Path("/secure/users")
 	@Produces({ "application/xml", "application/json" })
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public VXUser secureCreateXUser(VXUser vXUser) {
 		return xUserMgr.createXUser(vXUser);
 	}
@@ -281,6 +286,7 @@ public class XUserREST {
 	@POST
 	@Path("/groupusers")
 	@Produces({ "application/xml", "application/json" })
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public VXGroupUser createXGroupUser(VXGroupUser vXGroupUser) {
 		return xUserMgr.createXGroupUser(vXGroupUser);
 	}
@@ -547,6 +553,7 @@ public class XUserREST {
 	//
 	@DELETE
 	@Path("/group/{groupName}/user/{userName}")
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public void deleteXGroupAndXUser(@PathParam("groupName") String groupName,
 			@PathParam("userName") String userName,
 			@Context HttpServletRequest request) {
