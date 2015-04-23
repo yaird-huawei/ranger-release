@@ -48,6 +48,8 @@
 					<include>org.apache.hadoop:hadoop-common</include>
 					<include>org.apache.commons:commons-csv</include>
 					<include>org.apache.ranger:credentialbuilder</include>
+					<include>commons-io:commons-io:jar:${commons.io.version}</include>
+					<include>org.apache.htrace:htrace-core</include>
 				</includes>
 				<unpack>false</unpack>
   			</dependencySet>

@@ -94,6 +94,8 @@
                     <include>org.slf4j:slf4j-api</include>
                     <include>org.apache.hadoop:hadoop-common</include>
                     <include>org.apache.hadoop:hadoop-auth</include>
+                    <include>commons-io:commons-io:jar:${commons.io.version}</include>
+                    <include>org.apache.htrace:htrace-core</include>
 				</includes>
             </dependencySet>
         </dependencySets>
