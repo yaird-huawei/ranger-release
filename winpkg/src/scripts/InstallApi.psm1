@@ -170,11 +170,14 @@ function InstallRangerCore(
 			Write-Log "Configuring Ranger"
 			#$cmd = "python $rangerInstallToBin\service_start.py --configure"
             #if ($ENV:SETUP_MODE -eq "TRUE"){
-            # $cmd = "python ${ENV:RANGER_ADMIN_HOME}\dba_script.py -q"
-            # Invoke-CmdChk $cmd
+              $cmd = "python ${ENV:RANGER_ADMIN_HOME}\dba_script.py -q"
+              Invoke-CmdChk $cmd
             #}
             $cmd = "python ${ENV:RANGER_ADMIN_HOME}\db_setup.py"
 			Invoke-CmdChk $cmd
+            $cmd = "python ${ENV:RANGER_ADMIN_HOME}\db_setup.py -javapatch"
+			Invoke-CmdChk $cmd
+                        
 		}
 		### end of roles loop
 	}
