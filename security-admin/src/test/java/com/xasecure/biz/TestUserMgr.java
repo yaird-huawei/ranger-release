@@ -109,6 +109,7 @@ public class TestUserMgr {
 
 	@Test
 	public void test11CreateUser() {
+		setup();
 		XXPortalUserDao userDao = Mockito.mock(XXPortalUserDao.class);
 		XXPortalUserRoleDao roleDao = Mockito.mock(XXPortalUserRoleDao.class);
 
@@ -159,6 +160,7 @@ public class TestUserMgr {
 
 	@Test
 	public void test12CreateUser() {
+		setup();
 		XXPortalUserDao userDao = Mockito.mock(XXPortalUserDao.class);
 		XXPortalUserRoleDao roleDao = Mockito.mock(XXPortalUserRoleDao.class);
 
