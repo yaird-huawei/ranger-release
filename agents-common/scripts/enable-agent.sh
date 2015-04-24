@@ -402,8 +402,8 @@ fi
 if [ "${action}" = "enable" ]
 then
 
-	if [ -d "${PROJ_LIB_DIR}" ]
-	then
+	#if [ -d "${PROJ_LIB_DIR}" ]
+	#then
 		dt=`date '+%Y%m%d%H%M%S'`
 		dbJar=`grep '^SQL_CONNECTOR_JAR' ${INSTALL_ARGS} | awk -F= '{ print $2 }'`
 		for f in ${PROJ_LIB_DIR}/*.jar ${dbJar}
@@ -422,7 +422,7 @@ then
 				fi
 			fi
 		done
-	fi
+	#fi
 
 	#
 	# Encrypt the password and keep it secure in Credential Provider API
