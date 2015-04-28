@@ -307,9 +307,6 @@ function Main( $scriptDir )
 	    $configs.Add("hbaseSecurityChanges",$hbaseSecurityChanges)
 	    Configure "ranger-hbase" $nodeInstallRoot $serviceCredential $configs
 	    Write-Log "Installation of ranger-hbase completed successfully"
-
-	    Configure "ranger-hbase" $nodeInstallRoot $serviceCredential $configs
-	    Write-Log "Installation of ranger-hbase completed successfully"
 	} else {
 	    Write-Log "Not installing ranger-hbase, since HBase is not installed"
 	}
@@ -376,10 +373,6 @@ function Main( $scriptDir )
 	    $configs.Add("knoxSecurityChanges",$knoxSecurityChanges)
 	    Configure "ranger-knox" $nodeInstallRoot $serviceCredential $configs
 	    Write-Log "Installation of ranger-knox completed successfully"
-
-	    Configure "ranger-knox" $nodeInstallRoot $serviceCredential $configs
-		Write-Log "Installation of ranger-knox completed successfully"
-
 	} else {
 	    Write-Log "Not installing ranger-knox, since Knox is not installed"
 	}

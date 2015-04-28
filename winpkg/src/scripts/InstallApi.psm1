@@ -1807,7 +1807,7 @@ function CreateJCEKS (
 {
 
 	Write-Log "Creating alias $alias in jceks file : $jceksFile"
-    $cmd = "${ENV:JAVA_HOME}\bin\java -cp `"${libPath}\*`" org.apache.ranger.credentialapi.buildks create `"${alias}`" -value `"${password}`" -provider `"jceks://file/${jceksFile}`" "
+    $cmd = "${ENV:JAVA_HOME}\bin\java -cp `"${libPath}\*;`" org.apache.ranger.credentialapi.buildks create `"${alias}`" -value `"${password}`" -provider `"jceks://file/${jceksFile}`" "
 	Invoke-Cmd $cmd
 
 }
