@@ -17,7 +17,7 @@
  * under the License.
  */
 
- package org.apache.ranger.authentication.unix.jaas;
+package org.apache.ranger.authentication.unix.jaas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,23 +50,29 @@ import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
-public class RemoteUnixLoginModule implements LoginModule {
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 	
+public class RemoteUnixLoginModule implements LoginModule {
 	
 	private static final String REMOTE_UNIX_AUTHENICATION_CONFIG_FILE_PARAM = "configFile";
 
-	private static final String DEBUG_PARAM = "debug";
-	private static final String REMOTE_LOGIN_HOST_PARAM = "authServiceHostName";
-	private static final String REMOTE_LOGIN_AUTH_SERVICE_PORT_PARAM = "authServicePort";
-	private static final String SSL_KEYSTORE_PATH_PARAM = "keyStore";
-	private static final String SSL_KEYSTORE_PATH_PASSWORD_PARAM = "keyStorePassword";
-	private static final String SSL_TRUSTSTORE_PATH_PARAM = "trustStore";
-	private static final String SSL_TRUSTSTORE_PATH_PASSWORD_PARAM = "trustStorePassword";
-	private static final String SSL_ENABLED_PARAM = "sslEnabled";
-	private static final String SERVER_CERT_VALIDATION_PARAM = "serverCertValidation" ;
+	private static final String DEBUG_PARAM = "ranger.unixauth.debug";
+	private static final String REMOTE_LOGIN_HOST_PARAM = "ranger.unixauth.service.hostname";
+	private static final String REMOTE_LOGIN_AUTH_SERVICE_PORT_PARAM = "ranger.unixauth.service.port";
+	private static final String SSL_KEYSTORE_PATH_PARAM = "ranger.unixauth.keystore";
+	private static final String SSL_KEYSTORE_PATH_PASSWORD_PARAM = "ranger.unixauth.keystore.password";
+	private static final String SSL_TRUSTSTORE_PATH_PARAM = "ranger.unixauth.truststore";
+	private static final String SSL_TRUSTSTORE_PATH_PASSWORD_PARAM = "ranger.unixauth.truststore.password";
+	private static final String SSL_ENABLED_PARAM = "ranger.unixauth.ssl.enabled";
+	private static final String SERVER_CERT_VALIDATION_PARAM = "ranger.unixauth.server.cert.validation";
 	
-	private static final String JAAS_ENABLED_PARAM = "remoteLoginEnabled" ;
+	private static final String JAAS_ENABLED_PARAM = "ranger.unixauth.remote.login.enabled";
 
 	private static final String SSL_ALGORITHM = "TLS";
 
@@ -74,7 +80,7 @@ public class RemoteUnixLoginModule implements LoginModule {
 	private char[] password;
 	private Subject subject;
 	private CallbackHandler callbackHandler;
-	private boolean debug = false;
+	private boolean debug = true ;
 
 	private String remoteHostName;
 	private int remoteHostAuthServicePort;
@@ -136,6 +142,7 @@ public class RemoteUnixLoginModule implements LoginModule {
 			this.callbackHandler = new ConsolePromptCallbackHandler();
 		}
 
+		/*
 		Properties config = null ;
 
 		String val = (String) options.get(REMOTE_UNIX_AUTHENICATION_CONFIG_FILE_PARAM);
@@ -147,7 +154,50 @@ public class RemoteUnixLoginModule implements LoginModule {
 				if (in != null) {
 					try {
 						config = new Properties() ;
-						config.load(in);
+						// config.load(in);
+						DocumentBuilderFactory xmlDocumentBuilderFactory = DocumentBuilderFactory
+								.newInstance();
+						xmlDocumentBuilderFactory.setIgnoringComments(true);
+						xmlDocumentBuilderFactory.setNamespaceAware(true);
+						DocumentBuilder xmlDocumentBuilder = xmlDocumentBuilderFactory
+								.newDocumentBuilder();
+						Document xmlDocument = xmlDocumentBuilder.parse(in);
+						xmlDocument.getDocumentElement().normalize();
+
+						NodeList nList = xmlDocument
+								.getElementsByTagName("property");
+
+						for (int temp = 0; temp < nList.getLength(); temp++) {
+
+							Node nNode = nList.item(temp);
+
+							if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+
+								Element eElement = (Element) nNode;
+
+								String propertyName = "";
+								String propertyValue = "";
+								if (eElement.getElementsByTagName("name").item(
+										0) != null) {
+									propertyName = eElement
+											.getElementsByTagName("name")
+											.item(0).getTextContent().trim();
+								}
+								if (eElement.getElementsByTagName("value")
+										.item(0) != null) {
+									propertyValue = eElement
+											.getElementsByTagName("value")
+											.item(0).getTextContent().trim();
+								}
+
+								config.put(propertyName, propertyValue);
+
+							}
+							logError("ranger site properties loaded successfully.");
+						}
+					} catch (Exception e) {
+						logError("Error loading : " + e);
+
 					}
 					finally {
 						try {
@@ -170,7 +220,11 @@ public class RemoteUnixLoginModule implements LoginModule {
 			config = new Properties() ;
 			config.putAll(options);
 		}
-
+		
+		*/
+		
+		Properties config = new Properties() ;
+		config.putAll(options) ;
 		initParams(config) ;
 		
 	}
@@ -196,6 +250,9 @@ public class RemoteUnixLoginModule implements LoginModule {
 		if (val != null && (!val.equalsIgnoreCase("false"))) {
 			debug = true;
 		}
+		else {
+			debug = false ;
+		}
 
 		remoteHostName = (String) options.get(REMOTE_LOGIN_HOST_PARAM);
 		log("RemoteHostName:" + remoteHostName);
@@ -211,7 +268,6 @@ public class RemoteUnixLoginModule implements LoginModule {
 		SSLEnabled = (val != null) && val.trim().equalsIgnoreCase("true") ;
 		log("SSLEnabled:" + SSLEnabled);
 
-		
 		if (SSLEnabled) {
 			trustStorePath = (String) options.get(SSL_TRUSTSTORE_PATH_PARAM);
 			log("trustStorePath:" + trustStorePath);
@@ -268,7 +324,6 @@ public class RemoteUnixLoginModule implements LoginModule {
 			
 			password = passwordCallback.getPassword();
 			
-
 			log("userName:" + userName);
 			log("modified UserName:" + modifiedUserName);
 			// log("password:" + new String(password));
@@ -436,8 +491,7 @@ public class RemoteUnixLoginModule implements LoginModule {
 				}
 			}
 		} catch (Throwable t) {
-			t.printStackTrace();
-			throw new LoginException("FAILED: unable to authenticate to AuthenticationService: " + remoteHostName + ":" + remoteHostAuthServicePort + ", Exception: " + t);
+			throw new LoginException("FAILED: unable to authenticate to AuthenticationService: " + remoteHostName + ":" + remoteHostAuthServicePort + ", Exception: [" + t + "]");
 		} finally {
 			log("Login of user String: {" + aUserName + "}, return from AuthServer: {" + ret + "}");
 		}

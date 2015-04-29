@@ -41,9 +41,17 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.hadoop.security.alias.CredentialProvider;
 import org.apache.log4j.Logger;
+import org.apache.ranger.credentialapi.CredentialReader;
 import org.apache.ranger.usergroupsync.UserGroupSync;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class UnixAuthenticationService {
 
@@ -52,15 +60,20 @@ public class UnixAuthenticationService {
 	private static final String serviceName = "UnixAuthenticationService" ;
 	
 	private static final String SSL_ALGORITHM = "TLS" ;
-	private static final String REMOTE_LOGIN_AUTH_SERVICE_PORT_PARAM = "authServicePort" ;
-	private static final String SSL_KEYSTORE_PATH_PARAM = "keyStore" ;
-	private static final String SSL_KEYSTORE_PATH_PASSWORD_PARAM = "keyStorePassword" ;
-	private static final String SSL_TRUSTSTORE_PATH_PARAM = "trustStore" ;
-	private static final String SSL_TRUSTSTORE_PATH_PASSWORD_PARAM = "trustStorePassword" ;
-	private static final String CRED_VALIDATOR_PROG = "passwordValidatorPath" ;
+	private static final String REMOTE_LOGIN_AUTH_SERVICE_PORT_PARAM = "ranger.usersync.port" ;
+	
+	private static final String SSL_KEYSTORE_PATH_PARAM = "ranger.usersync.keystore.file" ;
+	private static final String SSL_TRUSTSTORE_PATH_PARAM = "ranger.usersync.truststore.file" ;
+	
+	private static final String SSL_KEYSTORE_PATH_PASSWORD_ALIAS = "usersync.ssl.key.password" ;
+	private static final String SSL_TRUSTSTORE_PATH_PASSWORD_ALIAS = "usersync.ssl.truststore.password" ;
+
+	private static final String CRED_VALIDATOR_PROG = "ranger.usersync.passwordvalidator.path" ;
 	private static final String ADMIN_USER_LIST_PARAM = "admin.users" ;
 	private static final String ADMIN_ROLE_LIST_PARAM = "admin.roleNames" ;
-	private static final String SSL_ENABLED_PARAM = "useSSL" ;
+	private static final String SSL_ENABLED_PARAM = "ranger.usersync.ssl" ;
+	
+	private static final String CREDSTORE_FILENAME_PARAM = "ranger.usersync.credstore.filename" ;
 	
 	private String keyStorePath ;
 	private String keyStorePathPassword ;
@@ -74,6 +87,11 @@ public class UnixAuthenticationService {
 	private boolean SSLEnabled = false ;
 	
 	static private boolean enableUnixAuth = false;
+	
+	private static final String[] UGSYNC_CONFIG_XML_FILES = { "ranger-ugsync-default.xml",  "ranger-ugsync-site.xml" } ; 
+	private static final String    PROPERTY_ELEMENT_TAGNAME = "property" ;
+	private static final String    NAME_ELEMENT_TAGNAME = "name" ;
+	private static final String    VALUE_ELEMENT_TAGNAME = "value" ;
 
 	public static void main(String[] args) {
 		if (args.length > 0) {
@@ -127,25 +145,86 @@ public class UnixAuthenticationService {
 	//TODO: add more validation code
 	private void init() throws Throwable {
 		Properties prop = new Properties() ;
-		InputStream in = getFileInputStream("unixauthservice.properties") ;
-
-		if (in != null) {
-			try {
-				prop.load(in);
-			}
-			finally {
+		
+		for (String fn : UGSYNC_CONFIG_XML_FILES ) {
+		
+			InputStream in = getFileInputStream(fn) ;
+	
+			if (in != null) {
 				try {
-					in.close();
+					DocumentBuilderFactory xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
+					xmlDocumentBuilderFactory.setIgnoringComments(true);
+					xmlDocumentBuilderFactory.setNamespaceAware(true);
+					DocumentBuilder xmlDocumentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
+					Document xmlDocument = xmlDocumentBuilder.parse(in);
+					xmlDocument.getDocumentElement().normalize();
+	
+					NodeList nList = xmlDocument.getElementsByTagName(PROPERTY_ELEMENT_TAGNAME);
+	
+					for (int temp = 0; temp < nList.getLength(); temp++) {
+	
+						Node nNode = nList.item(temp);
+	
+						if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+	
+							Element eElement = (Element) nNode;
+	
+							String propertyName = "";
+							String propertyValue = "";
+							if (eElement.getElementsByTagName(NAME_ELEMENT_TAGNAME).item(
+									0) != null) {
+								propertyName = eElement
+										.getElementsByTagName(NAME_ELEMENT_TAGNAME)
+										.item(0).getTextContent().trim();
+							}
+							if (eElement.getElementsByTagName(VALUE_ELEMENT_TAGNAME)
+									.item(0) != null) {
+								propertyValue = eElement
+										.getElementsByTagName(VALUE_ELEMENT_TAGNAME)
+										.item(0).getTextContent().trim();
+							}
+	
+							LOG.info("Adding Property:[" + propertyName + "] Value:["+ propertyValue + "]");
+							if (prop.get(propertyName) != null ) {
+								prop.remove(propertyName) ;
+	 						}
+							prop.put(propertyName, propertyValue);
+						}
+					}
 				}
-				catch(IOException ioe) {
-					// Ignore IOE when closing streams
+				finally {
+					try {
+						in.close();
+					}
+					catch(IOException ioe) {
+						// Ignore IOE when closing streams
+					}
 				}
 			}
 		}
+		
+		String credStoreFileName = prop.getProperty(CREDSTORE_FILENAME_PARAM) ;
+		
 		keyStorePath = prop.getProperty(SSL_KEYSTORE_PATH_PARAM) ;
-		keyStorePathPassword = prop.getProperty(SSL_KEYSTORE_PATH_PASSWORD_PARAM) ;
+		
+		if (credStoreFileName == null) {
+			throw new RuntimeException("Credential file is not defined. param = [" + CREDSTORE_FILENAME_PARAM + "]") ;
+		}
+		
+		File credFile = new File(credStoreFileName) ;
+		
+		if (! credFile.exists()) {
+			throw new RuntimeException("Credential file [" + credStoreFileName + "]: does not exists." );
+		}
+		
+		if ( ! credFile.canRead() ) {
+			throw new RuntimeException("Credential file [" + credStoreFileName + "]: can not be read." );
+		}
+		
+		keyStorePathPassword = CredentialReader.getDecryptedString(credStoreFileName, SSL_KEYSTORE_PATH_PASSWORD_ALIAS) ;
+		trustStorePathPassword = CredentialReader.getDecryptedString(credStoreFileName,SSL_TRUSTSTORE_PATH_PASSWORD_ALIAS) ;
+		
 		trustStorePath  = prop.getProperty(SSL_TRUSTSTORE_PATH_PARAM) ;
-		trustStorePathPassword = prop.getProperty(SSL_TRUSTSTORE_PATH_PASSWORD_PARAM) ;
 		portNum = Integer.parseInt(prop.getProperty(REMOTE_LOGIN_AUTH_SERVICE_PORT_PARAM)) ;
 		String validatorProg = prop.getProperty(CRED_VALIDATOR_PROG) ;
 		if (validatorProg != null) {
@@ -190,7 +269,7 @@ public class UnixAuthenticationService {
 		
 		KeyManager[] km = null ;
 
-		if (keyStorePath != null) {
+		if (keyStorePath != null && ! keyStorePath.isEmpty()) {
 			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType()) ;
 			
 			InputStream in = null ;
@@ -198,6 +277,9 @@ public class UnixAuthenticationService {
 			in = getFileInputStream(keyStorePath) ;
 			
 			try {
+				if (keyStorePathPassword == null) {
+					keyStorePathPassword  = "" ;
+				}
 				ks.load(in, keyStorePathPassword.toCharArray());
 			}
 			finally {
@@ -216,7 +298,7 @@ public class UnixAuthenticationService {
 		
 		KeyStore trustStoreKeyStore = null ;
 		
-		if (trustStorePath != null) {
+		if (trustStorePath != null && ! trustStorePath.isEmpty()) {
 			trustStoreKeyStore = KeyStore.getInstance(KeyStore.getDefaultType()) ;
 			
 			InputStream in = null ;
@@ -224,6 +306,9 @@ public class UnixAuthenticationService {
 			in = getFileInputStream(trustStorePath) ;
 			
 			try {
+				if (trustStorePathPassword == null) {
+					trustStorePathPassword = "" ;
+				}
 				trustStoreKeyStore.load(in, trustStorePathPassword.toCharArray());
 			}
 			finally {
@@ -292,6 +377,5 @@ public class UnixAuthenticationService {
 		
 		return ret ;
 	}
-
 
 }
