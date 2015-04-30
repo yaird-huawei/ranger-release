@@ -103,6 +103,7 @@ function Main( $scriptDir )
 	$hdfsChanges = @{
 		"dfs.permissions.enabled" = "true"
 		"dfs.permissions" = "true"
+		"dfs.namenode.inode.attributes.provider.class" = "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer"
 	}
     ###
     ### Apply configuration changes to ranger-hdfs-audit.xml

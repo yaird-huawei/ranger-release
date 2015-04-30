@@ -246,8 +246,8 @@ function InstallHdfs(
         $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HDFS_HOME\install\conf.templates\enable\*.xml`" `"$ENV:HADOOP_CONF_DIR`""
         Invoke-CmdChk $xcopy_cmd
 
-		$xcopy_cmd = "xcopy /EIYF `"$HDP_INSTALL_PATH\..\template\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR\`""
-        Invoke-CmdChk $xcopy_cmd
+		#$xcopy_cmd = "xcopy /EIYF `"$HDP_INSTALL_PATH\..\template\xasecure-hadoop-env.cmd`" `"$ENV:HADOOP_CONF_DIR\`""
+        #Invoke-CmdChk $xcopy_cmd
 
         $xcopy_cmd = "xcopy /EIYF `"$ENV:RANGER_HDFS_HOME\lib\*.jar`" `"$ENV:HADOOP_HOME\share\hadoop\common\lib\`""
         Invoke-CmdChk $xcopy_cmd
@@ -1212,21 +1212,6 @@ function ConfigureRangerHdfs(
     $aclAllFolders = $True
     )
 {
-
-	Write-Log "Modifying hadoop-env.cmd to invoke xasecure-hadoop-env.cmd"
-    $file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
-
-    #$line = "`set HADOOP_NAMENODE_OPTS= -javaagent:%HADOOP_HOME%\share\hadoop\common\lib\hdfs-agent-@ranger.version@.jar=authagent  %HADOOP_NAMENODE_OPTS%"
-    $line = "`if exist %HADOOP_CONF_DIR%\xasecure-hadoop-env.cmd CALL %HADOOP_CONF_DIR%\xasecure-hadoop-env.cmd"
-	#TODO:WINDOWS Should we guard against option already being present?
-    Add-Content $file $line
-
-	### Regenerate the namenode.xml file
-	$service = "namenode"
-	Write-Log "Regenerating service config ${ENV:HADOOP_HOME}\$service.xml"
-	$cmd = "$ENV:HADOOP_HOME\bin\hdfs.cmd --service $service > `"$ENV:HADOOP_HOME\bin\$service.xml`""
-	Invoke-CmdChk $cmd
-
     ###
     ### Apply configuration changes to hdfs-site.xml
     ###
@@ -1244,9 +1229,6 @@ function ConfigureRangerHdfs(
     ###
     $xmlFile = Join-Path $ENV:HADOOP_CONF_DIR "ranger-hdfs-security.xml"
     UpdateXmlConfig $xmlFile $configs["hdfsSecurityChanges"]
-
-
-
  }
 
 ###############################################################################
