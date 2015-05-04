@@ -151,8 +151,10 @@ function InstallRangerCore(
 					Invoke-CmdChk $cmd
 				}
 
-				CreateJCEKS "policyDB.jdbc.password" "${ENV:RANGER_ADMIN_DB_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
-				CreateJCEKS "auditDb.jdbc.password" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+				#CreateJCEKS "policyDB.jdbc.password" "${ENV:RANGER_ADMIN_DB_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+				#CreateJCEKS "auditDb.jdbc.password" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+                CreateJCEKS "ranger.jpa.jdbc.password" "${ENV:RANGER_ADMIN_DB_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
+				CreateJCEKS "ranger.jpa.audit.jdbc.password" "${ENV:RANGER_AUDIT_DB_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/xapolicymgr.jceks"
 				[Environment]::SetEnvironmentVariable("RANGER_ADMIN_CRED_KEYSTORE_FILE", "$credStorePath\xapolicymgr.jceks" , [EnvironmentVariableTarget]::Machine)
 				$ENV:RANGER_ADMIN_CRED_KEYSTORE_FILE = "$credStorePath/xapolicymgr.jceks"
 
@@ -568,6 +570,16 @@ function InstallUserSync(
 			Write-Log "Role : $roles"
 			foreach( $service in empty-null ($roles -Split('\s+')))
 			{
+                ###
+                $RANGER_USERSYNC_CONF_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "conf"
+                #$file = Join-Path  $RANGER_USERSYNC_CONF_DIR "unixauthservice.properties"
+    
+                $RANGER_USERSYNC_TEMPLATES_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "templates"
+                $RANGER_USERSYNC_TEMPLATES_FILE = Join-Path $RANGER_USERSYNC_TEMPLATES_DIR "ranger-ugsync-template.xml"
+        
+                $xcopy_cmd = "xcopy /EIYF `"$RANGER_USERSYNC_TEMPLATES_FILE`" `"$RANGER_USERSYNC_CONF_DIR`""
+                Invoke-CmdChk $xcopy_cmd
+                ###
 				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $rangerInstallToBin $serviceCredential
 				if ( $service -eq "ranger-usersync" )
 				{
@@ -1457,90 +1469,24 @@ function ConfigureRangerUserSync(
     #Write-Log "Modifying hadoop-env.cmd to invoke ranger-usersync-hadoop-env.cmd"
     #$file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
     $RANGER_USERSYNC_CONF_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "conf"
-    $file = Join-Path  $RANGER_USERSYNC_CONF_DIR "unixauthservice.properties"
-
+    #$file = Join-Path  $RANGER_USERSYNC_CONF_DIR "unixauthservice.properties"
+    $file = Join-Path  $RANGER_USERSYNC_CONF_DIR "ranger-ugsync-template.xml"
+    
+    Rename-Item -path $file -newname "ranger-ugsync-site.xml"
+    $xmlFile = Join-Path  $RANGER_USERSYNC_CONF_DIR "ranger-ugsync-site.xml"
     #TODO:WINDOWS Should we guard against option already being present?
-
-    $prop       = "usergroupSync.policymanager.baseURL"
-    $propVal    = $ENV:RANGER_EXTERNAL_URL
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "usergroupSync.sleepTimeInMillisBetweenSyncCycle"
-    $propVal    = $ENV:RANGER_SYNC_INTERVAL
-    ReplacePropertyVal $file $prop $propVal
 
     ##Not there in ENV vars
     if($ENV:SYNCSOURCE.ToUpper() -eq 'LDAP') {
-        $prop       = "usergroupSync.source.impl.class"
-        $propVal    = "org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"
+        UpdateXmlConfig $xmlFile $configs["SyncSourceLDAP"]
     }elseif($ENV:SYNCSOURCE.ToUpper() -eq 'UNIX') {
-        $prop       = "usergroupSync.source.impl.class"
-        $propVal    = "org.apache.ranger.unixusersync.process.UnixUserGroupBuilder"
+        UpdateXmlConfig $xmlFile $configs["SynchSourceUNIX"]
     }else{
-        $prop       = "usergroupSync.source.impl.class"
-        $propVal    = "org.apache.ranger.unixusersync.process.UnixUserGroupBuilder"
+        UpdateXmlConfig $xmlFile $configs["SynchSourceUNIX"]
     }
-    ReplacePropertyVal $file $prop $propVal
 
-    $prop       = "ldapGroupSync.ldapUrl"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_URL
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.ldapBindDn"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_BIND_DN
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.ldapBindPassword"
-    $propVal    = "_" #$ENV:RANGER_SYNC_LDAP_BIND_PASSWORD
-    ReplacePropertyVal $file $prop $propVal
-
-    ##Not there in ENV vars
-    $prop       = "ldapGroupSync.ldapBindKeystore"
-    $propVal    = $ENV:RANGER_USERSYNC_CRED_KEYSTORE_FILE
-    ReplacePropertyVal $file $prop $propVal
-
-    ##Not there in ENV vars
-    $prop       = "ldapGroupSync.ldapBindAlias"
-    $propVal    = "ldap.bind.password"
-    ReplacePropertyVal $file $prop $propVal
-
-    ##Not there in ENV vars
-    $prop       = "ldapGroupSync.userSearchBase"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_SEARCH_BASE
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.userSearchScope"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_SEARCH_SCOPE
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.userObjectClass"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_OBJECT_CLASS
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.userObjectClass"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_OBJECT_CLASS
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.userNameAttribute"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_NAME_ATTRIBUTE
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.userGroupNameAttribute"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.username.caseConversion"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_USERNAME_CASE_CONVERSION
-    ReplacePropertyVal $file $prop $propVal
-
-    $prop       = "ldapGroupSync.groupname.caseConversion"
-    $propVal    = $ENV:RANGER_SYNC_LDAP_GROUPNAME_CASE_CONVERSION
-    ReplacePropertyVal $file $prop $propVal
-
-    #$prop       = "ldap.bind.password"
-    #$propVal    = $ENV:SYNC_LDAP_BIND_ALIAS
-    #ReplacePropertyVal $file $prop $propVal
-
+    UpdateXmlConfig $xmlFile $configs["UserSync"]
+    UpdateXmlConfig $xmlFile $configs["GroupSync"]
  }
 
 ### Helper routing that converts a $null object to nothing. Otherwise, iterating over

@@ -458,10 +458,46 @@ function Main( $scriptDir )
       $roles = ""
     }
     Install "ranger-usersync" $nodeInstallRoot $serviceCredential $roles
-    Configure "ranger-usersync" $nodeInstallRoot $serviceCredential
+    
+    $UserSync = @{
+        "ranger.usersync.policymanager.baseURL"="${ENV:RANGER_EXTERNAL_URL}"
+        "ranger.usersync.sleeptimeinmillisbetweensynccycle"="${ENV:RANGER_SYNC_INTERVAL}"
+        "ranger.usersync.ldap.binddn"="${ENV:RANGER_SYNC_LDAP_BIND_DN}"
+        "ranger.usersync.ldap.ldapbindpassword"="_"#"${ENV:RANGER_SYNC_LDAP_BIND_PASSWORD}"
+        "ranger.usersync.ldap.searchBase"=""
+        "ranger.usersync.ldap.url"="${ENV:RANGER_SYNC_LDAP_URL}"
+        "ranger.usersync.ldap.user.groupnameattribute"="${ENV:RANGER_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE}"
+        "ranger.usersync.ldap.user.nameattribute"="${ENV:RANGER_SYNC_LDAP_USER_NAME_ATTRIBUTE}"
+        "ranger.usersync.ldap.user.objectclass"="${ENV:RANGER_SYNC_LDAP_USER_OBJECT_CLASS}"
+        "ranger.usersync.ldap.user.searchbase"="${ENV:RANGER_SYNC_LDAP_USER_SEARCH_BASE}"
+        "ranger.usersync.ldap.user.searchfilter"="${ENV:RANGER_SYNC_LDAP_USER_SEARCH_FILTER}"
+        "ranger.usersync.ldap.user.searchscope"="${ENV:RANGER_SYNC_LDAP_USER_SEARCH_SCOPE}"
+        "ranger.usersync.ldap.username.caseconversion"="${ENV:RANGER_SYNC_LDAP_USERNAME_CASE_CONVERSION}"
+        "ranger.usersync.ssl"="true"
+        "ranger.usersync.sink.impl.class"="org.apache.ranger.unixusersync.process.PolicyMgrUserGroupBuilder"
+        "ranger.usersync.policymgr.alias"="ldap.bind.password"
+        "ranger.usersync.policymgr.keystore"="${ENV:RANGER_USERSYNC_CRED_KEYSTORE_FILE}"        
+    }
+    $GroupSync = @{
+        "ranger.usersync.group.nameattribute"="${ENV:RANGER_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE}"
+        "ranger.usersync.group.searchbase"="${ENV:RANGER_LDAP_GROUPSEARCHBASE}"
+        "ranger.usersync.group.searchenabled"="true"
+        "ranger.usersync.group.searchfilter"="${ENV:RANGER_LDAP_GROUPSEARCHFILTER}"
+        "ranger.usersync.ldap.groupname.caseconversion"="${ENV:RANGER_SYNC_LDAP_GROUPNAME_CASE_CONVERSION}"
+    }
+    $SyncSourceLDAP = @{
+        "ranger.usersync.source.impl.class"="org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"
+    }
+    $SynchSourceUNIX =@{
+        "ranger.usersync.source.impl.class"="org.apache.ranger.unixusersync.process.UnixUserGroupBuilder"
+    }
+    $configs = @{}
+	$configs.Add("UserSync",$UserSync)
+	$configs.Add("GroupSync",$GroupSync)
+    $configs.Add("SyncSourceLDAP",$SyncSourceLDAP)
+    $configs.Add("SynchSourceUNIX",$SynchSourceUNIX)
+    Configure "ranger-usersync" $nodeInstallRoot $serviceCredential $configs
     Write-Log "Installation of ranger-usersync completed successfully"
-
-
 }
 
 try
