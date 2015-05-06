@@ -975,7 +975,17 @@ public class ServiceDBStore extends AbstractServiceStore {
 
 		boolean createDefaultPolicy = true;
 		UserSessionBase usb = ContextUtil.getCurrentUserSession();
+		List<String> userRoleList=usb.getUserRoleList();
+		boolean isAllowed=false;
+		if (userRoleList != null && userRoleList.contains(RangerConstants.ROLE_KEY_ADMIN)) {
+			if(service!=null && "KMS".equalsIgnoreCase(service.getType())){
+				isAllowed=true;
+			}
+		}
 		if (usb != null && usb.isUserAdmin() || populateExistingBaseFields) {
+			isAllowed=true;
+		}
+		if (isAllowed) {
 			Map<String, String> configs = service.getConfigs();
 			Map<String, String> validConfigs = validateRequiredConfigParams(
 					service, configs);
