@@ -569,16 +569,7 @@ function InstallUserSync(
 
 			Write-Log "Role : $roles"
 			foreach( $service in empty-null ($roles -Split('\s+')))
-			{
-                ###
-                $RANGER_USERSYNC_CONF_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "conf"
-                #$file = Join-Path  $RANGER_USERSYNC_CONF_DIR "unixauthservice.properties"
-    
-                $RANGER_USERSYNC_TEMPLATES_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "templates"
-                $RANGER_USERSYNC_TEMPLATES_FILE = Join-Path $RANGER_USERSYNC_TEMPLATES_DIR "ranger-ugsync-template.xml"
-        
-                $xcopy_cmd = "xcopy /EIYF `"$RANGER_USERSYNC_TEMPLATES_FILE`" `"$RANGER_USERSYNC_CONF_DIR`""
-                Invoke-CmdChk $xcopy_cmd
+			{                
                 ###
 				CreateAndConfigureHadoopService $service $HDP_RESOURCES_DIR $rangerInstallToBin $serviceCredential
 				if ( $service -eq "ranger-usersync" )
@@ -1470,8 +1461,14 @@ function ConfigureRangerUserSync(
     #$file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
     $RANGER_USERSYNC_CONF_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "conf"
     #$file = Join-Path  $RANGER_USERSYNC_CONF_DIR "unixauthservice.properties"
-    $file = Join-Path  $RANGER_USERSYNC_CONF_DIR "ranger-ugsync-template.xml"
     
+    $RANGER_USERSYNC_TEMPLATES_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "templates"
+    $RANGER_USERSYNC_TEMPLATES_FILE = Join-Path $RANGER_USERSYNC_TEMPLATES_DIR "ranger-ugsync-template.xml"
+        
+    $xcopy_cmd = "xcopy /EIYF `"$RANGER_USERSYNC_TEMPLATES_FILE`" `"$RANGER_USERSYNC_CONF_DIR`""
+    Invoke-CmdChk $xcopy_cmd
+
+    $file = Join-Path  $RANGER_USERSYNC_CONF_DIR "ranger-ugsync-template.xml"
     Rename-Item -path $file -newname "ranger-ugsync-site.xml"
     $xmlFile = Join-Path  $RANGER_USERSYNC_CONF_DIR "ranger-ugsync-site.xml"
     #TODO:WINDOWS Should we guard against option already being present?
@@ -1481,6 +1478,8 @@ function ConfigureRangerUserSync(
         UpdateXmlConfig $xmlFile $configs["SyncSourceLDAP"]
     }elseif($ENV:SYNCSOURCE.ToUpper() -eq 'UNIX') {
         UpdateXmlConfig $xmlFile $configs["SynchSourceUNIX"]
+    }elseif($ENV:SYNCSOURCE.ToUpper() -eq 'ACTIVE_DIRECTORY') {
+        UpdateXmlConfig $xmlFile $configs["SyncSourceLDAP"]
     }else{
         UpdateXmlConfig $xmlFile $configs["SynchSourceUNIX"]
     }

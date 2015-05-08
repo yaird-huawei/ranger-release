@@ -458,7 +458,13 @@ function Main( $scriptDir )
       $roles = ""
     }
     Install "ranger-usersync" $nodeInstallRoot $serviceCredential $roles
-    
+    if($ENV:SYNCSOURCE.ToUpper() -eq 'LDAP') {
+    $sync_port=($ENV:RANGER_LDAP_URL -split ':')[2]
+    }elseif($ENV:SYNCSOURCE.ToUpper() -eq 'ACTIVE_DIRECTORY') {
+    $sync_port=($ENV:RANGER_LDAP_AD_URL -split ':')[2]
+    }else{
+    $sync_port="5151"
+    }
     $UserSync = @{
         "ranger.usersync.policymanager.baseURL"="${ENV:RANGER_EXTERNAL_URL}"
         "ranger.usersync.sleeptimeinmillisbetweensynccycle"="${ENV:RANGER_SYNC_INTERVAL}"
@@ -474,9 +480,8 @@ function Main( $scriptDir )
         "ranger.usersync.ldap.user.searchscope"="${ENV:RANGER_SYNC_LDAP_USER_SEARCH_SCOPE}"
         "ranger.usersync.ldap.username.caseconversion"="${ENV:RANGER_SYNC_LDAP_USERNAME_CASE_CONVERSION}"
         "ranger.usersync.ssl"="true"
-        "ranger.usersync.sink.impl.class"="org.apache.ranger.unixusersync.process.PolicyMgrUserGroupBuilder"
-        "ranger.usersync.policymgr.alias"="ldap.bind.password"
-        "ranger.usersync.policymgr.keystore"="${ENV:RANGER_USERSYNC_CRED_KEYSTORE_FILE}"        
+        "ranger.usersync.port"="$sync_port"
+        "ranger.usersync.sink.impl.class"="org.apache.ranger.unixusersync.process.PolicyMgrUserGroupBuilder"        
     }
     $GroupSync = @{
         "ranger.usersync.group.nameattribute"="${ENV:RANGER_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE}"
@@ -487,6 +492,8 @@ function Main( $scriptDir )
     }
     $SyncSourceLDAP = @{
         "ranger.usersync.source.impl.class"="org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"
+        "ranger.usersync.ldap.bindalias"="ldap.bind.password"
+        "ranger.usersync.ldap.bindkeystore"="${ENV:RANGER_USERSYNC_CRED_KEYSTORE_FILE}"
     }
     $SynchSourceUNIX =@{
         "ranger.usersync.source.impl.class"="org.apache.ranger.unixusersync.process.UnixUserGroupBuilder"
