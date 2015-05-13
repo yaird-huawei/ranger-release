@@ -1459,9 +1459,19 @@ function ConfigureRangerUserSync(
 
     #Write-Log "Modifying hadoop-env.cmd to invoke ranger-usersync-hadoop-env.cmd"
     #$file = Join-Path $ENV:HADOOP_CONF_DIR "hadoop-env.cmd"
+
     $RANGER_USERSYNC_CONF_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "conf"
     #$file = Join-Path  $RANGER_USERSYNC_CONF_DIR "unixauthservice.properties"
+
+    if( -not (Test-Path $RANGER_USERSYNC_CONF_DIR))
+    {
+        $cmd = "mkdir `"$RANGER_USERSYNC_CONF_DIR`""
+	    Invoke-CmdChk $cmd
     
+        $RANGER_USERSYNC_CONF_DIST_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "conf.dist"
+        $xcopy_cmd = "xcopy /EIYF `"$RANGER_USERSYNC_CONF_DIST_DIR\*.xml`" `"$RANGER_USERSYNC_CONF_DIR`""
+        Invoke-CmdChk $xcopy_cmd
+    }
     $RANGER_USERSYNC_TEMPLATES_DIR = Join-Path $ENV:RANGER_USERSYNC_HOME "templates"
     $RANGER_USERSYNC_TEMPLATES_FILE = Join-Path $RANGER_USERSYNC_TEMPLATES_DIR "ranger-ugsync-template.xml"
         
