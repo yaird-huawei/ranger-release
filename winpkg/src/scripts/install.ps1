@@ -133,6 +133,7 @@ function Main( $scriptDir )
     ###
     ### Apply configuration changes to ranger-hdfs-security.xml
     ###
+	<#
 	$hdfsSecurityChanges = @{
 		"hdfs.authorization.verifier.classname"					= "org.apache.ranger.pdp.hdfs.RangerAuthorizer"
 		"xasecure.hdfs.policymgr.url"							= "${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HDFS_REPO}"
@@ -141,6 +142,14 @@ function Main( $scriptDir )
 		"xasecure.policymgr.url"                            	= "${ENV:RANGER_POLICY_ADMIN_URL}"
         "xasecure.hive.policymgr.url"                           = "${ENV:RANGER_POLICY_ADMIN_URL}"
         "xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"
+	}
+	#>
+	$hdfsSecurityChanges = @{
+		"ranger.plugin.hdfs.policy.pollIntervalMs"			=	"30000"
+		"ranger.plugin.hdfs.policy.source.impl"				=	"org.apache.ranger.admin.client.RangerAdminRESTClient"
+		"ranger.plugin.hdfs.policy.rest.url"				=	"${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HDFS_REPO}"            
+		"ranger.plugin.hdfs.service.name" 					=	"${ENV:RANGER_HDFS_REPO}" #REPOSITORY_NAME 
+		"ranger.plugin.hdfs.policy.cache.dir"               =	"${ENV:RANGER_HDFS_CACHE_FILE}"#POLICY_CACHE_FILE_PATH  
 	}
 
 	### Since we modify different files, this hashtable contains hashtables for
@@ -215,6 +224,7 @@ function Main( $scriptDir )
 	#
     #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "ranger-hive-security.xml"
 	#
+	<#
     $hiveSecurityChanges = @{
 		"hive.authorization.verifier.classname"					= "org.apache.ranger.pdp.hive.RangerAuthorizer"
 		"xasecure.hive.policymgr.url"                           = "${ENV:RANGER_POLICY_ADMIN_URL}"
@@ -225,6 +235,15 @@ function Main( $scriptDir )
 		"xasecure.policymgr.url"                            	= "${ENV:RANGER_POLICY_ADMIN_URL}";
 
 	}
+	#>
+	$hiveSecurityChanges = @{
+		"ranger.plugin.hive.policy.source.impl"							= 	"org.apache.ranger.admin.client.RangerAdminRESTClient"
+		"ranger.plugin.hive.policy.rest.url"             				=	"${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HIVE_REPO}"
+		"ranger.plugin.hive.policy.pollIntervalMs"     					=	"30000"
+		"xasecure.hive.update.xapolicies.on.grant.revoke"				=	"true"
+		"ranger.plugin.hive.service.name" 								=	"${ENV:RANGER_HIVE_REPO}"#REPOSITORY_NAME 
+		"ranger.plugin.hive.policy.cache.dir"            				=	"${ENV:RANGER_HIVE_CACHE_FILE}"#POLICY_CACHE_FILE_PATH              
+ 	}
 
     $configs = @{}
     #$configs.Add("hiveChanges",$hiveChanges)
@@ -291,6 +310,7 @@ function Main( $scriptDir )
 		#
 	    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "ranger-hbase-security.xml"
 		#
+		<#
 	    $hbaseSecurityChanges =     @{
 			"hbase.authorization.verifier.classname"				= "org.apache.ranger.pdp.hbase.RangerAuthorizer"
 			"xasecure.hbase.policymgr.url"							= "${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HBASE_REPO}"
@@ -300,6 +320,15 @@ function Main( $scriptDir )
 			"xasecure.hbase.update.xapolicies.on.grant.revoke"		= "true"
     		"xasecure.policymgr.url"                            	= "${ENV:RANGER_POLICY_ADMIN_URL}"
             "xasecure.hive.policymgr.url"                           = "${ENV:RANGER_POLICY_ADMIN_URL}"
+		}
+		#>
+		$hbaseSecurityChanges =     @{
+			"ranger.plugin.hbase.policy.source.impl"	 			=	"org.apache.ranger.admin.client.RangerAdminRESTClient"
+			"ranger.plugin.hbase.policy.rest.url"		 			=	"${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HBASE_REPO}"
+			"ranger.plugin.hbase.policy.pollIntervalMs"				=	"30000"
+			"xasecure.hbase.update.xapolicies.on.grant.revoke"		=	"true"
+			"ranger.plugin.hbase.service.name" 						=	"${ENV:RANGER_HBASE_REPO}"#REPOSITORY_NAME 
+			"ranger.plugin.hbase.policy.cache.dir"               	=	"${ENV:RANGER_HBASE_CACHE_FILE}"#POLICY_CACHE_FILE_PATH                 
 		}
 
 		$configs = @{}
@@ -358,6 +387,7 @@ function Main( $scriptDir )
 		#
 	    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "ranger-knox-security.xml"
 		#
+		<#
 	    $knoxSecurityChanges =     @{
 			"knox.authorization.verifier.classname"				= "org.apache.ranger.pdp.knox.RangerAuthorizer"
 			"xasecure.knox.policymgr.url"							= "${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_KNOX_REPO}"
@@ -367,6 +397,14 @@ function Main( $scriptDir )
 			"xasecure.knox.update.xapolicies.on.grant.revoke"		= "true"
 			"xasecure.policymgr.url"                            	= "${ENV:RANGER_POLICY_ADMIN_URL}"
             "xasecure.hive.policymgr.url"                           = "${ENV:RANGER_POLICY_ADMIN_URL}"
+		}
+		#>
+		$knoxSecurityChanges =     @{
+			"ranger.plugin.knox.policy.source.impl"          =	"org.apache.ranger.admin.client.RangerAdminJersey2RESTClient"
+			"ranger.plugin.knox.policy.rest.url"             =	"${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_KNOX_REPO}"
+			"ranger.plugin.knox.policy.pollIntervalMs"       =	"30000"
+			"ranger.plugin.knox.service.name"                =	"${ENV:RANGER_KNOX_REPO}"#REPOSITORY_NAME                                           
+			"ranger.plugin.knox.policy.cache.dir"            =	"${ENV:RANGER_KNOX_CACHE_FILE}"#POLICY_CACHE_FILE_PATH  
 		}
 
 		$configs = @{}
