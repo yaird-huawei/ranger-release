@@ -48,6 +48,8 @@ public class SolrMgr {
 	Date lastConnectTime = null;
 	volatile boolean initDone = false;
 
+	final static String SOLR_URLS_PROP = "ranger.audit.solr.urls";
+
 	public SolrMgr() {
 
 	}
@@ -58,9 +60,22 @@ public class SolrMgr {
 				if (!initDone) {
 					if (rangerBizUtil.getAuditDBType().equalsIgnoreCase("solr")) {
 						String solrURL = PropertiesUtil
-								.getProperty("ranger.solr.url");
-						if (solrURL == null || solrURL.isEmpty()) {
-							logger.fatal("Solr URL for Audit is empty");
+								.getProperty(SOLR_URLS_PROP);
+
+						if (solrURL == null) {
+							// Try with url
+							solrURL = PropertiesUtil
+									.getProperty("ranger.audit.solr.url");
+						}
+						if (solrURL == null) {
+							// Let's try older property name
+							solrURL = PropertiesUtil
+									.getProperty("ranger.solr.url");
+						}
+						if (solrURL == null || solrURL.isEmpty()
+								|| solrURL.equalsIgnoreCase("none")) {
+							logger.fatal("Solr URL for Audit is empty. Please set property "
+									+ SOLR_URLS_PROP);
 						} else {
 							try {
 								solrClient = new HttpSolrClient(solrURL);
@@ -70,18 +85,22 @@ public class SolrMgr {
 								} else {
 									if (solrClient instanceof HttpSolrClient) {
 										HttpSolrClient httpSolrClient = (HttpSolrClient) solrClient;
-										httpSolrClient.setAllowCompression(true);
-										httpSolrClient.setConnectionTimeout(1000);
+										httpSolrClient
+												.setAllowCompression(true);
+										httpSolrClient
+												.setConnectionTimeout(1000);
 										// httpSolrClient.setSoTimeout(10000);
 										httpSolrClient.setMaxRetries(1);
-										httpSolrClient.setRequestWriter(new BinaryRequestWriter());
+										httpSolrClient
+												.setRequestWriter(new BinaryRequestWriter());
 									}
 									initDone = true;
 								}
 
 							} catch (Throwable t) {
-								logger.fatal("Can't connect to Solr server. URL="
-										+ solrURL, t);
+								logger.fatal(
+										"Can't connect to Solr server. URL="
+												+ solrURL, t);
 							}
 						}
 					}
