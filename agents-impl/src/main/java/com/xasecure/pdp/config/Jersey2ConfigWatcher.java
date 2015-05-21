@@ -50,6 +50,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.ClientConfig;
 
 import com.google.gson.Gson;
@@ -272,7 +273,12 @@ public abstract class Jersey2ConfigWatcher extends Thread {
 					
 					Boolean responsePresent = true;
 					int	responseStatus = response.getStatus();
-					
+
+					if ((response.getStatus() != 200) && (response.getStatus() != 304)) {
+						LOG.warn("Unable to get policies from url ["
+						+ url + "] = response code found [" + response.getStatus() + "]");
+					}
+
 					if ( fetchPolicyfromCahce(responsePresent,responseStatus,lastStoredFileName) ) {
 						/* If the response is other than 200 and 304 load the policy from the cache */
 						isChanged = true;
@@ -344,13 +350,13 @@ public abstract class Jersey2ConfigWatcher extends Thread {
 				}
 			}
 		} catch (Throwable t) {
-			
+			LOG.error("Unable to fetch policies from server at url [" + url + "]", t);
 			Boolean responsePresent = false;
 			int	responseStatus = -1;
 			
 			if ( fetchPolicyfromCahce(responsePresent,responseStatus,lastStoredFileName) ) {
 	 	    /* Successfully found the Policy Cache file and loaded */
-		  	     isChanged = true;
+			     isChanged = true;
 		     } else {
 		    	 LOG.error("Unable to complete isFileChanged()  call for [" + url + "]", t);
 				 // force the policy update to get fresh copy
@@ -446,9 +452,10 @@ public abstract class Jersey2ConfigWatcher extends Thread {
 
 			}
 
-			config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(hv, sslContext));
-
-			client = ClientBuilder.newClient(config);
+			client = ClientBuilder.newBuilder()
+				.sslContext(sslContext)
+				.hostnameVerifier(hv)
+				.build();
 
 		} catch (KeyStoreException e) {
 			LOG.error("Unable to obtain from KeyStore", e);
