@@ -110,44 +110,41 @@ function Main( $scriptDir )
     ###
 	$hdfsAuditChanges = @{
 		"xasecure.audit.db.is.enabled"                          = "true"
-        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
 		"xasecure.audit.repository.name"						= "${ENV:RANGER_HDFS_REPO}"
 		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:RANGER_HDFS_CRED_KEYSTORE_FILE}"
-		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
         "xasecure.audit.hdfs.is.enabled"                        = "false"
-		"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:RANGER_HDFS_DESTINATION_DIRECTORY}"
-		"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
-		"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_DIRECTORY}"
-		"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_FILE}"
-		"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_DIRECTORY}"
-		"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"
-
+		#"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
+        "xasecure.audit.hdfs.config.destination.directory" = "hdfs://${ENV:NAMENODE_HOST}:8020/ranger/audit"
 	}
+        if($ENV:RANGER_DB_FLAVOR.ToUpper() -eq "MYSQL")
+        {
+            $hdfsAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hdfsAuditChanges["xasecure.audit.destination.db.jdbc.driver"] = "com.mysql.jdbc.Driver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'ORACLE')
+        {
+            $hdfsAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:oracle:thin:@${ENV:RANGER_AUDIT_DB_HOST}"
+            $hdfsAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"]= "oracle.jdbc.driver.OracleDriver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'POSTGRES')
+        {
+            $hdfsAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:postgresql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hdfsAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"] = "org.postgresql.Driver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'MSSQL')
+        {
+            $hdfsAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:sqlserver://${ENV:RANGER_AUDIT_DB_HOST};databaseName=${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hdfsAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"] = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+        }
     ###
     ### Apply configuration changes to ranger-hdfs-security.xml
     ###
-	<#
-	$hdfsSecurityChanges = @{
-		"hdfs.authorization.verifier.classname"					= "org.apache.ranger.pdp.hdfs.RangerAuthorizer"
-		"xasecure.hdfs.policymgr.url"							= "${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HDFS_REPO}"
-		"xasecure.hdfs.policymgr.url.saveAsFile"				= "${ENV:RANGER_HOME}\tmp\hadoop_${ENV:RANGER_HDFS_REPO}"
-		"xasecure.hdfs.policymgr.url.laststoredfile"			= "${ENV:RANGER_HOME}\tmp\hadoop_${ENV:RANGER_HDFS_REPO}_json"
-		"xasecure.policymgr.url"                            	= "${ENV:RANGER_POLICY_ADMIN_URL}"
-        "xasecure.hive.policymgr.url"                           = "${ENV:RANGER_POLICY_ADMIN_URL}"
-        "xasecure.hdfs.policymgr.url.reloadIntervalInMillis"	= "30000"
-	}
-	#>
 	$hdfsSecurityChanges = @{
 		"ranger.plugin.hdfs.policy.pollIntervalMs"			=	"30000"
 		"ranger.plugin.hdfs.policy.source.impl"				=	"org.apache.ranger.admin.client.RangerAdminRESTClient"
-		"ranger.plugin.hdfs.policy.rest.url"				=	"${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HDFS_REPO}"            
+		"ranger.plugin.hdfs.policy.rest.url"				=	"${ENV:RANGER_POLICY_ADMIN_URL}"            
 		"ranger.plugin.hdfs.service.name" 					=	"${ENV:RANGER_HDFS_REPO}" #REPOSITORY_NAME 
 		"ranger.plugin.hdfs.policy.cache.dir"               =	"${ENV:RANGER_HDFS_CACHE_FILE}"#POLICY_CACHE_FILE_PATH  
 	}
@@ -196,49 +193,44 @@ function Main( $scriptDir )
     ####
     #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "ranger-hive-audit.xml"
     $hiveAuditChanges = @{
-        "xasecure.audit.db.is.enabled"                          = "true"
-        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
+		"xasecure.audit.db.is.enabled"                          = "true"
 		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
 		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
 		"xasecure.audit.repository.name"						= "${ENV:RANGER_HIVE_REPO}"
 		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:RANGER_HIVE_CRED_KEYSTORE_FILE}"
-	"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
         "xasecure.audit.hdfs.is.enabled"                        = "false"
-		"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:RANGER_HDFS_DESTINATION_DIRECTORY}"
-		"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
-		"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_DIRECTORY}"
-		"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_FILE}"
-		"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
-		"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_DIRECTORY}"
-		"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"
-
+		#"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
+        "xasecure.audit.hdfs.config.destination.directory" = "hdfs://${ENV:NAMENODE_HOST}:8020/ranger/audit"
 	}
-
+        if($ENV:RANGER_DB_FLAVOR.ToUpper() -eq "MYSQL")
+        {
+            $hiveAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hiveAuditChanges["xasecure.audit.destination.db.jdbc.driver"] = "com.mysql.jdbc.Driver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'ORACLE')
+        {
+            $hiveAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:oracle:thin:@${ENV:RANGER_AUDIT_DB_HOST}"
+            $hiveAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"]= "oracle.jdbc.driver.OracleDriver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'POSTGRES')
+        {
+            $hiveAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:postgresql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hiveAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"] = "org.postgresql.Driver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'MSSQL')
+        {
+            $hiveAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:sqlserver://${ENV:RANGER_AUDIT_DB_HOST};databaseName=${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hiveAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"] = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+        }
     ####
     #### Apply configuration changes to ranger-hive-security.xml
     ####
 	#
     #$xmlFile = Join-Path $ENV:HIVE_CONF_DIR "ranger-hive-security.xml"
 	#
-	<#
-    $hiveSecurityChanges = @{
-		"hive.authorization.verifier.classname"					= "org.apache.ranger.pdp.hive.RangerAuthorizer"
-		"xasecure.hive.policymgr.url"                           = "${ENV:RANGER_POLICY_ADMIN_URL}"
-		"xasecure.hive.policymgr.url.saveAsFile"				= "${ENV:RANGER_HOME}\tmp\hive_${ENV:RANGER_HIVE_REPO}"
-		"xasecure.hive.policymgr.url.laststoredfile"			= "${ENV:RANGER_HOME}\tmp\hive_${ENV:RANGER_HIVE_REPO}_json"
-		"xasecure.hive.policymgr.url.reloadIntervalInMillis"	= "30000"
-		"xasecure.hive.update.xapolicies.on.grant.revoke"		= "true"
-		"xasecure.policymgr.url"                            	= "${ENV:RANGER_POLICY_ADMIN_URL}";
-
-	}
-	#>
 	$hiveSecurityChanges = @{
 		"ranger.plugin.hive.policy.source.impl"							= 	"org.apache.ranger.admin.client.RangerAdminRESTClient"
-		"ranger.plugin.hive.policy.rest.url"             				=	"${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HIVE_REPO}"
+		"ranger.plugin.hive.policy.rest.url"             				=	"${ENV:RANGER_POLICY_ADMIN_URL}"
 		"ranger.plugin.hive.policy.pollIntervalMs"     					=	"30000"
 		"xasecure.hive.update.xapolicies.on.grant.revoke"				=	"true"
 		"ranger.plugin.hive.service.name" 								=	"${ENV:RANGER_HIVE_REPO}"#REPOSITORY_NAME 
@@ -280,29 +272,36 @@ function Main( $scriptDir )
 	    #### Apply configuration changes to ranger-hbase-audit.xml
 	    ####
 	    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "ranger-hbase-audit.xml"
-	    $hbaseAuditChanges =   @{
-	        "xasecure.audit.db.is.enabled"                          = "false"
-	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
-			"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
-			"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
-			"xasecure.audit.repository.name"						= "${ENV:RANGER_HBASE_REPO}"
-			"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:RANGER_HBASE_CRED_KEYSTORE_FILE}"
-		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
-			"xasecure.audit.hdfs.is.enabled"                        = "false"
-			"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:RANGER_HDFS_DESTINATION_DIRECTORY}"
-			"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
-			"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_DIRECTORY}"
-			"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_FILE}"
-			"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_DIRECTORY}"
-			"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"
-
-
-		}
+    $hbaseAuditChanges = @{
+		"xasecure.audit.db.is.enabled"                          = "true"
+		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
+		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
+		"xasecure.audit.repository.name"						= "${ENV:RANGER_HBASE_REPO}"
+		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:RANGER_HBASE_CRED_KEYSTORE_FILE}"
+        "xasecure.audit.hdfs.is.enabled"                        = "false"
+		#"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
+        "xasecure.audit.hdfs.config.destination.directory" = "hdfs://${ENV:NAMENODE_HOST}:8020/ranger/audit"
+	}
+        if($ENV:RANGER_DB_FLAVOR.ToUpper() -eq "MYSQL")
+        {
+            $hbaseAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hbaseAuditChanges["xasecure.audit.destination.db.jdbc.driver"] = "com.mysql.jdbc.Driver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'ORACLE')
+        {
+            $hbaseAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:oracle:thin:@${ENV:RANGER_AUDIT_DB_HOST}"
+            $hbaseAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"]= "oracle.jdbc.driver.OracleDriver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'POSTGRES')
+        {
+            $hbaseAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:postgresql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hbaseAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"] = "org.postgresql.Driver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'MSSQL')
+        {
+            $hbaseAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:sqlserver://${ENV:RANGER_AUDIT_DB_HOST};databaseName=${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $hbaseAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"] = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+        }
 
 	    ####
 	    #### Apply configuration changes to ranger-hbase-security.xml
@@ -310,21 +309,9 @@ function Main( $scriptDir )
 		#
 	    #$xmlFile = Join-Path $ENV:HBASE_CONF_DIR "ranger-hbase-security.xml"
 		#
-		<#
-	    $hbaseSecurityChanges =     @{
-			"hbase.authorization.verifier.classname"				= "org.apache.ranger.pdp.hbase.RangerAuthorizer"
-			"xasecure.hbase.policymgr.url"							= "${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HBASE_REPO}"
-			"xasecure.hbase.policymgr.url.saveAsFile"				= "${ENV:RANGER_HOME}\tmp\hbase_${ENV:RANGER_HBASE_REPO}"
-			"xasecure.hbase.policymgr.url.laststoredfile"			= "${ENV:RANGER_HOME}\tmp\hbase_${ENV:RANGER_HBASE_REPO}_json"
-			"xasecure.hbase.policymgr.url.reloadIntervalInMillis"	= "30000"
-			"xasecure.hbase.update.xapolicies.on.grant.revoke"		= "true"
-    		"xasecure.policymgr.url"                            	= "${ENV:RANGER_POLICY_ADMIN_URL}"
-            "xasecure.hive.policymgr.url"                           = "${ENV:RANGER_POLICY_ADMIN_URL}"
-		}
-		#>
 		$hbaseSecurityChanges =     @{
 			"ranger.plugin.hbase.policy.source.impl"	 			=	"org.apache.ranger.admin.client.RangerAdminRESTClient"
-			"ranger.plugin.hbase.policy.rest.url"		 			=	"${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_HBASE_REPO}"
+			"ranger.plugin.hbase.policy.rest.url"		 			=	"${ENV:RANGER_POLICY_ADMIN_URL}"
 			"ranger.plugin.hbase.policy.pollIntervalMs"				=	"30000"
 			"xasecure.hbase.update.xapolicies.on.grant.revoke"		=	"true"
 			"ranger.plugin.hbase.service.name" 						=	"${ENV:RANGER_HBASE_REPO}"#REPOSITORY_NAME 
@@ -357,51 +344,46 @@ function Main( $scriptDir )
 	    #### Apply configuration changes to ranger-knox-audit.xml
 	    ####
 	    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "ranger-knox-audit.xml"
-	    $knoxAuditChanges =   @{
-	        "xasecure.audit.db.is.enabled"                          = "true"
-	        "xasecure.audit.jpa.javax.persistence.jdbc.url"			= "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/xasecure"
-			"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
-			"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
-			"xasecure.audit.repository.name"						= "${ENV:RANGER_KNOX_REPO}"
-			"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:RANGER_KNOX_CRED_KEYSTORE_FILE}"
-		"xasecure.audit.jpa.javax.persistence.jdbc.driver"		= "com.mysql.jdbc.Driver"
-			"xasecure.audit.hdfs.is.enabled"                        = "false"
-			"xasecure.audit.hdfs.config.destination.directroy"      = "${ENV:RANGER_HDFS_DESTINATION_DIRECTORY}"
-			"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
-			"xasecure.audit.hdfs.config.destination.flush.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_FLUSH_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.destination.rollover.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_ROLLOVER_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.destination.open.retry.interval.seconds"= "{ENV:RANGER_HDFS_DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.buffer.directroy"     =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_DIRECTORY}"
-			"xasecure.audit.hdfs.config.local.buffer.file"          =  "{ENV:RANGER.HDFS_LOCAL_BUFFER_FILE}"
-			"xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds"= "{ENV:RANGER_HDFS_LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS}"
-			"xasecure.audit.hdfs.config.local.archive.directroy"      = "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_DIRECTORY}"
-			"xasecure.audit.hdfs.config.local.archive.max.file.count" =  "{ENV:RANGER_HDFS_LOCAL_ARCHIVE_MAX_FILE_COUNT}"
-
-
-		}
-
+    $knoxAuditChanges = @{
+		"xasecure.audit.db.is.enabled"                          = "true"
+		"xasecure.audit.jpa.javax.persistence.jdbc.user"		= "${ENV:RANGER_AUDIT_DB_USERNAME}"
+		"xasecure.audit.jpa.javax.persistence.jdbc.password"	= "crypted"
+		"xasecure.audit.repository.name"						= "${ENV:RANGER_KNOX_REPO}"
+		"xasecure.audit.credential.provider.file"				= "jceks://file/${ENV:RANGER_KNOX_CRED_KEYSTORE_FILE}"
+        "xasecure.audit.hdfs.is.enabled"                        = "false"
+		#"xasecure.audit.hdfs.config.destination.file"           = "${ENV:RANGER_HDFS_DESTINTATION_FILE}"
+        "xasecure.audit.hdfs.config.destination.directory" = "hdfs://${ENV:NAMENODE_HOST}:8020/ranger/audit"
+	}
+        if($ENV:RANGER_DB_FLAVOR.ToUpper() -eq "MYSQL")
+        {
+            $knoxAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:mysql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $knoxAuditChanges["xasecure.audit.destination.db.jdbc.driver"] = "com.mysql.jdbc.Driver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'ORACLE')
+        {
+            $knoxAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:oracle:thin:@${ENV:RANGER_AUDIT_DB_HOST}"
+            $knoxAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"]= "oracle.jdbc.driver.OracleDriver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'POSTGRES')
+        {
+            $knoxAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:postgresql://${ENV:RANGER_AUDIT_DB_HOST}:${ENV:RANGER_AUDIT_DB_PORT}/${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $knoxAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"] = "org.postgresql.Driver"
+        }
+        elseif($ENV:RANGER_DB_FLAVOR.ToUpper() -eq 'MSSQL')
+        {
+            $knoxAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.url"] = "jdbc:sqlserver://${ENV:RANGER_AUDIT_DB_HOST};databaseName=${ENV:RANGER_AUDIT_DB_DBNAME}"
+            $knoxAuditChanges["xasecure.audit.jpa.javax.persistence.jdbc.driver"] = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+        }
 	    ####
 	    #### Apply configuration changes to ranger-knox-security.xml
 	    ####
 		#
 	    #$xmlFile = Join-Path $ENV:KNOX_CONF_DIR "ranger-knox-security.xml"
 		#
-		<#
-	    $knoxSecurityChanges =     @{
-			"knox.authorization.verifier.classname"				= "org.apache.ranger.pdp.knox.RangerAuthorizer"
-			"xasecure.knox.policymgr.url"							= "${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_KNOX_REPO}"
-			"xasecure.knox.policymgr.url.saveAsFile"				= "${ENV:RANGER_HOME}\tmp\knox_${ENV:RANGER_KNOX_REPO}"
-			"xasecure.knox.policymgr.url.laststoredfile"			= "${ENV:RANGER_HOME}\tmp\knox_${ENV:RANGER_KNOX_REPO}_json"
-			"xasecure.knox.policymgr.url.reloadIntervalInMillis"	= "30000"
-			"xasecure.knox.update.xapolicies.on.grant.revoke"		= "true"
-			"xasecure.policymgr.url"                            	= "${ENV:RANGER_POLICY_ADMIN_URL}"
-            "xasecure.hive.policymgr.url"                           = "${ENV:RANGER_POLICY_ADMIN_URL}"
-		}
-		#>
 		$knoxSecurityChanges =     @{
 			"ranger.plugin.knox.policy.source.impl"          =	"org.apache.ranger.admin.client.RangerAdminJersey2RESTClient"
-			"ranger.plugin.knox.policy.rest.url"             =	"${ENV:RANGER_EXTERNAL_URL}/service/assets/policyList/${ENV:RANGER_KNOX_REPO}"
+            #org.apache.ranger.admin.client.RangerAdminRESTClient
+			"ranger.plugin.knox.policy.rest.url"             =	"${ENV:RANGER_POLICY_ADMIN_URL}"
 			"ranger.plugin.knox.policy.pollIntervalMs"       =	"30000"
 			"ranger.plugin.knox.service.name"                =	"${ENV:RANGER_KNOX_REPO}"#REPOSITORY_NAME                                           
 			"ranger.plugin.knox.policy.cache.dir"            =	"${ENV:RANGER_KNOX_CACHE_FILE}"#POLICY_CACHE_FILE_PATH  
