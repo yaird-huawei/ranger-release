@@ -110,6 +110,15 @@ public abstract class AuditQueue extends BaseAuditHandler {
 
 	}
 
+	@Override
+	public void setName(String name) {
+		super.setName(name);
+		if( consumer != null && consumer instanceof BaseAuditHandler) {
+			BaseAuditHandler base = (BaseAuditHandler) consumer;
+			base.setParentPath(getName());
+		}
+	}
+
 	public AuditHandler getConsumer() {
 		return consumer;
 	}
