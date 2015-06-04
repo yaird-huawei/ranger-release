@@ -396,6 +396,10 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 	}
 	
 	private HiveAccessType getAccessType(HivePrivilegeObject hiveObj, HiveOperationType hiveOpType, boolean isInput) {
+		if(hiveObj.getType() == HivePrivilegeObjectType.DFS_URI || hiveObj.getType() == HivePrivilegeObjectType.LOCAL_URI) {
+			return isInput ? HiveAccessType.SELECT : HiveAccessType.CREATE;
+		}
+
 		HiveAccessType           accessType       = HiveAccessType.NONE;
 		HivePrivObjectActionType objectActionType = hiveObj.getActionType();
 		
@@ -557,6 +561,10 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
 	}
 
     private boolean isURIAccessAllowed(UserGroupInformation ugi, HiveAccessType accessType, String uri, HiveConf conf) {
+        if(LOG.isDebugEnabled()) {
+            LOG.debug("==> isURIAccessAllowed(user=" + ugi.getShortUserName() + "; accessType=" + accessType + "; uri=" + uri + ")");
+        }
+
         boolean ret = false;
 
         FsAction action = FsAction.NONE;
@@ -569,7 +577,7 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
             case INDEX:
             case LOCK:
             case ADMIN:
-    		case ALL:
+            case ALL:
                 action = FsAction.WRITE;
             break;
 
@@ -600,6 +608,10 @@ public class XaSecureHiveAuthorizer extends XaSecureHiveAuthorizerBase {
             } catch(Exception excp) {
                 LOG.error("Error getting permissions for " + uri, excp);
             }
+        }
+
+        if(LOG.isDebugEnabled()) {
+            LOG.debug("<== isURIAccessAllowed(user=" + ugi.getShortUserName() + "; accessType=" + accessType + "; uri=" + uri + "): " + ret);
         }
 
         return ret;
