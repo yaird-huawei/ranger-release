@@ -585,7 +585,7 @@ function InstallUserSync(
 						Invoke-CmdChk $cmd
 					}
 
-					CreateJCEKS "ldap.bind.password" "${ENV:RANGER_SYNC_LDAP_BIND_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/usersync.jceks"
+					CreateJCEKS "ranger.usersync.ldap.bindalias" "${ENV:RANGER_SYNC_LDAP_BIND_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/usersync.jceks"
 
 					$username = $serviceCredential.UserName
 					GiveFullPermissions `"$ENV:RANGER_HOME\jceks`" $username $true

@@ -512,8 +512,8 @@ function Main( $scriptDir )
     }
     $SyncSourceLDAP = @{
         "ranger.usersync.source.impl.class"="org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"
-        "ranger.usersync.ldap.bindalias"="ldap.bind.password"
-        "ranger.usersync.ldap.bindkeystore"="${ENV:RANGER_USERSYNC_CRED_KEYSTORE_FILE}"
+        #"ranger.usersync.ldap.bindalias"="ldap.bind.password"
+        "ranger.usersync.credstore.filename"="${ENV:RANGER_USERSYNC_CRED_KEYSTORE_FILE}"
     }
     $SynchSourceUNIX =@{
         "ranger.usersync.source.impl.class"="org.apache.ranger.unixusersync.process.UnixUserGroupBuilder"
