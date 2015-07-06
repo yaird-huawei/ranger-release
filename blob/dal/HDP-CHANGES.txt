@@ -1,0 +1,56 @@
+Changes only in Hortonworks github and not in ranger 0.5.0 and hence not covered by CHANGES.txt.
+
+SUB-TASK
+
+     [RANGER-422] - Add additional database columns to support aggregation
+     [RANGER-423] - Support audit log aggregation in Ranger Admin UI
+     [RANGER-513] - Policy validation: resource hierarchies check does not work with single-node hierarchies as in HDFS
+     [RANGER-551] - Policy Validation: If resource levels are not valid for any hierarchy then checks about missing mandatory levels should be skipped.
+     [RANGER-564] - Add incubating to the release name
+
+BUG
+
+     [RANGER-219] - Autocomplete behavior of hive tables/columns
+     [RANGER-524] - Hbase plugin: list command should prune the tables returned on user permissions
+     [RANGER-529] - Policy Validation: resources of a policy must match one of the resource hierarchies of the service def.
+     [RANGER-533] - Hbase plugin: if user does not have family-level access to any family in a table then user may be incorrectly denied access done at table/family level during get or scan
+     [RANGER-539] - Rolling downgrade changes
+     [RANGER-545] - Fix js error for lower versions of FF (<30)
+     [RANGER-548] - Key rollover command fails
+     [RANGER-550] - Hive plugin: Add audit logging support for metadata queries that have filtering support from hive
+     [RANGER-553] - Default policy creation during service creation should handle service defs with multiple hierarchies, e.g. hive, properly
+     [RANGER-554] - Ranger KMS keys listing page does not support pagination
+     [RANGER-555] - Policy view page (from access audit page) gives 404 with Oracle DB
+     [RANGER-558] - Hbase plugin: unless user has READ access at some level under the table/family being accessed (via scan/get) authorizer should throw an exception and audit
+     [RANGER-565] - Ranger Admin install fails (sometimes) with IO Error when DB used in Oracle
+     [RANGER-566] - Installation of Ranger on Oracle 12c with shared database needs to use private synonym instead of public synonym
+     [RANGER-569] - Enabling Ranger plugin for Hbase should not modify hbase.rpc.protection value
+     [RANGER-570] - Knox plugin: after upgrading ranger from 0.4 to 0.5 the knox plugin won't work because classes with old names are missing
+     [RANGER-571] - Storm plugin: after upgrading ranger from 0.4 to 0.5 the plugin won't work because classes with old names are missing
+
+TASK
+
+     [RANGER-573] - Updated Ranger WebSite Doc
+
+HDP CHANGES:
+
+     BUG-38634:[TestIssue]-XaAgents on Windows - 321 tests failing due to
+     BUG-37728:Ranger-Windows-should-still-use-v2-properties
+     BUG-36989-As-per-2.3-hdp-plugins-properties-needs-to-change
+     BUG-36592:Ranger install blocked on slave node under windows
+     BUG-36149:Validate AD/LDAP Authentication on Windows based Ranger installation
+     BUG-35911:Failed to install Ranger component due to Ranger policyManager script failures
+     BUG-34542-Replace-Javaagent-Injection-with-HDFS-auth
+     BUG-35414:Fix HBase and Knox configure step getting called twice in RANGER Windows
+     BUG-33129, BUG-35228 : Fix DB scripts
+     Remove unwanted argus script
+     Remove unwanted argus script
+     File name change from xasecure to ranger
+     BUG-34355 Support compiling ranger with recent HBase-1.1.0-SNAPSHOT
+     BUG-34022: fixed version number to match with parent pom.xml
+     BUG-33812: Ranger update to use HBase 1.0
+     Revert "temporarily commenting @Override annotation for filterListCmdObjects because of revert in HIVE-9350"
+     temporarily commenting @Override annotation for filterListCmdObjects because of revert in HIVE-9350
+     BUG-28024 [Test issue]create a topology for KNOX tests to run
+     BUG-28035 * [Test Issue]xasecure-{component}-security.xml file missing valid policy admin host url
+     BUG-28028 [Test issue]xasecure-audit.xml should refer to valid host entry where mysql is running
