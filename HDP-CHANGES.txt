@@ -27,6 +27,8 @@ BUG
      [RANGER-569] - Enabling Ranger plugin for Hbase should not modify hbase.rpc.protection value
      [RANGER-570] - Knox plugin: after upgrading ranger from 0.4 to 0.5 the knox plugin won't work because classes with old names are missing
      [RANGER-571] - Storm plugin: after upgrading ranger from 0.4 to 0.5 the plugin won't work because classes with old names are missing
+     [RANGER-575] - Allow KMS policies to be assigned to all users
+     [RANGER-576] - Storm audit not showing access type in the Ranger Admin Audit UI
 
 TASK
 
