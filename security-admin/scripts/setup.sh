@@ -1310,6 +1310,14 @@ execute_java_patches(){
 		done
 	fi
 }
+
+setting_folder_permission() {
+    if [ -d ${WEBAPP_ROOT}/WEB-INF/classes/conf ]; then
+        log "[I] Setting permission for folder ${WEBAPP_ROOT}/WEB-INF/classes/conf/"
+        chown -R ${unix_user}:${unix_group} ${WEBAPP_ROOT}/WEB-INF/classes/conf/
+    fi
+}
+
 init_logfiles
 log " --------- Running XASecure PolicyManager Web Application Install Script --------- "
 log "[I] uname=`uname`"
@@ -1330,6 +1338,7 @@ upgrade_db
 create_audit_db_user
 update_properties
 do_authentication_setup
+setting_folder_permission
 execute_java_patches
 
 echo "Installation of XASecure PolicyManager Web Application is completed."
