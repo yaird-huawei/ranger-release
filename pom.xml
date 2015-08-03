@@ -439,15 +439,13 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>2.2.1</version>
-          <configuration>
-            <attach>true</attach>
-          </configuration>
+          <version>2.4</version>
           <executions>
             <execution>
-              <id>create-source-jar</id>
+              <id>attach-sources</id>
               <goals>
                 <goal>jar-no-fork</goal>
+                <goal>test-jar-no-fork</goal>
               </goals>
             </execution>
           </executions>
@@ -476,8 +474,11 @@
     
     </pluginManagement>
     <plugins>
-
-    <plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <plugin>
       <groupId>org.apache.rat</groupId>
       <artifactId>apache-rat-plugin</artifactId>
       <version>0.11</version>
@@ -492,14 +493,12 @@
       <configuration>
         <excludeSubProjects>false</excludeSubProjects>
         <excludes>
-		  <exclude>**/dependency-reduced-pom.xml</exclude>
+          <exclude>**/dependency-reduced-pom.xml</exclude>
           <exclude>**/robots.txt</exclude>
           <exclude>**/MANIFEST.MF</exclude>
           <exclude>**/bootstrap.min.js</exclude>
-
           <exclude>**/src/main/webapp/fonts/**</exclude>
           <exclude>**/src/main/webapp/libs/**</exclude>
-
           <exclude>.git/**</exclude>
           <exclude>.pc/**</exclude>
           <exclude>debian/**</exclude>
@@ -522,10 +521,9 @@
           <exclude>**/.externalToolBuilders/*</exclude>
           <exclude>*.patch</exclude>
           <exclude>atlassian-ide-plugin.xml</exclude>
-	      <exclude>**/.pydevproject</exclude>
-		  <exclude>**/*CHANGES.txt</exclude>
+          <exclude>**/.pydevproject</exclude>
+          <exclude>**/*CHANGES.txt</exclude>
         </excludes>
-
       </configuration>
     </plugin>
 
