@@ -509,6 +509,11 @@ public class AssetREST {
 	@Produces({ "application/xml", "application/json" })
 	public VXPolicyExportAuditList searchXPolicyExportAudits(
 			@Context HttpServletRequest request) {
+
+		if (!msBizUtil.isAdmin()) {
+			throw restErrorUtil.create403RESTException("Logged-In user is not allowed to access policy export audits.");
+		}
+
 		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
 				request, xPolicyExportAudits.sortFields);
 		searchUtil.extractString(request, searchCriteria, "agentId", 
@@ -533,6 +538,11 @@ public class AssetREST {
 	@Path("/report")
 	@Produces({ "application/xml", "application/json" })
 	public VXTrxLogList getReportLogs(@Context HttpServletRequest request){
+
+		if (!msBizUtil.isAdmin()) {
+			throw restErrorUtil.create403RESTException("Logged-In user is not allowed to access Transaction Logs.");
+		}
+
 		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
 				request, xTrxLogService.sortFields);
 		searchUtil.extractInt(request, searchCriteria, "objectClassType", "Class type for report.");
@@ -554,6 +564,11 @@ public class AssetREST {
 	@Produces({ "application/xml", "application/json" })
 	public VXTrxLogList getTransactionReport(@Context HttpServletRequest request, 
 			@PathParam("transactionId") String transactionId){
+
+		if (!msBizUtil.isAdmin()) {
+			throw restErrorUtil.create403RESTException("Logged-In user is not allowed to access Transaction Logs.");
+		}
+
 		return assetMgr.getTransactionReport(transactionId);
 	}
 	
@@ -561,6 +576,11 @@ public class AssetREST {
 	@Path("/accessAudit")
 	@Produces({ "application/xml", "application/json" })
 	public VXAccessAuditList getAccessLogs(@Context HttpServletRequest request){
+
+		if (!msBizUtil.isAdmin()) {
+			throw restErrorUtil.create403RESTException("Logged-In user is not allowed to access audit data.");
+		}
+
 		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
 				request, xAccessAuditService.sortFields);
 		searchUtil.extractString(request, searchCriteria, "accessType",

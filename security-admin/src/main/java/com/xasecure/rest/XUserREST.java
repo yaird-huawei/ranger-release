@@ -93,7 +93,10 @@ public class XUserREST {
 	
 	@Autowired
 	AuthSessionService authSessionService;
-	
+
+	@Autowired
+	XABizUtil msBizUtil;
+
 	// Handle XGroup
 	@GET
 	@Path("/groups/{id}")
@@ -580,6 +583,11 @@ public class XUserREST {
 	@Path("/authSessions")
 	@Produces({ "application/xml", "application/json" })
 	public VXAuthSessionList getAuthSessions(@Context HttpServletRequest request){
+
+		if (!msBizUtil.isAdmin()) {
+			throw restErrorUtil.create403RESTException("Logged-In user is not allowed to access Auth Sessions data.");
+		}
+
 		SearchCriteria searchCriteria = searchUtil.extractCommonCriterias(
 				request, authSessionService.AUTH_SESSION_SORT_FLDS);
 		searchUtil.extractLong(request, searchCriteria, "id", "Auth Session Id");
@@ -601,6 +609,11 @@ public class XUserREST {
 	@Path("/authSessions/info")
 	@Produces({ "application/xml", "application/json" })
 	public VXAuthSession getAuthSession(@Context HttpServletRequest request){
+
+		if (!msBizUtil.isAdmin()) {
+			throw restErrorUtil.create403RESTException("Logged-In user is not allowed to access Auth Sessions data.");
+		}
+
 		String authSessionId = request.getParameter("extSessionId");
 		return sessionMgr.getAuthSessionBySessionId(authSessionId);
 	}
