@@ -58,7 +58,7 @@ public class XXHiveAuditEvent extends XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "resource_path")
 	public String getResourcePath() {
-		return this.resourcePath;
+		return truncateResourcePath(this.resourcePath);
 	}
 
 	public void setResourcePath(String resourcePath) {
@@ -67,7 +67,7 @@ public class XXHiveAuditEvent extends XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "resource_type")
 	public String getResourceType() {
-		return this.resourceType;
+		return truncateResourceType(this.resourceType);
 	}
 
 	public void setResourceType(String resourceType) {
@@ -76,7 +76,7 @@ public class XXHiveAuditEvent extends XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "request_data")
 	public String getRequestData() {
-		return this.requestData;
+		return truncateRequestData(this.requestData);
 	}
 
 	public void setRequestData(String requestData) {

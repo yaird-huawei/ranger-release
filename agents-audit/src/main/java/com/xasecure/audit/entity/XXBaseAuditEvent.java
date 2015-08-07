@@ -21,6 +21,7 @@
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Properties;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -36,6 +37,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.xasecure.audit.model.AuditEventBase;
+import com.xasecure.audit.provider.BaseAuditProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Entity implementation class for Entity: XABaseAuditEvent
@@ -48,6 +52,22 @@ import com.xasecure.audit.model.AuditEventBase;
 @Table(name="xa_access_audit")
 public class XXBaseAuditEvent implements Serializable {
 	private static final long serialVersionUID = 1L;
+
+	private static final Log LOG = LogFactory.getLog(XXBaseAuditEvent.class);
+	
+	static int MaxValueLengthAccessType = 255;
+	static int MaxValueLengthAclEnforcer = 255;
+	static int MaxValueLengthAgentId = 255;
+	static int MaxValueLengthClientIp = 255;
+	static int MaxValueLengthClientType = 255;
+	static int MaxValueLengthRepoName = 255;
+	static int MaxValueLengthResultReason = 255;
+	static int MaxValueLengthSessionId = 255;
+	static int MaxValueLengthRequestUser = 255;
+	static int MaxValueLengthAction = 2000;
+	static int MaxValueLengthRequestData = 2000;
+	static int MaxValueLengthResourcePath = 2000;
+	static int MaxValueLengthResourceType = 255;
 
 	private long   auditId;
 	private String agentId;
@@ -86,6 +106,61 @@ public class XXBaseAuditEvent implements Serializable {
 		this.action = event.getAction();
 	}
 
+	public static void init(Properties props)
+	{
+		final String AUDIT_DB_MAX_COLUMN_VALUE = "xasecure.audit.db.max.columnvalue";
+		MaxValueLengthAccessType = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "access_type", MaxValueLengthAccessType);
+		logMaxColumnValue("access_type", MaxValueLengthAccessType);
+
+		MaxValueLengthAclEnforcer = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "acl_enforcer", MaxValueLengthAclEnforcer);
+		logMaxColumnValue("action", MaxValueLengthAclEnforcer);
+
+		MaxValueLengthAction = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "action", MaxValueLengthAction);
+		logMaxColumnValue("action", MaxValueLengthAction);
+
+		MaxValueLengthAgentId = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "agent_id", MaxValueLengthAgentId);
+		logMaxColumnValue("agent_id", MaxValueLengthAgentId);
+
+		MaxValueLengthClientIp = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "client_id", MaxValueLengthClientIp);
+		logMaxColumnValue("client_id", MaxValueLengthClientIp);
+
+		MaxValueLengthClientType = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "client_type", MaxValueLengthClientType);
+		logMaxColumnValue("client_type", MaxValueLengthClientType);
+
+		MaxValueLengthRepoName = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "repo_name", MaxValueLengthRepoName);
+		logMaxColumnValue("repo_name", MaxValueLengthRepoName);
+
+		MaxValueLengthResultReason = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "result_reason", MaxValueLengthResultReason);
+		logMaxColumnValue("result_reason", MaxValueLengthResultReason);
+
+		MaxValueLengthSessionId = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "session_id", MaxValueLengthSessionId);
+		logMaxColumnValue("session_id", MaxValueLengthSessionId);
+
+		MaxValueLengthRequestUser = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "request_user", MaxValueLengthRequestUser);
+		logMaxColumnValue("request_user", MaxValueLengthRequestUser);
+
+		MaxValueLengthAction = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "action", MaxValueLengthAction);
+		logMaxColumnValue("action", MaxValueLengthAction);
+
+		MaxValueLengthRequestData = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "request_data", MaxValueLengthRequestData);
+		logMaxColumnValue("request_data", MaxValueLengthRequestData);
+
+		MaxValueLengthResourcePath = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "resource_path", MaxValueLengthResourcePath);
+		logMaxColumnValue("resource_path", MaxValueLengthResourcePath);
+
+		MaxValueLengthResourceType = BaseAuditProvider.getIntProperty(props, AUDIT_DB_MAX_COLUMN_VALUE + "." + "resource_type", MaxValueLengthResourceType);
+		logMaxColumnValue("resource_type", MaxValueLengthResourceType);
+	}
+
+	public static void logMaxColumnValue(String columnName, int configuredMaxValueLength) {
+		LOG.info("Setting max column value for column[" + columnName + "] to [" + configuredMaxValueLength + "].");
+		if (configuredMaxValueLength == 0) {
+			LOG.info("Max length of column[" + columnName + "] was 0! Column will NOT be emitted in the audit.");
+		} else if (configuredMaxValueLength < 0) {
+			LOG.info("Max length of column[" + columnName + "] was less than 0! Column value will never be truncated.");
+		}
+	}
+
 	@Id
 	@SequenceGenerator(name="XA_ACCESS_AUDIT_SEQ",sequenceName="XA_ACCESS_AUDIT_SEQ",allocationSize=1)
 	@GeneratedValue(strategy=GenerationType.AUTO,generator="XA_ACCESS_AUDIT_SEQ")
@@ -100,7 +175,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "agent_id")
 	public String getAgentId() {
-		return agentId;
+		return truncate(this.agentId, MaxValueLengthAgentId, "agent_id");
 	}
 
 	public void setAgentId(String agentId) {
@@ -109,7 +184,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "request_user")
 	public String getUser() {
-		return this.user;
+		return truncate(this.user, MaxValueLengthRequestUser, "request_user");
 	}
 
 	public void setUser(String user) {
@@ -137,7 +212,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "access_type")
 	public String getAccessType() {
-		return this.accessType;
+		return truncate(this.accessType, MaxValueLengthAccessType, "access_type");
 	}
 
 	public void setAccessType(String accessType) {
@@ -155,7 +230,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "result_reason")
 	public String getResultReason() {
-		return this.resultReason;
+		return truncate(this.resultReason, MaxValueLengthResultReason, "result_reason");
 	}
 
 	public void setResultReason(String resultReason) {
@@ -164,7 +239,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "acl_enforcer")
 	public String getAclEnforcer() {
-		return this.aclEnforcer;
+		return truncate(this.aclEnforcer, MaxValueLengthAclEnforcer, "acl_enforcer");
 	}
 
 	public void setAclEnforcer(String aclEnforcer) {
@@ -182,7 +257,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "repo_name")
 	public String getRepositoryName() {
-		return this.repositoryName;
+		return truncate(this.repositoryName, MaxValueLengthRepoName, "repo_name");
 	}
 
 	public void setRepositoryName(String repositoryName) {
@@ -191,7 +266,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "session_id")
 	public String getSessionId() {
-		return this.sessionId;
+		return truncate(this.sessionId, MaxValueLengthSessionId, "session_id");
 	}
 
 	public void setSessionId(String sessionId) {
@@ -200,7 +275,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "client_type")
 	public String getClientType() {
-		return this.clientType;
+		return truncate(this.clientType, MaxValueLengthClientType, "client_type");
 	}
 
 	public void setClientType(String clientType) {
@@ -209,7 +284,7 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "client_ip")
 	public String getClientIP() {
-		return this.clientIP;
+		return truncate(this.clientIP, MaxValueLengthClientIp, "client_ip");
 	}
 
 	public void setClientIP(String clientIP) {
@@ -218,11 +293,75 @@ public class XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "action")
 	public String getAction() {
-		return this.action;
+		return truncate(this.action, MaxValueLengthAction, "action");
 	}
 
 	public void setAction(String action) {
 		this.action = action;
 	}
-	
+
+	protected String truncateResourcePath(String value) {
+		return truncate(value, MaxValueLengthResourcePath, "resource_path");
+	}
+
+	protected String truncateRequestData(String value) {
+		return truncate(value, MaxValueLengthRequestData, "request_data");
+	}
+
+	protected String truncateResourceType(String value) {
+		return truncate(value, MaxValueLengthResourceType, "resource_type");
+	}
+
+	protected String truncate(String value, int limit, String columnName) {
+		String result = value;
+		if (value != null) {
+			if (limit < 0) {
+				if (LOG.isDebugEnabled()) {
+					LOG.debug(String.format("Truncation is suppressed for column[%s]: old value [%s], new value[%s]", columnName, value, result));
+				}
+			} else if (limit == 0) {
+				if (LOG.isDebugEnabled()) {
+					LOG.debug(String.format("Column[%s] is to be excluded from audit: old value [%s], new value[%s]", columnName, value, result));
+				}
+				result = null;
+			} else {
+				if (value.length() > limit) {
+					result = getTrunctedValue(value, limit);
+					if (LOG.isDebugEnabled()) {
+						LOG.debug(String.format("Truncating value for column[%s] to [%d] characters: old value [%s], new value[%s]", columnName, limit, value, result));
+					}
+				} else {
+					if (LOG.isDebugEnabled()) {
+						LOG.debug(String.format("Value[%s] for column[%s] is less than [%d] characters. Leaving it as is.", value, columnName, limit));
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	static final String TruncationMarker = "...";
+	static final int TruncationMarkerLength = TruncationMarker.length();
+
+	// must not be called with null value
+	protected String getTrunctedValue(String value, int length) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("==> getTrunctedValue(" + value + ", " + length + ")");
+		}
+
+		String result;
+		if (length <= TruncationMarkerLength) {
+			// NOTE: If value is to be truncated to a size that is less than of equal to the Truncation Marker then we won't put the marker in!!
+			result = value.substring(0, length);
+		} else {
+			StringBuilder sb = new StringBuilder(value.substring(0, length - TruncationMarkerLength));
+			sb.append(TruncationMarker);
+			result = sb.toString();
+		}
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("<== getTrunctedValue(" + value + ", " + length + "): " + result);
+		}
+		return result;
+	}
 }

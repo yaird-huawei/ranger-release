@@ -27,6 +27,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
+import com.xasecure.audit.entity.XXBaseAuditEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -89,6 +90,9 @@ public class DbAuditProvider extends BaseAuditProvider {
 		if(jdbcPassword != null && !jdbcPassword.isEmpty()) {
 			mDbProperties.put(AUDIT_JPA_JDBC_PASSWORD, jdbcPassword);
 		}
+
+		// bootstrap the db-persistance framework
+		XXBaseAuditEvent.init(props);
 	}
 
 	@Override

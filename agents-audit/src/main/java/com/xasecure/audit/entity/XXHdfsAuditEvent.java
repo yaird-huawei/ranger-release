@@ -56,7 +56,7 @@ public class XXHdfsAuditEvent extends XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "resource_path")
 	public String getResourcePath() {
-		return this.resourcePath;
+		return truncateResourcePath(this.resourcePath);
 	}
 
 	public void setResourcePath(String resourcePath) {
@@ -65,7 +65,7 @@ public class XXHdfsAuditEvent extends XXBaseAuditEvent implements Serializable {
 
 	@Column(name = "resource_type")
 	public String getResourceType() {
-		return this.resourceType;
+		return truncateResourceType(this.resourceType);
 	}
 
 	public void setResourceType(String resourceType) {
