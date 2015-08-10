@@ -143,7 +143,7 @@ define(function(require) {
 		   
 		   var assetModel = new VXAsset({id:assetId});
 		   resource.fetch({
-//			   cache:true
+			   cache:false
 			   }).done(function(){
 			   assetModel.fetch({cache : true}).done(function(){
 				   App.rContent.show(new view({
