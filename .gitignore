@@ -5,3 +5,6 @@
 .project
 /target/
 winpkg/target
+# counterpart of above files for intellij base development
+.idea/
+*.iml
