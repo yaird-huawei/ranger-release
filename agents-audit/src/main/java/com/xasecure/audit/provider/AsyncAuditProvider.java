@@ -44,6 +44,9 @@ public class AsyncAuditProvider extends MultiDestAuditProvider implements
 	private int     mMaxQueueSize     = 10 * 1024;
 	private int     mMaxFlushInterval = 5000; // 5 seconds
 
+	private int mStopLoopIntervalMs                = 1000; // 1 second
+	private int mWaitToCompleteLoopIntervalSecs = 1;
+
 	// Summary of logs handled
 	private AtomicLong lifeTimeInLogCount  = new AtomicLong(0); // Total count, including drop count
 	private AtomicLong lifeTimeOutLogCount = new AtomicLong(0);
@@ -110,16 +113,25 @@ public class AsyncAuditProvider extends MultiDestAuditProvider implements
 
 	@Override
 	public void stop() {
-		mStopThread = true;
-
+		LOG.info("==> AsyncAuditProvider.stop()");
 		try {
-			mThread.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			mStopThread = true;
 
-		super.stop();
+			while (mThread.isAlive()) {
+				try {
+					LOG.info(String.format("%s: waiting for child thread to exit.  Sleeping for %d ms", mName, mStopLoopIntervalMs));
+					mThread.join(mStopLoopIntervalMs);
+				} catch (InterruptedException e) {
+					LOG.warn("Interrupted while waiting for child thread to join!  Interrupting the child thread and proceeding with stop", e);
+					mThread.interrupt();
+					break;
+				}
+			}
+
+			super.stop();
+		} finally {
+			LOG.info("<== AsyncAuditProvider.stop()");
+		}
 	}
 
 	@Override
@@ -238,16 +250,21 @@ public class AsyncAuditProvider extends MultiDestAuditProvider implements
 	private void waitToComplete(long maxWaitSeconds) {
 		LOG.debug("==> AsyncAuditProvider.waitToComplete()");
 
-		for (long waitTime = 0; !isEmpty()
-				&& (maxWaitSeconds <= 0 || maxWaitSeconds > waitTime); waitTime++) {
-			try {
-				Thread.sleep(1000);
-			} catch (Exception excp) {
-				// ignore
+		try {
+			for (long waitTime = 0; !isEmpty()
+					&& (maxWaitSeconds <= 0 || maxWaitSeconds > waitTime); waitTime += mWaitToCompleteLoopIntervalSecs) {
+				try {
+					LOG.info(String.format("%d messages yet to be flushed by %s.  Sleeoping for %d sec", mQueue.size(), mName, mWaitToCompleteLoopIntervalSecs));
+					Thread.sleep(mWaitToCompleteLoopIntervalSecs * 1000);
+				} catch (InterruptedException excp) {
+					// someone really wants service to exit, abandon unwritten audits and exit.
+					LOG.warn("Caught interrupted exception! " + mQueue.size() + " messages still unflushed!  Won't wait for queue to flush, exiting...", excp);
+					break;
+				}
 			}
+		} finally {
+			LOG.debug("<== AsyncAuditProvider.waitToComplete()");
 		}
-
-		LOG.debug("<== AsyncAuditProvider.waitToComplete()");
 	}
 
 	private long getTimeTillNextFlush() {

@@ -236,8 +236,13 @@ public class AuditProviderFactory {
 		}
 
 		public void run() {
-			mProvider.waitToComplete();
-			mProvider.stop();
+			LOG.info("==> JVMShutdownHook.run()");
+			try {
+				mProvider.waitToComplete();
+				mProvider.stop();
+			} finally {
+				LOG.info("<== JVMShutdownHook.run()");
+			}
 	    }
 	}
 }
