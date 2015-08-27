@@ -220,7 +220,7 @@ then
 	then
 
 		cp ${SET_ENV_SCRIPT_TEMPLATE} ${SET_ENV_SCRIPT}
-
+		chmod 644 ${SET_ENV_SCRIPT}
 		DEST_SCRIPT_FILE=${HCOMPONENT_INSTALL_DIR}/libexec/${HCOMPONENT_NAME}-config.sh
 
 		DEST_SCRIPT_ARCHIVE_FILE=${HCOMPONENT_INSTALL_DIR}/libexec/.${HCOMPONENT_NAME}-config.sh.${dt}
@@ -589,6 +589,7 @@ then
             }' ${CFG_FILE} > ${CFG_FILE}.new &&  cat ${CFG_FILE}.new > ${CFG_FILE} && rm -f ${CFG_FILE}.new	
 		fi
 	fi
+	chmod 644 ${HCOMPONENT_CONF_DIR}/*
 fi
 
 #

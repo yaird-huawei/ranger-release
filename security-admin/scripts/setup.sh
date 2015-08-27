@@ -858,6 +858,8 @@ update_properties() {
 		updatePropertyToFile $propertyName $newPropertyValue $to_file
 	fi
 
+	chown -R  ${unix_user}:${unix_group} ${app_home}/WEB-INF/classes/conf/.jceks
+
 }
 
 create_audit_db_user(){
@@ -1121,6 +1123,9 @@ do_authentication_setup(){
     if [ $authentication_method = "UNIX" ] ; then
         do_unixauth_setup
     fi
+
+    chown -R ${unix_user}:${unix_group} ${WEBAPP_ROOT}/WEB-INF/classes/conf/
+
     log "[I] Finished setup based on user authentication method=$authentication_method";
 }
 
