@@ -105,6 +105,32 @@ JAVA=$JAVA_HOME/bin/java
 
 hdir=${PROJ_INSTALL_DIR}/../${HCOMPONENT_NAME}
 
+CUSTOM_USER=`grep '^CUSTOM_USER' ${INSTALL_ARGS} | awk -F= '{ print $2 }'`
+CUSTOM_USER=${CUSTOM_USER// }
+
+CUSTOM_GROUP=`grep '^CUSTOM_GROUP' ${INSTALL_ARGS} | awk -F= '{ print $2 }'`
+CUSTOM_GROUP=${CUSTOM_GROUP// }
+
+
+if [ ! -z "${CUSTOM_USER}" ] && [ ! -z "${CUSTOM_GROUP}" ]
+then
+  echo "Custom user and group is available, using custom user and group."
+  CFG_OWNER_INF="${CUSTOM_USER}:${CUSTOM_GROUP}"
+elif [ ! -z "${CUSTOM_USER}" ] && [ -z "${CUSTOM_GROUP}" ]
+then
+  echo "Custom user is available, using custom user and default group."
+  CFG_OWNER_INF="${CUSTOM_USER}:${HCOMPONENT_NAME}"
+elif [ -z  "${CUSTOM_USER}" ] && [ ! -z  "${CUSTOM_GROUP}" ]
+then
+  echo "Custom group is available, using default user and custom group."
+  CFG_OWNER_INF="${HCOMPONENT_NAME}:${CUSTOM_GROUP}"
+elif  [ -z "${CUSTOM_USER}" ] && [ -z "${CUSTOM_GROUP}" ]
+then
+  echo "Custom user and group are not available, using default user and group."
+  CFG_OWNER_INF="${HCOMPONENT_NAME}:${HCOMPONENT_NAME}"
+fi
+
+
 #
 # TEST - START
 #
