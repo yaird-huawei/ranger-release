@@ -97,7 +97,7 @@ public class DbAuditProvider extends BaseAuditProvider {
 
 	@Override
 	public void log(AuditEventBase event) {
-		LOG.debug("DbAuditProvider.log()");
+		LOG.debug("==> DbAuditProvider.log()");
 
 		boolean isSuccess = false;
 
@@ -118,6 +118,8 @@ public class DbAuditProvider extends BaseAuditProvider {
 				logFailedEvent(event);
 			}
 		}
+
+		LOG.debug("<== DbAuditProvider.log()");
 	}
 
 	@Override
@@ -129,14 +131,13 @@ public class DbAuditProvider extends BaseAuditProvider {
 
 	@Override
 	public void stop() {
-		LOG.info("DbAuditProvider.stop()");
-
+		LOG.info("==> DbAuditProvider.stop()");
 		cleanUp();
+		LOG.info("<== DbAuditProvider.stop()");
 	}
 	
 	@Override
     public void waitToComplete() {
-		LOG.info("DbAuditProvider.waitToComplete()");
 	}
 
 	@Override
