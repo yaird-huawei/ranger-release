@@ -19,6 +19,8 @@
 INSTALL_BASE=$PWD
 
 MOD_NAME="ranger-usersync"
+unix_user=ranger
+unix_group=ranger
 
 INSTALL_DIR=${INSTALL_BASE}
 
@@ -86,20 +88,6 @@ setup_unix_user_group(){
 
 	log "[I] Setting up UNIX user : ${unix_user} and group: ${unix_group} DONE";
 }
-
-unix_user=`grep '^[ \t]*unix_user[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
-unix_user=${unix_user// }
-if [ -z "${unix_user}" ]
-then
-    unix_user=ranger
-fi
-
-unix_group=`grep '^[ \t]*unix_group[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
-unix_group=${unix_group// }
-if [ -z "${unix_group}" ]
-then
-    unix_group=ranger
-fi
 
 setup_unix_user_group
 

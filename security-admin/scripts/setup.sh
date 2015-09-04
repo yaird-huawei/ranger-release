@@ -1164,19 +1164,11 @@ setup_install_files(){
 		chown -R ${unix_user} ${WEBAPP_ROOT}/WEB-INF/classes/conf
 	fi
 
-	if [ -d ${WEBAPP_ROOT}/WEB-INF/classes/conf ]; then
-            chown -R ${unix_user} ${WEBAPP_ROOT}/WEB-INF/classes/conf
-	fi
-
 	if [ ! -d ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger_jaas ]; then
 	    log "[I] Creating ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger_jaas"
 	    mkdir -p ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger_jaas
 		chown -R ${unix_user} ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger_jaas
 		chmod 700 ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger_jaas
-	fi
-
-	if [ -d ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger_jaas ]; then
-	   chown -R ${unix_user} ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger_jaas
 	fi
 
 	if [ ! -d ${WEBAPP_ROOT}/WEB-INF/classes/lib ]; then
@@ -1188,9 +1180,6 @@ setup_install_files(){
 	if [ ! -f /etc/init.d/${RANGER_ADMIN} ]; then
 	    log "[I] Setting up init.d"
 	    mv ${INSTALL_DIR}/ews/${RANGER_ADMIN} /etc/init.d/${RANGER_ADMIN}
-	    if [ "${unix_user}" != "ranger" ]; then
-	        sed  's/=ranger/='${unix_user}'/g' -i  /etc/init.d/${RANGER_ADMIN}
-	    fi
 
 	    chmod ug+rx /etc/init.d/${RANGER_ADMIN}
 
@@ -1236,10 +1225,6 @@ setup_install_files(){
 	    log "[I] ${XAPOLICYMGR_DIR}/ews/logs folder"
 	    mkdir -p ${XAPOLICYMGR_DIR}/ews/logs
 	    chown -R ${unix_user} ${XAPOLICYMGR_DIR}/ews/logs
-	fi
-
-	if [ -d ${XAPOLICYMGR_DIR}/ews/logs ]; then
-        chown -R ${unix_user} ${XAPOLICYMGR_DIR}/ews/logs
 	fi
 
 	log "[I] Setting up installation files and directory DONE";
