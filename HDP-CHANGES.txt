@@ -1,0 +1,26 @@
+Changes only in Hortonworks github and not in ranger 0.4.0 and hence not covered by CHANGES.txt.
+================================================================================================
+
+BUG-43335 Add start/stop/progress log messages so processing of Audit's JVM shutdown hooks can be monitored
+BUG-43078 enable source jar.
+BUG-41975 (umask 027 permission issues) : 1) changed ranger-admin setup to change file permissions for password    keystore and properties file. 2) changed enable plugin script for hdfs and storm, to change file    permissions.
+BUG-42717 RANGER-615 Audit to db: Truncate all string values of audit record so that writing of audit does not fail
+EAR-1761-Fixed caching issue on edit policy page.
+BUG-41603: (2.2) Data consistency across API and UI - Restrict certain API calls for only admin
+BUG-41358: UserSync process performance issue due to user group cache inconsistency
+BUG-35987:Disabling Hive Ranger does not restore original functionality
+BUG-36850 Fixed Ambari overwrites file permissions of /etc/ranger/admin/conf/security-applicationContext.xml
+BUG-38722: fixed URI access check during external table creation
+BUG-36065 PRIVACY case issue in HBase Ranger plugin
+(BUG-37054) (2.2) Found Jersey client API incompatibility that prevent HTTPS Knox from working, committing to 2.2-maint branch
+BUG-36124:First Name and Last Name should support underscore and hyphen as well as SPACE character(s)
+BUG-35442: UserSync Process didn't sync the group when groups are added to the user at later time
+BUG-34504: Remove condition to copy DB driver jar file
+BUG-34640: fix broken JUNIT createUser
+BUG-34640:adding htrace and common-io library in bundle
+EAR-1002:Admin REST API appears to be open to password-less modifications
+EAR-1002:Admin REST API appears to be open to password-less modifications
+BUG-32018:Issue in Hive policy creation in ranger for UDF resource if we specify {{*}} ( access for all UDF)
+BUG-31949:In hive plugin TABLE policy restriction for all tables {{*}} fails when UDF policy for all functions {{*}} is maintained for a database
+BUG-33792 - removing ojdbc library out of the bundle
+
