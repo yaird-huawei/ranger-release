@@ -679,6 +679,10 @@ define(function(require) {
 		var SessionMgr	= require('mgrs/SessionMgr');
 		var XAGlobals	= require('utils/XAGlobals');
 		var that = this;
+		var vXPortalUser = SessionMgr.getUserProfile();
+		if(_.isEmpty(vXPortalUser.attributes)){
+			return controller;
+		}
 		if(!SessionMgr.isSystemAdmin()){
 			_.each(XAGlobals.DenyControllerActions, function(routeMethodName) {
 				if(!_.isUndefined(controller[routeMethodName])){
