@@ -501,7 +501,8 @@ function Main( $scriptDir )
         "ranger.usersync.ldap.username.caseconversion"="${ENV:RANGER_SYNC_LDAP_USERNAME_CASE_CONVERSION}"
         "ranger.usersync.ssl"="true"
         "ranger.usersync.port"="$sync_port"
-        "ranger.usersync.sink.impl.class"="org.apache.ranger.unixusersync.process.PolicyMgrUserGroupBuilder"        
+        "ranger.usersync.sink.impl.class"="org.apache.ranger.unixusersync.process.PolicyMgrUserGroupBuilder"
+        "ranger.usersync.ldap.referral"="${ENV:RANGER_SYNC_LDAP_REFERRAL}"
     }
     $GroupSync = @{
         "ranger.usersync.group.nameattribute"="${ENV:RANGER_SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE}"
