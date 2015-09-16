@@ -44,14 +44,21 @@ import org.springframework.stereotype.Component;
 
 import com.xasecure.db.XADaoManager;
 import com.xasecure.db.XXGroupUserDao;
+import com.xasecure.entity.XXAuditMap;
 import com.xasecure.entity.XXGroup;
+import com.xasecure.entity.XXPermMap;
 import com.xasecure.entity.XXPortalUser;
 import com.xasecure.entity.XXTrxLog;
 import com.xasecure.service.XUserService;
+import com.xasecure.view.VXAuditMap;
+import com.xasecure.view.VXAuditMapList;
 import com.xasecure.view.VXGroup;
+import com.xasecure.view.VXGroupGroup;
 import com.xasecure.view.VXGroupList;
 import com.xasecure.view.VXGroupUser;
 import com.xasecure.view.VXGroupUserList;
+import com.xasecure.view.VXLong;
+import com.xasecure.view.VXPermMapList;
 import com.xasecure.view.VXResponse;
 import com.xasecure.view.VXUser;
 import com.xasecure.view.VXUserList;
@@ -61,8 +68,6 @@ public class XUserMgr extends XUserMgrBase {
 
 	@Autowired
 	XUserService xUserService;
-	@Autowired
-	XABizUtil msBizUtil;
 
 	@Autowired
 	UserMgr userMgr;
@@ -73,25 +78,13 @@ public class XUserMgr extends XUserMgrBase {
 	@Autowired
 	XABizUtil xaBizUtil;
 
+	@Autowired
+	AssetMgr assetMgr;
+
 	static final Logger logger = Logger.getLogger(XUserMgr.class);
 
 	public void deleteXGroup(Long id, boolean force) {
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("deletion of group"
-						+ " denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		if (force) {
 			SearchCriteria searchCriteria = new SearchCriteria();
 			searchCriteria.addParam("xGroupId", id);
@@ -112,22 +105,7 @@ public class XUserMgr extends XUserMgrBase {
 	}
 
 	public void deleteXUser(Long id, boolean force) {
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("deletion of user"
-						+ " denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		if (force) {
 			SearchCriteria searchCriteria = new SearchCriteria();
 			searchCriteria.addParam("xUserId", id);
@@ -159,22 +137,7 @@ public class XUserMgr extends XUserMgrBase {
 	}
 
 	public VXUser createXUser(VXUser vXUser) {
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("creation of user"
-						+ " denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		String userName = vXUser.getName();
 		if (userName == null || userName.isEmpty()) {
 			throw restErrorUtil.createRESTException("Please provide a valid "
@@ -240,6 +203,11 @@ public class XUserMgr extends XUserMgrBase {
 	}
 
 	public VXUser updateXUser(VXUser vXUser) {
+		if(vXUser==null || vXUser.getName()==null || vXUser.getName().trim().isEmpty()){
+			throw restErrorUtil.createRESTException("Please provide a valid "
+					+ "username.", MessageEnums.INVALID_INPUT_DATA);
+		}
+		checkAccess(vXUser.getName());
 		VXPortalUser oldUserProfile = userMgr.getUserProfileByLoginId(vXUser
 				.getName());
 		VXPortalUser vXPortalUser = new VXPortalUser();
@@ -358,22 +326,7 @@ public class XUserMgr extends XUserMgrBase {
 	}
 	
 	public VXUserGroupInfo createXUserGroupFromMap(VXUserGroupInfo vXUserGroupInfo) {
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("User group "
-						+ "creation denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		VXUserGroupInfo vxUGInfo = new VXUserGroupInfo();
 		
 		VXUser vXUser = vXUserGroupInfo.getXuserInfo();
@@ -400,42 +353,12 @@ public class XUserMgr extends XUserMgrBase {
 	
 	
 	public VXUser createXUserWithOutLogin(VXUser vXUser) {
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("creation of user"
-						+ " denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		return xUserService.createXUserWithOutLogin(vXUser);
 	}
 
 	public VXGroup createXGroup(VXGroup vXGroup) {
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("creation of group"
-						+ " denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		if (vXGroup.getDescription() == null) {
 			vXGroup.setDescription(vXGroup.getName());
 		}
@@ -448,42 +371,12 @@ public class XUserMgr extends XUserMgrBase {
 	}
 
 	public VXGroup createXGroupWithoutLogin(VXGroup vXGroup) {
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("creation of group"
-						+ " denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		return xGroupService.createXGroupWithOutLogin(vXGroup);
 	}
 
 	public VXGroupUser createXGroupUser(VXGroupUser vXGroupUser) {
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("creation of group"
-						+ " denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		vXGroupUser = xGroupUserService
 				.createXGroupUserWithOutLogin(vXGroupUser);
 		return vXGroupUser;
@@ -531,22 +424,7 @@ public class XUserMgr extends XUserMgrBase {
 
 	public void deleteXGroupAndXUser(String groupName, String userName) {
 		// access control
-		UserSessionBase session = ContextUtil.getCurrentUserSession();
-		if (session != null) {
-			if (!session.isUserAdmin()) {
-				throw restErrorUtil.create403RESTException("User "
-						+ "deletion denied. LoggedInUser="
-						+ (session != null ? session.getXXPortalUser().getId()
-								: "Not Logged In")
-						+ " ,isn't permitted to perform the action.");
-
-			}
-		}else{
-			VXResponse vXResponse = new VXResponse();
-			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
-			vXResponse.setMsgDesc("Bad Credentials");
-			throw restErrorUtil.generateRESTException(vXResponse);
-		}
+		checkAdminAccess();
 		VXGroup vxGroup = xGroupService.getGroupByGroupName(groupName);
 		VXUser vxUser = xUserService.getXUserByUserName(userName);
 		SearchCriteria searchCriteria = new SearchCriteria();
@@ -616,12 +494,118 @@ public class XUserMgr extends XUserMgrBase {
 
 	@Override
 	public VXGroup updateXGroup(VXGroup vXGroup) {
+		checkAdminAccess();
 		XXGroup xGroup = daoManager.getXXGroup().getById(vXGroup.getId());
 		List<XXTrxLog> trxLogList = xGroupService.getTransactionLog(vXGroup,
 				xGroup, "update");
 		xaBizUtil.createTrxLog(trxLogList);
 		vXGroup = (VXGroup) xGroupService.updateResource(vXGroup);
 		return vXGroup;
+	}
+
+	public VXGroupUser updateXGroupUser(VXGroupUser vXGroupUser) {
+		checkAdminAccess();
+		return super.updateXGroupUser(vXGroupUser);
+	}
+
+	public void deleteXGroupUser(Long id, boolean force) {
+		checkAdminAccess();
+		super.deleteXGroupUser(id, force);
+	}
+
+	public VXGroupGroup createXGroupGroup(VXGroupGroup vXGroupGroup){
+		checkAdminAccess();
+		return super.createXGroupGroup(vXGroupGroup);
+	}
+
+	public VXGroupGroup updateXGroupGroup(VXGroupGroup vXGroupGroup) {
+		checkAdminAccess();
+		return super.updateXGroupGroup(vXGroupGroup);
+	}
+
+	public void deleteXGroupGroup(Long id, boolean force) {
+		checkAdminAccess();
+		super.deleteXGroupGroup(id, force);
+	}
+
+	public void checkAdminAccess() {
+		UserSessionBase session = ContextUtil.getCurrentUserSession();
+		if (session != null) {
+			if (!session.isUserAdmin()) {
+				throw restErrorUtil.create403RESTException("Operation"
+						+ " denied. LoggedInUser="
+						+ (session != null ? session.getXXPortalUser().getId()
+								: "Not Logged In")
+						+ " ,isn't permitted to perform the action.");
+			}
+		}else{
+			VXResponse vXResponse = new VXResponse();
+			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
+			vXResponse.setMsgDesc("Bad Credentials");
+			throw restErrorUtil.generateRESTException(vXResponse);
+		}
+	}
+
+	public void checkAccess(String loginID) {
+		UserSessionBase session = ContextUtil.getCurrentUserSession();
+		if (session != null) {
+			if(!session.isUserAdmin() && !session.getLoginId().equalsIgnoreCase(loginID)){
+				throw restErrorUtil.create403RESTException("Operation"
+						+ " denied. LoggedInUser="
+						+ (session != null ? session.getXXPortalUser().getId()
+								: "Not Logged In")
+						+ " ,isn't permitted to perform the action.");
+			}
+		}else{
+			VXResponse vXResponse = new VXResponse();
+			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
+			vXResponse.setMsgDesc("Bad Credentials");
+			throw restErrorUtil.generateRESTException(vXResponse);
+		}
+	}
+
+	public void deleteXPermMap(Long id, boolean force) {
+		if (force) {
+			XXPermMap xPermMap = daoManager.getXXPermMap().getById(id);
+			if (xPermMap != null) {
+				if (assetMgr.getXResource(xPermMap.getResourceId()) == null) {
+					throw restErrorUtil.createRESTException("Invalid Input Data - No resource found with Id: " + xPermMap.getResourceId(), MessageEnums.INVALID_INPUT_DATA);
+				}
+			}
+
+			xPermMapService.deleteResource(id);
+		} else {
+			throw restErrorUtil.createRESTException("serverMsg.modelMgrBaseDeleteModel", MessageEnums.OPER_NOT_ALLOWED_FOR_ENTITY);
+		}
+	}
+
+	public VXLong getXPermMapSearchCount(SearchCriteria searchCriteria) {
+		VXPermMapList permMapList = xPermMapService.searchXPermMaps(searchCriteria);
+		VXLong vXLong = new VXLong();
+		vXLong.setValue(permMapList.getListSize());
+		return vXLong;
+	}
+
+	public void deleteXAuditMap(Long id, boolean force) {
+		if (force) {
+			XXAuditMap xAuditMap = daoManager.getXXAuditMap().getById(id);
+			if (xAuditMap != null) {
+				if (assetMgr.getXResource(xAuditMap.getResourceId()) == null) {
+					throw restErrorUtil.createRESTException("Invalid Input Data - No resource found with Id: " + xAuditMap.getResourceId(), MessageEnums.INVALID_INPUT_DATA);
+				}
+			}
+
+			xAuditMapService.deleteResource(id);
+		} else {
+			throw restErrorUtil.createRESTException("serverMsg.modelMgrBaseDeleteModel", MessageEnums.OPER_NOT_ALLOWED_FOR_ENTITY);
+		}
+	}
+
+	public VXLong getXAuditMapSearchCount(SearchCriteria searchCriteria) {
+		VXAuditMapList auditMapList = xAuditMapService.searchXAuditMaps(searchCriteria);
+		VXLong vXLong = new VXLong();
+		vXLong.setValue(auditMapList.getListSize());
+		return vXLong;
 	}
 
 }

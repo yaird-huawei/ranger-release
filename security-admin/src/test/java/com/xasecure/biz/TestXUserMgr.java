@@ -156,6 +156,7 @@ public class TestXUserMgr {
 
 	@Test
 	public void test12UpdateXUser() {
+		setup();
 		VXUser vxUser = vxUser();
 		Mockito.when(xUserService.updateResource(vxUser)).thenReturn(vxUser);
 
@@ -223,6 +224,7 @@ public class TestXUserMgr {
 
 	@Test
 	public void test15createXGroupUser() {
+		setup();
 		VXGroupUser vxGroupUser = new VXGroupUser();
 		vxGroupUser.setId(userId);
 		vxGroupUser.setName("group user test");
@@ -298,6 +300,7 @@ public class TestXUserMgr {
 
 	@Test
 	public void test19CreateXUserWithOutLogin(){
+		setup();
 		VXUser vxUser = vxUser();
 	
 		Mockito.when(xUserService.createXUserWithOutLogin(vxUser))
@@ -317,7 +320,7 @@ public class TestXUserMgr {
 	
 	@Test
 	public void test20CreateXGroupWithoutLogin(){
-
+		setup();
 		VXGroup vXGroup = new VXGroup();
 		vXGroup.setId(userId);
 		vXGroup.setDescription("group test");
@@ -337,6 +340,7 @@ public class TestXUserMgr {
 	
 	@Test
 	public void test21DeleteXGroup() {
+		setup();
 		XXGroupDao xxGroupDao = Mockito.mock(XXGroupDao.class);
 
 		VXGroupUserList vxGroupUserList = new VXGroupUserList();
@@ -355,6 +359,7 @@ public class TestXUserMgr {
 
 	@Test
 	public void test22DeleteXUser() {
+		setup();
 		XXGroupUserDao xxGroupDao = Mockito.mock(XXGroupUserDao.class);
 		XXUserDao xxUserDao = Mockito.mock(XXUserDao.class);
 		VXGroupUserList vxGroupUserList = new VXGroupUserList();
@@ -376,6 +381,7 @@ public class TestXUserMgr {
 
 	@Test
 	public void test23deleteXGroupAndXUser() {
+		setup();
 		VXUser vxUser = vxUser();
 		VXGroup vxGroup = new VXGroup();
 		VXGroupUserList vxGroupUserList = new VXGroupUserList();
@@ -400,7 +406,7 @@ public class TestXUserMgr {
 	
 	@Test
 	public void test24CreateVXUserGroupInfo(){
-	
+		setup();
 		VXUserGroupInfo vXUserGroupInfo = new VXUserGroupInfo();
 		VXUser vXUser = new VXUser();
 		vXUser.setName("user1");
