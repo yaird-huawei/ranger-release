@@ -120,13 +120,12 @@ public class UserMgr {
 	public XXPortalUser createUser(VXPortalUser userProfile, int userStatus,
 			Collection<String> userRoleList) {
 		XXPortalUser user = mapVXPortalUserToXXPortalUser(userProfile);
-		checkAdminAccess();
 		user = createUser(user, userStatus, userRoleList);
 
 		return user;
 	}
 
-	private XXPortalUser createUser(XXPortalUser user, int userStatus,
+	public XXPortalUser createUser(XXPortalUser user, int userStatus,
 			Collection<String> userRoleList) {
 		user.setStatus(userStatus);
 		String saltEncodedpasswd = encrypt(user.getLoginId(),
@@ -330,7 +329,6 @@ public class UserMgr {
 	 * @param vStrings
 	 */
 	public void setUserRoles(Long userId, List<VXString> vStringRolesList) {
-		checkAccess(userId);
 		List<String> stringRolesList = new ArrayList<String>();
 		for (VXString vXString : vStringRolesList) {
 			stringRolesList.add(vXString.getValue());
@@ -347,7 +345,7 @@ public class UserMgr {
 		String currentUserLoginId = ContextUtil.getCurrentUserLoginId();
 		XXPortalUser gjUserCurrent = daoManager.getXXPortalUser()
 				.findByLoginId(currentUserLoginId);
-		checkAccess(gjUserCurrent);
+
 		String encryptedOldPwd = encrypt(gjUserCurrent.getLoginId(),
 				pwdChange.getOldPassword());
 
@@ -436,7 +434,7 @@ public class UserMgr {
 	 */
 	public VXPortalUser changeEmailAddress(XXPortalUser gjUser,
 			VXPasswordChange changeEmail) {
-		checkAccess(gjUser);
+
 		if (gjUser.getEmailAddress() != null) {
 			throw restErrorUtil.createRESTException(
 					"serverMsg.userMgrEmailChange",
@@ -486,7 +484,22 @@ public class UserMgr {
 	 * @param userId
 	 */
 	public VXPortalUser deactivateUser(XXPortalUser gjUser) {
-		checkAdminAccess();
+		UserSessionBase session = ContextUtil.getCurrentUserSession();
+		if (session != null) {
+			if (!session.isUserAdmin()) {
+				throw restErrorUtil.create403RESTException("deactivation of user"
+						+ " denied. LoggedInUser="
+						+ (session != null ? session.getXXPortalUser().getId()
+								: "Not Logged In")
+						+ " ,isn't permitted to perform the action.");
+
+			}
+		}else{
+			VXResponse vXResponse = new VXResponse();
+			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
+			vXResponse.setMsgDesc("Bad Credentials");
+			throw restErrorUtil.generateRESTException(vXResponse);
+		}
 		if (gjUser != null
 				&& gjUser.getStatus() != XAConstants.ACT_STATUS_DEACTIVATED) {
 			logger.info("Marking user " + gjUser.getLoginId() + " as deleted");
@@ -877,7 +890,6 @@ public class UserMgr {
 	}
 
 	public boolean deleteUserRole(Long userId, String userRole) {
-		checkAdminAccess();
 		List<XXPortalUserRole> roleList = daoManager.getXXPortalUserRole().findByUserId(
 				userId);
 		for (XXPortalUserRole gjUserRole : roleList) {
@@ -1023,24 +1035,28 @@ public class UserMgr {
 
 	}
 
-	public void checkAdminAccess() {
-		UserSessionBase sess = ContextUtil.getCurrentUserSession();
-		if (sess != null) {
-			if (sess != null && sess.isUserAdmin()) {
-				return;
-			}
-		}
-		throw restErrorUtil.create403RESTException("Operation not allowed."
-				+ " loggedInUser="
-				+ (sess != null ? sess.getXXPortalUser().getId() : "Not Logged In"));
-	}
 	public String encrypt(String loginId, String password) {
 		String saltEncodedpasswd = md5Encoder.encodePassword(password, loginId);
 		return saltEncodedpasswd;
 	}
 
 	public VXPortalUser createUser(VXPortalUser userProfile) {
-		checkAdminAccess();
+		UserSessionBase session = ContextUtil.getCurrentUserSession();
+		if (session != null) {
+			if (!session.isUserAdmin()) {
+				throw restErrorUtil.create403RESTException("User "
+						+ "creation denied. LoggedInUser="
+						+ (session != null ? session.getXXPortalUser().getId()
+								: "Not Logged In")
+						+ " ,isn't permitted to perform the action.");
+
+			}
+		}else{
+			VXResponse vXResponse = new VXResponse();
+			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
+			vXResponse.setMsgDesc("Bad Credentials");
+			throw restErrorUtil.generateRESTException(vXResponse);
+		}
 		XXPortalUser xXPortalUser = this
 				.createUser(userProfile, XACommonEnums.STATUS_ENABLED);
 		return mapXXPortalUserVXPortalUser(xXPortalUser);
@@ -1051,7 +1067,22 @@ public class UserMgr {
 			userProfile.setUserSource(XACommonEnums.USER_EXTERNAL);
 		}
 		// access control
-		checkAdminAccess();
+		UserSessionBase session = ContextUtil.getCurrentUserSession();
+		if (session != null) {
+			if (!session.isUserAdmin()) {
+				throw restErrorUtil.create403RESTException("User "
+						+ "creation denied. LoggedInUser="
+						+ (session != null ? session.getXXPortalUser().getId()
+								: "Not Logged In")
+						+ " ,isn't permitted to perform the action.");
+
+			}
+		}else{
+			VXResponse vXResponse = new VXResponse();
+			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
+			vXResponse.setMsgDesc("Bad Credentials");
+			throw restErrorUtil.generateRESTException(vXResponse);
+		}
 		logger.info("create:" + userProfile.getLoginId());
 		XXPortalUser xXPortalUser = null;
 		String loginId = userProfile.getLoginId();

@@ -338,25 +338,25 @@ public class XResourceService extends
 	}
 
 	private void populateAuditList(VXResource vXResource) {
-
-		List<XXAuditMap> xAuditMapList = daoManager.getXXAuditMap().findByResourceId(vXResource.getId());
-		List<VXAuditMap> vXAuditMapList = new ArrayList<VXAuditMap>();
-
-		for (XXAuditMap xAuditMap : xAuditMapList) {
-			vXAuditMapList.add(xAuditMapService.populateViewBean(xAuditMap));
+		SearchCriteria searchCriteria = new SearchCriteria();
+		searchCriteria.addParam("resourceId", vXResource.getId());
+		VXAuditMapList vXAuditMapList = xAuditMapService
+				.searchXAuditMaps(searchCriteria);
+		if (vXAuditMapList != null && vXAuditMapList.getResultSize() != 0) {
+			List<VXAuditMap> auditMapList = vXAuditMapList.getList();
+			vXResource.setAuditList(auditMapList);
 		}
-		vXResource.setAuditList(vXAuditMapList);
 	}
 
 	private void populatePermList(VXResource vXResource) {
-
-		List<XXPermMap> xPermMapList = daoManager.getXXPermMap().findByResourceId(vXResource.getId());
-		List<VXPermMap> vXPermMapList = new ArrayList<VXPermMap>();
-
-		for (XXPermMap xPermMap : xPermMapList) {
-			vXPermMapList.add(xPermMapService.populateViewBean(xPermMap));
-		}
-		vXResource.setPermMapList(vXPermMapList);
+		SearchCriteria searchCriteria = new SearchCriteria();
+		searchCriteria.addParam("resourceId", vXResource.getId());
+		VXPermMapList vXPermMapList = xPermMapService
+				.searchXPermMaps(searchCriteria);
+		if (vXPermMapList != null && vXPermMapList.getResultSize() != 0) {
+			List<VXPermMap> permMapList = vXPermMapList.getList();
+			vXResource.setPermMapList(permMapList);
+		}		
 	}
 
 	@Override

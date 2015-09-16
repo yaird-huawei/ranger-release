@@ -24,7 +24,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 import com.xasecure.biz.SessionMgr;
-import com.xasecure.common.MessageEnums;
 import com.xasecure.common.XAConstants;
 import com.xasecure.common.DateUtil;
 import com.xasecure.common.RESTErrorUtil;
@@ -97,9 +96,6 @@ public class XUserREST {
 
 	@Autowired
 	XABizUtil msBizUtil;
-
-	@Autowired
-	AssetMgr assetMgr;
 
 	// Handle XGroup
 	@GET
@@ -403,28 +399,13 @@ public class XUserREST {
 	@Path("/permmaps/{id}")
 	@Produces({ "application/xml", "application/json" })
 	public VXPermMap getXPermMap(@PathParam("id") Long id) {
-		VXPermMap permMap = xUserMgr.getXPermMap(id);
-
-		if (permMap != null) {
-			if (assetMgr.getXResource(permMap.getResourceId()) == null) {
-				throw restErrorUtil.createRESTException("Invalid Input Data - No resource found with Id: " + permMap.getResourceId(), MessageEnums.INVALID_INPUT_DATA);
-			}
-		}
-
-		return permMap;
+		return xUserMgr.getXPermMap(id);
 	}
 
 	@POST
 	@Path("/permmaps")
 	@Produces({ "application/xml", "application/json" })
 	public VXPermMap createXPermMap(VXPermMap vXPermMap) {
-
-		if (vXPermMap != null) {
-			if (assetMgr.getXResource(vXPermMap.getResourceId()) == null) {
-				throw restErrorUtil.createRESTException("Invalid Input Data - No resource found with Id: " + vXPermMap.getResourceId(), MessageEnums.INVALID_INPUT_DATA);
-			}
-		}
-
 		return xUserMgr.createXPermMap(vXPermMap);
 	}
 
@@ -432,13 +413,6 @@ public class XUserREST {
 	@Path("/permmaps")
 	@Produces({ "application/xml", "application/json" })
 	public VXPermMap updateXPermMap(VXPermMap vXPermMap) {
-
-		if (vXPermMap != null) {
-			if (assetMgr.getXResource(vXPermMap.getResourceId()) == null) {
-				throw restErrorUtil.createRESTException("Invalid Input Data - No resource found with Id: " + vXPermMap.getResourceId(), MessageEnums.INVALID_INPUT_DATA);
-			}
-		}
-
 		return xUserMgr.updateXPermMap(vXPermMap);
 	}
 
@@ -482,28 +456,13 @@ public class XUserREST {
 	@Path("/auditmaps/{id}")
 	@Produces({ "application/xml", "application/json" })
 	public VXAuditMap getXAuditMap(@PathParam("id") Long id) {
-		VXAuditMap vXAuditMap = xUserMgr.getXAuditMap(id);
-
-		if (vXAuditMap != null) {
-			if (assetMgr.getXResource(vXAuditMap.getResourceId()) == null) {
-				throw restErrorUtil.createRESTException("Invalid Input Data - No resource found with Id: " + vXAuditMap.getResourceId(), MessageEnums.INVALID_INPUT_DATA);
-			}
-		}
-
-		return vXAuditMap;
+		return xUserMgr.getXAuditMap(id);
 	}
 
 	@POST
 	@Path("/auditmaps")
 	@Produces({ "application/xml", "application/json" })
 	public VXAuditMap createXAuditMap(VXAuditMap vXAuditMap) {
-
-		if (vXAuditMap != null) {
-			if (assetMgr.getXResource(vXAuditMap.getResourceId()) == null) {
-				throw restErrorUtil.createRESTException("Invalid Input Data - No resource found with Id: " + vXAuditMap.getResourceId(), MessageEnums.INVALID_INPUT_DATA);
-			}
-		}
-
 		return xUserMgr.createXAuditMap(vXAuditMap);
 	}
 
@@ -511,13 +470,6 @@ public class XUserREST {
 	@Path("/auditmaps")
 	@Produces({ "application/xml", "application/json" })
 	public VXAuditMap updateXAuditMap(VXAuditMap vXAuditMap) {
-
-		if (vXAuditMap != null) {
-			if (assetMgr.getXResource(vXAuditMap.getResourceId()) == null) {
-				throw restErrorUtil.createRESTException("Invalid Input Data - No resource found with Id: " + vXAuditMap.getResourceId(), MessageEnums.INVALID_INPUT_DATA);
-			}
-		}
-
 		return xUserMgr.updateXAuditMap(vXAuditMap);
 	}
 

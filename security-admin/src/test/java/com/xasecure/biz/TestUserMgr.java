@@ -142,8 +142,9 @@ public class TestUserMgr {
 
 		XXPortalUser dbxxPortalUser = userMgr.createUser(userProfile, 1,
 				userRoleList);
-		Assert.assertNotNull(dbxxPortalUser);
 		userId = dbxxPortalUser.getId();
+		
+		Assert.assertNotNull(dbxxPortalUser);
 		Assert.assertEquals(userId, dbxxPortalUser.getId());
 		Assert.assertEquals(userProfile.getFirstName(), dbxxPortalUser.getFirstName());		
 		Assert.assertEquals(userProfile.getFirstName(), dbxxPortalUser.getFirstName());
@@ -205,7 +206,7 @@ public class TestUserMgr {
 
 	@Test
 	public void test15ChangePassword() {
-		setup();
+
 		XXPortalUserDao userDao = Mockito.mock(XXPortalUserDao.class);
 		VXPortalUser userProfile = userProfile();
 
@@ -242,7 +243,7 @@ public class TestUserMgr {
 
 	@Test
 	public void test16GetEmailAddress() {
-		setup();
+
 		VXPortalUser userProfile = userProfile();
 
 		XXPortalUser user = new XXPortalUser();
@@ -282,7 +283,7 @@ public class TestUserMgr {
 
 	@Test
 	public void test17ValidateEmailAddress() {
-		setup();
+
 		VXPortalUser userProfile = userProfile();
 
 		XXPortalUser user = new XXPortalUser();
@@ -355,7 +356,6 @@ public class TestUserMgr {
 
 	@Test
 	public void test22CreateDefaultAccountUser() {
-		setup();
 		XXPortalUserDao userDao = Mockito.mock(XXPortalUserDao.class);
 		XXPortalUserRoleDao roleDao = Mockito.mock(XXPortalUserRoleDao.class);
 		VXPortalUser userProfile = userProfile();
@@ -413,7 +413,6 @@ public class TestUserMgr {
 
 	@Test
 	public void test24UpdateUserWithPass() {
-		setup();
 		XXPortalUserDao userDao = Mockito.mock(XXPortalUserDao.class);
 
 		VXPortalUser userProfile = userProfile();
@@ -517,7 +516,6 @@ public class TestUserMgr {
 
 	@Test
 	public void test28DeleteUserRole() {
-		setup();
 		XXPortalUserRoleDao roleDao = Mockito.mock(XXPortalUserRoleDao.class);
 
 		XXPortalUserRole XXPortalUserRole = new XXPortalUserRole();
@@ -537,7 +535,6 @@ public class TestUserMgr {
 
 	@Test
 	public void test29DeactivateUser() {
-		setup();
 		XXPortalUserDao userDao = Mockito.mock(XXPortalUserDao.class);
 		XXPortalUserRoleDao roleDao = Mockito.mock(XXPortalUserRoleDao.class);
 		VXPortalUser userProfile = userProfile();
