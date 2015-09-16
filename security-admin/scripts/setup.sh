@@ -688,16 +688,34 @@ copy_db_connector(){
 	if [ "${DB_FLAVOR}" == "MYSQL" ]
 	then
 		log "[I] Copying MYSQL Connector to $app_home/WEB-INF/lib ";
-	    cp -f $SQL_CONNECTOR_JAR $app_home/WEB-INF/classes/lib
+		cp -f $SQL_CONNECTOR_JAR $app_home/WEB-INF/lib
 		check_ret_status $? "Copying MYSQL Connector to $app_home/WEB-INF/lib failed"
 		log "[I] Copying MYSQL Connector to $app_home/WEB-INF/lib DONE";
+		log "[I] Copying MYSQL Connector to $app_home/WEB-INF/classes/lib ";
+		cp -f $SQL_CONNECTOR_JAR $app_home/WEB-INF/classes/lib
+		check_ret_status $? "Copying MYSQL Connector to $app_home/WEB-INF/classes/lib failed"
+		log "[I] Copying MYSQL Connector to $app_home/WEB-INF/classes/lib DONE";
+		log "[I] Copying MYSQL Connector to $INSTALL_DIR/ews/lib ";
+		cp -f $SQL_CONNECTOR_JAR $INSTALL_DIR/ews/lib
+		check_ret_status $? "Copying MYSQL Connector to $INSTALL_DIR/ews/lib failed"
+		log "[I] Copying MYSQL Connector to $INSTALL_DIR/ews/lib DONE";
+		chown -R ${unix_user}:${unix_group} ${INSTALL_DIR}/ews/lib/$SQL_CONNECTOR_JAR
 	fi
 	if [ "${DB_FLAVOR}" == "ORACLE" ]
     then
-        log "[I] Copying ORACLE Connector to $app_home/WEB-INF/lib ";
-        cp -f $SQL_CONNECTOR_JAR $app_home/WEB-INF/classes/lib
-        check_ret_status $? "Copying ORACLE Connector to $app_home/WEB-INF/lib failed"
-        log "[I] Copying ORACLE Connector to $app_home/WEB-INF/lib DONE";
+		log "[I] Copying ORACLE Connector to $app_home/WEB-INF/lib ";
+		cp -f $SQL_CONNECTOR_JAR $app_home/WEB-INF/lib
+		check_ret_status $? "Copying ORACLE Connector to $app_home/WEB-INF/lib failed"
+		log "[I] Copying ORACLE Connector to $app_home/WEB-INF/lib DONE";
+		log "[I] Copying ORACLE Connector to $app_home/WEB-INF/classes/lib ";
+		cp -f $SQL_CONNECTOR_JAR $app_home/WEB-INF/classes/lib
+		check_ret_status $? "Copying ORACLE Connector to $app_home/WEB-INF/classes/lib failed"
+		log "[I] Copying ORACLE Connector to $app_home/WEB-INF/classes/lib DONE";
+		log "[I] Copying ORACLE Connector to $INSTALL_DIR/ews/lib ";
+		cp -f $SQL_CONNECTOR_JAR $INSTALL_DIR/ews/lib
+		check_ret_status $? "Copying ORACLE Connector to $INSTALL_DIR/ews/lib failed"
+		log "[I] Copying ORACLE Connector to $INSTALL_DIR/ews/lib DONE";
+		chown -R ${unix_user}:${unix_group} ${INSTALL_DIR}/ews/lib/$SQL_CONNECTOR_JAR
     fi
 }
 
