@@ -117,47 +117,7 @@ public class XPermMapService extends XPermMapServiceBase<XXPermMap, VXPermMap> {
 
 	@Override
 	public VXPermMapList searchXPermMaps(SearchCriteria searchCriteria) {
-
-		VXPermMapList returnList;
-		UserSessionBase currentUserSession = ContextUtil.getCurrentUserSession();
-		// If user is system admin
-		if (currentUserSession.isUserAdmin()) {
-			returnList = super.searchXPermMaps(searchCriteria);
-		} else {
-			returnList = new VXPermMapList();
-			int startIndex = searchCriteria.getStartIndex();
-			int pageSize = searchCriteria.getMaxRows();
-			searchCriteria.setStartIndex(0);
-			searchCriteria.setMaxRows(Integer.MAX_VALUE);
-			List<XXPermMap> resultList = (List<XXPermMap>) searchResources(searchCriteria, searchFields, sortFields, returnList);
-
-			List<XXPermMap> adminPermResourceList = new ArrayList<XXPermMap>();
-			for (XXPermMap xXPermMap : resultList) {
-				XXResource xRes = daoManager.getXXResource().getById(xXPermMap.getResourceId());
-				VXResponse vXResponse = xaBizUtil.hasPermission(xResourceService.populateViewBean(xRes), AppConstants.XA_PERM_TYPE_ADMIN);
-				if (vXResponse.getStatusCode() == VXResponse.STATUS_SUCCESS) {
-					adminPermResourceList.add(xXPermMap);
-				}
-			}
-
-			if (adminPermResourceList.size() > 0) {
-				populatePageList(adminPermResourceList, startIndex, pageSize, returnList);
-			}
-		}
-		return returnList;
-	}
-
-	private void populatePageList(List<XXPermMap> permMapList, int startIndex, int pageSize, VXPermMapList vxPermMapList) {
-		List<VXPermMap> onePageList = new ArrayList<VXPermMap>();
-		for (int i = startIndex; i < pageSize + startIndex && i < permMapList.size(); i++) {
-			VXPermMap vXPermMap = populateViewBean(permMapList.get(i));
-			onePageList.add(vXPermMap);
-		}
-		vxPermMapList.setVXPermMaps(onePageList);
-		vxPermMapList.setStartIndex(startIndex);
-		vxPermMapList.setPageSize(pageSize);
-		vxPermMapList.setResultSize(onePageList.size());
-		vxPermMapList.setTotalCount(permMapList.size());
+		return super.searchXPermMaps(searchCriteria);
 	}
 
 	public String getGroupName(Long groupId){

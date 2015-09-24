@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.xasecure.biz.XABizUtil;
 import com.xasecure.biz.UserMgr;
+import com.xasecure.common.AppConstants;
 import com.xasecure.common.ContextUtil;
 import com.xasecure.common.MessageEnums;
 import com.xasecure.common.PropertiesUtil;
@@ -48,7 +49,9 @@ import com.xasecure.entity.XXAuditMap;
 import com.xasecure.entity.XXGroup;
 import com.xasecure.entity.XXPermMap;
 import com.xasecure.entity.XXPortalUser;
+import com.xasecure.entity.XXResource;
 import com.xasecure.entity.XXTrxLog;
+import com.xasecure.service.XResourceService;
 import com.xasecure.service.XUserService;
 import com.xasecure.view.VXAuditMap;
 import com.xasecure.view.VXAuditMapList;
@@ -58,6 +61,7 @@ import com.xasecure.view.VXGroupList;
 import com.xasecure.view.VXGroupUser;
 import com.xasecure.view.VXGroupUserList;
 import com.xasecure.view.VXLong;
+import com.xasecure.view.VXPermMap;
 import com.xasecure.view.VXPermMapList;
 import com.xasecure.view.VXResponse;
 import com.xasecure.view.VXUser;
@@ -80,6 +84,9 @@ public class XUserMgr extends XUserMgrBase {
 
 	@Autowired
 	AssetMgr assetMgr;
+
+	@Autowired
+	XResourceService xResourceService;
 
 	static final Logger logger = Logger.getLogger(XUserMgr.class);
 
@@ -608,4 +615,95 @@ public class XUserMgr extends XUserMgrBase {
 		return vXLong;
 	}
 
+	@Override
+	public VXPermMapList searchXPermMaps(SearchCriteria searchCriteria) {
+		VXPermMapList returnList;
+		UserSessionBase currentUserSession = ContextUtil.getCurrentUserSession();
+		// If user is system admin
+		if (currentUserSession!=null && currentUserSession.isUserAdmin()) {
+			returnList = super.searchXPermMaps(searchCriteria);
+		} else {
+			returnList = new VXPermMapList();
+			int startIndex = searchCriteria.getStartIndex();
+			int pageSize = searchCriteria.getMaxRows();
+			searchCriteria.setStartIndex(0);
+			searchCriteria.setMaxRows(Integer.MAX_VALUE);
+			Object resourceId=searchCriteria.getParamValue("resourceId");
+			List<XXPermMap> adminPermResourceList = new ArrayList<XXPermMap>();
+			if(resourceId!=null){
+				List<XXPermMap> resultList=daoManager.getXXPermMap().findByResourceId((Long)resourceId);
+				for (XXPermMap xXPermMap : resultList) {
+					XXResource xRes = daoManager.getXXResource().getById(xXPermMap.getResourceId());
+					VXResponse vXResponse = xaBizUtil.hasPermission(xResourceService.populateViewBean(xRes), AppConstants.XA_PERM_TYPE_ADMIN);
+					if (vXResponse.getStatusCode() == VXResponse.STATUS_SUCCESS) {
+						adminPermResourceList.add(xXPermMap);
+					}
+				}
+			}
+			if (adminPermResourceList.size() > 0) {
+				populatePageList(adminPermResourceList, startIndex, pageSize, returnList);
+			}
+		}
+		return returnList;
+	}
+
+	private void populatePageList(List<XXPermMap> permMapList, int startIndex, int pageSize, VXPermMapList vxPermMapList) {
+		List<VXPermMap> onePageList = new ArrayList<VXPermMap>();
+		for (int i = startIndex; i < pageSize + startIndex && i < permMapList.size(); i++) {
+			VXPermMap vXPermMap = xPermMapService.populateViewBean(permMapList.get(i));
+			onePageList.add(vXPermMap);
+		}
+		vxPermMapList.setVXPermMaps(onePageList);
+		vxPermMapList.setStartIndex(startIndex);
+		vxPermMapList.setPageSize(pageSize);
+		vxPermMapList.setResultSize(onePageList.size());
+		vxPermMapList.setTotalCount(permMapList.size());
+	}
+
+	@Override
+	public VXAuditMapList searchXAuditMaps(SearchCriteria searchCriteria) {
+
+		VXAuditMapList returnList;
+		UserSessionBase currentUserSession = ContextUtil.getCurrentUserSession();
+		// If user is system admin
+		if (currentUserSession!=null && currentUserSession.isUserAdmin()) {
+			returnList = super.searchXAuditMaps(searchCriteria);
+		} else {
+			returnList = new VXAuditMapList();
+			int startIndex = searchCriteria.getStartIndex();
+			int pageSize = searchCriteria.getMaxRows();
+			searchCriteria.setStartIndex(0);
+			searchCriteria.setMaxRows(Integer.MAX_VALUE);
+			Object resourceId=searchCriteria.getParamValue("resourceId");
+			List<XXAuditMap> adminAuditResourceList = new ArrayList<XXAuditMap>();
+			if(resourceId!=null){
+				List<XXAuditMap> resultList=daoManager.getXXAuditMap().findByResourceId((Long)resourceId);
+				for (XXAuditMap xXAuditMap : resultList) {
+					XXResource xRes = daoManager.getXXResource().getById(xXAuditMap.getResourceId());
+					VXResponse vXResponse = xaBizUtil.hasPermission(xResourceService.populateViewBean(xRes), AppConstants.XA_PERM_TYPE_ADMIN);
+					if (vXResponse.getStatusCode() == VXResponse.STATUS_SUCCESS) {
+						adminAuditResourceList.add(xXAuditMap);
+					}
+				}
+			}
+			if (adminAuditResourceList.size() > 0) {
+				populatePageList(adminAuditResourceList, startIndex, pageSize, returnList);
+			}
+		}
+
+		return returnList;
+	}
+
+	private void populatePageList(List<XXAuditMap> auditMapList, int startIndex, int pageSize, VXAuditMapList vxAuditMapList) {
+		List<VXAuditMap> onePageList = new ArrayList<VXAuditMap>();
+		for (int i = startIndex; i < pageSize + startIndex && i < auditMapList.size(); i++) {
+			VXAuditMap vXAuditMap = xAuditMapService.populateViewBean(auditMapList.get(i));
+			onePageList.add(vXAuditMap);
+		}
+		vxAuditMapList.setVXAuditMaps(onePageList);
+		vxAuditMapList.setStartIndex(startIndex);
+		vxAuditMapList.setPageSize(pageSize);
+		vxAuditMapList.setResultSize(onePageList.size());
+		vxAuditMapList.setTotalCount(auditMapList.size());
+	}
 }
