@@ -1,4 +1,4 @@
-Changes only in Hortonworks github and not in ranger 0.5.0 and hence not covered by CHANGES.txt.
+Changes only in Hortonworks github and not in ranger 0.5.0 Apache Release and hence not covered by CHANGES.txt.
 
 SUB-TASK
 
@@ -7,6 +7,7 @@ SUB-TASK
      [RANGER-513] - Policy validation: resource hierarchies check does not work with single-node hierarchies as in HDFS
      [RANGER-551] - Policy Validation: If resource levels are not valid for any hierarchy then checks about missing mandatory levels should be skipped.
      [RANGER-564] - Add incubating to the release name
+     [RANGER-551] - Policy Validation: If resource levels are not valid for any hierarchy then checks about missing mandatory levels should be skipped.
 
 BUG
 
@@ -29,6 +30,35 @@ BUG
      [RANGER-571] - Storm plugin: after upgrading ranger from 0.4 to 0.5 the plugin won't work because classes with old names are missing
      [RANGER-575] - Allow KMS policies to be assigned to all users
      [RANGER-576] - Storm audit not showing access type in the Ranger Admin Audit UI
+     [RANGER-560] - Policy validation: Provide user friendly error messages about validation failures
+     [RANGER-580] - Hbase plugin: Plugin may not work after upgrade
+     [RANGER-584] - Service validation: Provide user friendly error messages about validation failures
+     [RANGER-587] - ranger-admin-site.xml not getting updated when ranger.authentication.method is changed
+     [RANGER-588] - Take care of Ranger KMS installation even if 'java' is not in PATH
+     [RANGER-593] - Service def validation: Provide user friendly error messages about validation failures
+     [RANGER-594] - Policy Validation: Change the logic to generate friendly error messages to be like used for Service and Service def
+     [RANGER-598] - Update Ranger config migration script to work with Ranger 0.5
+     [RANGER-615] - Audit to db: Truncate all string values of audit record so that writing of audit does not fail
+     [RANGER-618] - KMS gets slower in key creation once Database grows
+     [RANGER-621] - Solr service-def JSON has incorrect impliedGrants for solr_admin permission
+     [RANGER-622] - Hive plugin: Add jar via beeline throws NPE
+     [RANGER-623] - Enable plugin scripts should handle file permissions for certain umask value
+     [RANGER-624] - Windows installation broken after SQLAnywhere support
+     [RANGER-625] - Change db flavor input parameter value from SQLAnywhere to SQLA
+     [RANGER-627] - Processing done by Audit Shutdown hooks can confuse someone looking at logs to think that shutdown of a service is held up due to Ranger plugin
+     [RANGER-628] - Make filters for ranger-admin search binds configurable
+     [RANGER-630] - Data consistency across API and UI
+     [RANGER-632] - Policy validation error messages produced by the server are not seen by the user
+     [RANGER-637] - Make REFERRAL property in Ranger User sync configurable
+     [RANGER-638] - Ranger admin should redirect back to login page when session cookies expires
+     [RANGER-639] - Storm plugin - commons-lang is a required dependency and hence should be packaged as part of storm plugin
+     [RANGER-641] - Ranger kms start fails if java is not set and started using service keyword
+     [RANGER-642] - Update USERSEARCHFILTER for Ranger Authentication on Windows
+     [RANGER-653] - Move delegated admin check to mgr layer from service layer for XPermMap and XAuditMap
+
+NEW FEATURE
+
+     [RANGER-614] - Provide support of SQL Anywhere as a DB in Ranger
 
 TASK
 
@@ -51,8 +81,11 @@ HDP CHANGES:
      BUG-34355 Support compiling ranger with recent HBase-1.1.0-SNAPSHOT
      BUG-34022: fixed version number to match with parent pom.xml
      BUG-33812: Ranger update to use HBase 1.0
-     Revert "temporarily commenting @Override annotation for filterListCmdObjects because of revert in HIVE-9350"
-     temporarily commenting @Override annotation for filterListCmdObjects because of revert in HIVE-9350
      BUG-28024 [Test issue]create a topology for KNOX tests to run
      BUG-28035 * [Test Issue]xasecure-{component}-security.xml file missing valid policy admin host url
      BUG-28028 [Test issue]xasecure-audit.xml should refer to valid host entry where mysql is running
+     BUG-41359 : UserSync process performance issue due to user group cache inconsistency
+     BUG-41915 ranger source jar required changes.
+     BUG-43616-Update USERSEARCHFILTER for Ranger Authentication on Windows
+     BUG-44939: Package commons-io, which is a required dependency, as part of storm plugin
+     BUG-44234: Update to HDP-CHANGES.txt file
