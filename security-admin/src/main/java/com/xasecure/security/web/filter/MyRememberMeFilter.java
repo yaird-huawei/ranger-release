@@ -73,7 +73,7 @@ public class MyRememberMeFilter extends RememberMeAuthenticationFilter {
 	    FilterChain arg2) throws IOException, ServletException {
 			HttpServletResponse res = (HttpServletResponse)arg1;
 			res.setHeader("X-Frame-Options", "DENY" );
-			super.doFilter(arg0, arg1, arg2);
+			super.doFilter(arg0, res, arg2);
     }
 
     /*

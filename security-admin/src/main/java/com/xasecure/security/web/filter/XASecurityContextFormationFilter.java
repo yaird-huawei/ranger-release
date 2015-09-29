@@ -133,8 +133,7 @@ public class XASecurityContextFormationFilter extends GenericFilterBean {
 			}
 			HttpServletResponse res = (HttpServletResponse)response;
 			res.setHeader("X-Frame-Options", "DENY" );
-			chain.doFilter(request, response);
-
+			chain.doFilter(request, res);
 		} finally {
 			// [4]remove context from thread-local
 			XAContextHolder.resetSecurityContext();
