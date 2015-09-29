@@ -81,6 +81,7 @@ LoginUrlAuthenticationEntryPoint {
 
 	response.setContentType("application/json;charset=UTF-8");
 	response.setHeader("Cache-Control", "no-cache");
+	response.setHeader("X-Frame-Options", "DENY");
 	try {
 
 		VXResponse vXResponse = new VXResponse();

@@ -131,6 +131,8 @@ public class XASecurityContextFormationFilter extends GenericFilterBean {
 				
 				context.setUserSession(userSession);
 			}
+			HttpServletResponse res = (HttpServletResponse)response;
+			res.setHeader("X-Frame-Options", "DENY" );
 			chain.doFilter(request, response);
 
 		} finally {
