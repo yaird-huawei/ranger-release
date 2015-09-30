@@ -55,6 +55,7 @@ BUG
      [RANGER-641] - Ranger kms start fails if java is not set and started using service keyword
      [RANGER-642] - Update USERSEARCHFILTER for Ranger Authentication on Windows
      [RANGER-653] - Move delegated admin check to mgr layer from service layer for XPermMap and XAuditMap
+     [RANGER-672] - v0.4 plugins are unable to download policies from 0.5 server
 
 NEW FEATURE
 
