@@ -1257,6 +1257,14 @@ setup_install_files(){
 		chown -R ${unix_user} ${XAPOLICYMGR_DIR}/ews/logs/*
 	fi
 
+	if [ -d /var/log/ranger/admin ]; then
+                chown -R ${unix_user} /var/log/ranger/admin
+        fi
+
+        if [ -d ${XAPOLICYMGR_DIR}/ews/lib ]; then
+                chown -R ${unix_user} ${XAPOLICYMGR_DIR}/ews/lib
+        fi
+
 	log "[I] Setting up installation files and directory DONE";
 
 	if [ ! -f ${INSTALL_DIR}/rpm ]; then
