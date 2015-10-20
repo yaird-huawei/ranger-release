@@ -22,12 +22,67 @@
 PROPFILE=$PWD/install.properties
 propertyValue=''
 
-. $PROPFILE
+#. $PROPFILE
 if [ ! $? = "0" ];then
 	log "$PROPFILE file not found....!!";
 	exit 1;
 fi
 
+get_prop(){
+        validateProperty=$(sed '/^\#/d' $2 | grep "^$1"  | tail -n 1) # for validation
+        if  test -z "$validateProperty" ; then log "[E] '$1' not found in $2 file while getting....!!"; exit 1; fi
+        value=$(sed -re '/^\#/d' $2 | grep "^$1\s*="  | tail -n 1 | cut -d "=" -f2-)
+        if [[ $1 == *password* ]]
+        then
+                echo $value
+        else
+                echo $value | tr -d \'\"
+        fi
+}
+
+DB_FLAVOR=$(get_prop 'DB_FLAVOR' $PROPFILE)
+SQL_COMMAND_INVOKER=$(get_prop 'SQL_COMMAND_INVOKER' $PROPFILE)
+SQL_CONNECTOR_JAR=$(get_prop 'SQL_CONNECTOR_JAR' $PROPFILE)
+db_root_user=$(get_prop 'db_root_user' $PROPFILE)
+db_root_password=$(get_prop 'db_root_password' $PROPFILE)
+db_host=$(get_prop 'db_host' $PROPFILE)
+db_name=$(get_prop 'db_name' $PROPFILE)
+db_user=$(get_prop 'db_user' $PROPFILE)
+db_password=$(get_prop 'db_password' $PROPFILE)
+audit_db_name=$(get_prop 'audit_db_name' $PROPFILE)
+audit_db_user=$(get_prop 'audit_db_user' $PROPFILE)
+audit_db_password=$(get_prop 'audit_db_password' $PROPFILE)
+policymgr_external_url=$(get_prop 'policymgr_external_url' $PROPFILE)
+policymgr_http_enabled=$(get_prop 'policymgr_http_enabled' $PROPFILE)
+unix_user=$(get_prop 'unix_user' $PROPFILE)
+unix_group=$(get_prop 'unix_group' $PROPFILE)
+authentication_method=$(get_prop 'authentication_method' $PROPFILE)
+remoteLoginEnabled=$(get_prop 'remoteLoginEnabled' $PROPFILE)
+authServiceHostName=$(get_prop 'authServiceHostName' $PROPFILE)
+authServicePort=$(get_prop 'authServicePort' $PROPFILE)
+xa_ldap_url=$(get_prop 'xa_ldap_url' $PROPFILE)
+xa_ldap_userDNpattern=$(get_prop 'xa_ldap_userDNpattern' $PROPFILE)
+xa_ldap_groupSearchBase=$(get_prop 'xa_ldap_groupSearchBase' $PROPFILE)
+xa_ldap_groupSearchFilter=$(get_prop 'xa_ldap_groupSearchFilter' $PROPFILE)
+xa_ldap_groupRoleAttribute=$(get_prop 'xa_ldap_groupRoleAttribute' $PROPFILE)
+xa_ldap_ad_domain=$(get_prop 'xa_ldap_ad_domain' $PROPFILE)
+xa_ldap_ad_url=$(get_prop 'xa_ldap_ad_url' $PROPFILE)
+JAVA_BIN=$(get_prop 'JAVA_BIN' $PROPFILE)
+JAVA_VERSION_REQUIRED=$(get_prop 'JAVA_VERSION_REQUIRED' $PROPFILE)
+JAVA_ORACLE=$(get_prop 'JAVA_ORACLE' $PROPFILE)
+#The following properties needs to be evaluated inplace since they may contain reference to variables declared before it.
+XAPOLICYMGR_DIR=$(eval echo "$(get_prop 'XAPOLICYMGR_DIR' $PROPFILE)")
+app_home=$(eval echo "$(get_prop 'app_home' $PROPFILE)")
+TMPFILE=$(eval echo "$(get_prop 'TMPFILE' $PROPFILE)")
+LOGFILE=$(eval echo " $(get_prop 'LOGFILE' $PROPFILE)")
+LOGFILES=$(eval echo "$(get_prop 'LOGFILES' $PROPFILE)")
+mysql_create_user_file=$(eval echo "$(get_prop 'mysql_create_user_file' $PROPFILE)")
+mysql_core_file=$(eval echo "$(get_prop 'mysql_core_file' $PROPFILE)")
+mysql_audit_file=$(eval echo "$(get_prop 'mysql_audit_file' $PROPFILE)")
+mysql_asset_file=$(eval echo "$(get_prop 'mysql_asset_file' $PROPFILE)")
+oracle_core_file=$(eval echo "$(get_prop 'oracle_core_file' $PROPFILE)")
+oracle_audit_file=$(eval echo "$(get_prop 'oracle_audit_file' $PROPFILE)")
+cred_keystore_filename=$(eval echo "$(get_prop 'cred_keystore_filename' $PROPFILE)")
 DB_HOST="${db_host}"
 
 usage() {
@@ -105,6 +160,22 @@ init_logfiles () {
     #log "start date for $0 = `date`"
 }
 
+password_validation() {
+        if [ -z "$1" ]
+        then
+                log "[I] For " $2 "user, blank password is not allowed. Please enter valid password."
+                exit 1
+        else
+                if [[ $1 =~ [\"\'\`\\\] ]]
+                then
+                        log "[E]" $2 "user password contains one of the unsupported special characters:\" ' \` \\"
+                        exit 1
+                else
+                        log "[I]" $2 "user password validated."
+                fi
+        fi
+}
+
 init_variables(){
 	curDt=`date '+%Y%m%d%H%M%S'`
 
@@ -124,13 +195,15 @@ init_variables(){
 		DB_FLAVOR="MYSQL"
 	fi
 	log "[I] DB_FLAVOR=${DB_FLAVOR}"
-
-	getPropertyFromFile 'db_root_user' $PROPFILE db_root_user
-	getPropertyFromFile 'db_root_password' $PROPFILE db_user
-	getPropertyFromFile 'db_user' $PROPFILE db_user
-	getPropertyFromFile 'db_password' $PROPFILE db_password
-	getPropertyFromFile 'audit_db_user' $PROPFILE audit_db_user
-	getPropertyFromFile 'audit_db_password' $PROPFILE audit_db_password
+	
+	password_validation "$db_password" " Ranger db"
+        password_validation "$audit_db_password" "Audit db"
+#	getPropertyFromFile 'db_root_user' $PROPFILE db_root_user
+#	getPropertyFromFile 'db_root_password' $PROPFILE db_user
+#	getPropertyFromFile 'db_user' $PROPFILE db_user
+#	getPropertyFromFile 'db_password' $PROPFILE db_password
+#	getPropertyFromFile 'audit_db_user' $PROPFILE audit_db_user
+#	getPropertyFromFile 'audit_db_password' $PROPFILE audit_db_password
 }
 
 wait_for_tomcat_shutdown() {
