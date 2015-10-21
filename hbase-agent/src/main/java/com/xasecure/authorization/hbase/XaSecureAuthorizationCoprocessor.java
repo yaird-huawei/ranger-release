@@ -593,16 +593,29 @@ public class XaSecureAuthorizationCoprocessor extends XaSecureAuthorizationCopro
 	}
 	@Override
 	public void preClose(ObserverContext<RegionCoprocessorEnvironment> e, boolean abortRequested) throws IOException {
-		requirePermission("close", getTableName(e.getEnvironment()), Permission.Action.ADMIN);
+		String request = "close";
+		byte[] aTableName = getTableName(e.getEnvironment());
+		requirePermission(request, aTableName, Permission.Action.ADMIN);
+		// we must audit a successful region close regardless of whether the table itself is being audited or not.
+		auditEvent(request, aTableName, null, null, null, null, getActiveUser(), accessGrantedFlag);
 	}
 	@Override
 	public InternalScanner preCompact(ObserverContext<RegionCoprocessorEnvironment> e, Store store, InternalScanner scanner,ScanType scanType) throws IOException {
-		requirePermission("compact", getTableName(e.getEnvironment()), null, null, Action.ADMIN, Action.CREATE);
+		String request = "compact";
+		byte[] aTableName = getTableName(e.getEnvironment());
+		requirePermission(request, aTableName, null, null, Action.ADMIN, Action.CREATE);
+		// we must audit a successful compaction regardless of whether the table itself is being audited or not.
+		auditEvent(request, aTableName, null, null, null, null, getActiveUser(), accessGrantedFlag);
+
 		return scanner;
 	}
 	@Override
 	public void preCompactSelection(ObserverContext<RegionCoprocessorEnvironment> e, Store store, List<StoreFile> candidates) throws IOException {
-		requirePermission("compactSelection", getTableName(e.getEnvironment()), null, null, Action.ADMIN, Action.CREATE);
+		String request = "compactSelection";
+		byte[] aTableName = getTableName(e.getEnvironment());
+		requirePermission(request, aTableName, null, null, Action.ADMIN, Action.CREATE);
+		// we must audit a successful compactSelection regardless of whether the table itself is being audited or not.
+		auditEvent(request, aTableName, null, null, null, null, getActiveUser(), accessGrantedFlag);
 	}
 
 	@Override
@@ -640,7 +653,11 @@ public class XaSecureAuthorizationCoprocessor extends XaSecureAuthorizationCopro
 	}
 	@Override
 	public void preFlush(ObserverContext<RegionCoprocessorEnvironment> e) throws IOException {
-		requirePermission("flush", getTableName(e.getEnvironment()), null, null, Action.ADMIN, Action.CREATE);
+		String request = "flush";
+		byte[] aTableName = getTableName(e.getEnvironment());
+		requirePermission(request, aTableName, null, null, Action.ADMIN, Action.CREATE);
+		// we must audit a successful flush regardless of whether the table itself is being audited or not.
+		auditEvent(request, aTableName, null, null, null, null, getActiveUser(), accessGrantedFlag);
 	}
 	@Override
 	public void preGetClosestRowBefore(ObserverContext<RegionCoprocessorEnvironment> c, byte[] row, byte[] family, Result result) throws IOException {
@@ -731,7 +748,11 @@ public class XaSecureAuthorizationCoprocessor extends XaSecureAuthorizationCopro
 	}
 	@Override
 	public void preSplit(ObserverContext<RegionCoprocessorEnvironment> e) throws IOException {
-		requirePermission("split", getTableName(e.getEnvironment()), null, null, Action.ADMIN);
+		String request = "split";
+		byte[] aTableName = getTableName(e.getEnvironment());
+		requirePermission(request, aTableName, null, null, Action.ADMIN);
+		// we must audit successful splits regardless of whether the table itself is being audited or not.
+		auditEvent(request, aTableName, null, null, null, null, getActiveUser(), accessGrantedFlag);
 	}
 	@Override
 	public void preStopMaster(ObserverContext<MasterCoprocessorEnvironment> c) throws IOException {
