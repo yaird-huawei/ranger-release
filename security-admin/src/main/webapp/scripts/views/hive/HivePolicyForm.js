@@ -281,8 +281,7 @@ define(function(require){
 			form.$el.find('[data-editors="isTableInclude"]').hide();
 			form.$el.find('[data-editors="isColumnInclude"]').hide();
 			this.fields.tables.editor.$el.select2('val','');
-			//this.fields.views.editor.$el.select2('val','');
-			this.fields.udfs.editor.$el.val('');
+			this.fields.udfs.editor.$el.select2('val','');
 			this.fields.columns.editor.$el.select2('val','');
 			this.showFields(fieldEditor);
 			console.log(fieldEditor);
@@ -334,6 +333,10 @@ define(function(require){
 		setUpForm : function(){
 			var that = this;
 			this.setUpSwitches();
+			//by default firefox not setting first option in resourceType select
+			if(_.isNull(that.fields.resourceType.getValue())){
+				this.fields.resourceType.editor.$el.find('option:first').prop("selected",true);
+			}
 			if(!_.isEmpty(that.fields.resourceType.getValue()) || !_.isEmpty(this.fields.databases.editor.$el.val())){
 				//that.fields.resourceType.editor.$el.val(that.fields.resourceType.getValue()).trigger('change');
 					
