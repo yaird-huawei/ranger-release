@@ -178,11 +178,12 @@ define(function(require){
 		evAuditChange : function(form, fieldEditor){
 			XAUtil.checkDirtyFieldForToggle(fieldEditor);
 			if(fieldEditor.getValue() == 1){
-				this.model.set('auditList', new VXAuditMapList(new VXAuditMap({
-					'auditType' : XAEnums.XAAuditType.XA_AUDIT_TYPE_ALL.value,//fieldEditor.getValue()//
-					'resourceId' :this.model.get('id')
-					
-				})));
+				if(this.model.has('auditList') && _.isEmpty(this.model.get('auditList'))){
+					this.model.set('auditList', new VXAuditMapList(new VXAuditMap({
+						'auditType' : XAEnums.XAAuditType.XA_AUDIT_TYPE_ALL.value,//fieldEditor.getValue()//
+						'resourceId' :this.model.get('id')
+					})));
+				}
 			} else {
 				var validation  = this.formValidation();
 				if(validation.groupPermSet || validation.isUsers)
@@ -196,7 +197,6 @@ define(function(require){
 					});
 				}
 			}
-			console.log(fieldEditor);
 		},
 		evResourceStatusChange : function(form, fieldEditor){
 			XAUtil.checkDirtyFieldForToggle(fieldEditor);
@@ -413,7 +413,7 @@ define(function(require){
 		setUpSwitches :function(){
 			var that = this;
 			var encryptStatus = false,auditStatus = false,recursiveStatus = false;
-			auditStatus = this.model.has('auditList') ? true : false; 
+			auditStatus = this.model.has('auditList') && !_.isEmpty(this.model.get('auditList')) ? true : false; 
 			this.fields._vAuditListToggle.editor.setValue(auditStatus);
 			
 			/*_.each(_.toArray(XAEnums.BooleanValue),function(m){
@@ -528,8 +528,7 @@ define(function(require){
 			if(this.model.get('resourceStatus') != XAEnums.BooleanValue.BOOL_TRUE.value){
 				this.model.set('resourceStatus', XAEnums.ActiveStatus.STATUS_DISABLED.value);
 			}
-			
-			
+			this.evAuditChange(this.form, this.fields._vAuditListToggle.editor)
 		},
 		checkMultiselectDirtyField : function(e, type){
 			var elem = $(e.currentTarget),columnName='',newNameList = [], nameList = [];

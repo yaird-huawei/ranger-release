@@ -226,7 +226,8 @@ define(function(require){
 					cell: "html",
 					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 						fromRaw: function (rawValue, model) {
-							return model.has('auditList') ? '<label class="label label-success">ON</label>' : '<label class="label label">OFF</label>';
+							return model.has('auditList') && !_.isEmpty(model.get('auditList')) ? '<label class="label label-success">ON</label>' 
+									: '<label class="label label">OFF</label>';
 						}
 					}),
 					click : false,
