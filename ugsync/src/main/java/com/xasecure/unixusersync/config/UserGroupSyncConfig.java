@@ -32,7 +32,6 @@ import java.util.StringTokenizer;
 import java.util.List;
 
 import com.hortonworks.credentialapi.CredentialReader;
-import com.microsoft.azure.storage.core.Logger;
 import com.xasecure.usergroupsync.UserGroupSink;
 import com.xasecure.usergroupsync.UserGroupSource;
 
