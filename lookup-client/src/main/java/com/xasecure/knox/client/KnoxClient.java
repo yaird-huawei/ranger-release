@@ -46,19 +46,25 @@ public class KnoxClient {
 	private String knoxUrl;
 	private String userName;
 	private String password;
+	private String serviceName;
 	
 	/*
    Sample curl calls to Knox to discover topologies
 	 curl -ivk -u admin:admin-password https://localhost:8443/gateway/admin/api/v1/topologies
 	 curl -ivk -u admin:admin-password https://localhost:8443/gateway/admin/api/v1/topologies/admin
 	*/
-	
-	public KnoxClient(String knoxUrl, String userName, String password) {
+
+	public String getServiceName() {
+		return serviceName;
+	}
+
+	public KnoxClient(String serviceName, String knoxUrl, String userName, String password) {
 		LOG.debug("Constructed KnoxClient with knoxUrl: " + knoxUrl +
 				", userName: " + userName);
 		this.knoxUrl = knoxUrl;
 		this.userName = userName;
 		this.password = password;
+		this.serviceName = serviceName;
 	}
 
 	public  List<String> getTopologyList(String topologyNameMatching) {
@@ -243,7 +249,7 @@ public class KnoxClient {
 		}
 
 		try {
-			knoxClient = new KnoxClient(args[0], args[1], args[2]);
+			knoxClient = new KnoxClient("", args[0], args[1], args[2]);
 			List<String> topologyList = knoxClient.getTopologyList("");
 			if ((topologyList == null) || topologyList.isEmpty()) {
 				System.out.println("No knox topologies found");
@@ -313,7 +319,7 @@ public class KnoxClient {
 			String knoxUrl = configMap.get("knox.url");
 			String knoxAdminUser = configMap.get("username");
 			String knoxAdminPassword = configMap.get("password");
-			knoxClient = new KnoxClient(knoxUrl, knoxAdminUser,
+			knoxClient = new KnoxClient(dataSourceName, knoxUrl, knoxAdminUser,
 					knoxAdminPassword);
 		}
 		return knoxClient;

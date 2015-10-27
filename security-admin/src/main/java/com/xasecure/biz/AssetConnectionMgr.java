@@ -33,7 +33,9 @@ import org.springframework.stereotype.Component;
 import com.xasecure.common.AppConstants;
 import com.xasecure.common.JSONUtil;
 import com.xasecure.common.StringUtil;
-import com.xasecure.common.TimedEventUtil;
+import com.xasecure.common.TimedExecutorHelper;
+import com.xasecure.common.TimedExecutor;
+import com.xasecure.common.TimedCallable;
 import com.xasecure.db.XADaoManager;
 import com.xasecure.entity.XXAsset;
 import com.xasecure.hadoop.client.HadoopFS;
@@ -67,6 +69,12 @@ public class AssetConnectionMgr {
 	
 	@Autowired
 	XAssetService xAssetService;
+
+	@Autowired
+	protected TimedExecutorHelper executorHelper;
+
+	@Autowired
+	protected TimedExecutor timedExecutor;
 	
 	public AssetConnectionMgr(){
 		hadoopConnectionCache = new HashMap<String, HadoopFS>();
@@ -79,6 +87,7 @@ public class AssetConnectionMgr {
 		HadoopFS hadoopFS = null;
 		XXAsset asset = xADaoManager.getXXAsset().findByAssetName(dataSourceName);
 		if (asset != null) {
+			final long timeout = executorHelper.getTimeoutValueForValidateConfigInMilliSeconds(dataSourceName);
 			// get it from the cache
 			synchronized (hadoopConnectionCache) {
 				hadoopFS = hadoopConnectionCache.get(asset.getName());
@@ -93,15 +102,15 @@ public class AssetConnectionMgr {
 					if (stringUtil.isEmpty(config)
 							&& asset.getName().equals("hadoopdev")) {
 						
-						final Callable<HadoopFS> connectHDFS = new Callable<HadoopFS>() {
+						final Callable<HadoopFS> connectHDFS = new TimedCallable<HadoopFS>() {
 							@Override
-							public HadoopFS call() throws Exception {
+							public HadoopFS actualCall() throws Exception {
 								return new HadoopFS(dataSourceName);
 							}
 						};
 						
 						try {
-							hadoopFS = TimedEventUtil.timedTask(connectHDFS, 10, TimeUnit.SECONDS);
+							hadoopFS = timedExecutor.timedTask(connectHDFS, timeout, TimeUnit.MILLISECONDS);
 						} catch(Exception e){
 							logger.error("Error establishing connection for HDFS repository : "
 									+ dataSourceName, e);
@@ -111,16 +120,16 @@ public class AssetConnectionMgr {
 						final HashMap<String, String> configMap = (HashMap<String, String>) jsonUtil
 								.jsonToMap(config);
 						final String assetName = asset.getName();
-						
-						final Callable<HadoopFS> connectHDFS = new Callable<HadoopFS>() {
+
+						final Callable<HadoopFS> connectHDFS = new TimedCallable<HadoopFS>() {
 							@Override
-							public HadoopFS call() throws Exception {
+							public HadoopFS actualCall() throws Exception {
 								return new HadoopFS(assetName, configMap);
 							}
 						};
 						
 						try {
-							hadoopFS = TimedEventUtil.timedTask(connectHDFS, 5, TimeUnit.SECONDS);
+							hadoopFS = timedExecutor.timedTask(connectHDFS, timeout, TimeUnit.MILLISECONDS);
 						} catch(Exception e){
 								logger.error("Error establishing connection for HDFS repository : "
 										+ dataSourceName + " using configuration : " +config, e);
@@ -161,14 +170,15 @@ public class AssetConnectionMgr {
 						final HashMap<String, String> configMap = (HashMap<String, String>) jsonUtil
 								.jsonToMap(config);
 						
-						final Callable<HiveClient> connectHive = new Callable<HiveClient>() {
+						final Callable<HiveClient> connectHive = new TimedCallable<HiveClient>() {
 							@Override
-							public HiveClient call() throws Exception {
+							public HiveClient actualCall() throws Exception {
 								return new HiveClient(dataSourceName, configMap);
 							}
 						};
 						try {
-							hiveClient = TimedEventUtil.timedTask(connectHive, 5, TimeUnit.SECONDS);
+							final long timeout = executorHelper.getTimeoutValueForValidateConfigInMilliSeconds(dataSourceName);
+							hiveClient = timedExecutor.timedTask(connectHive, timeout, TimeUnit.MILLISECONDS);
 						} catch(Exception e){
 							logger.error("Error connecting hive repository : "+ 
 									dataSourceName +" using config : "+ config, e);
@@ -215,12 +225,12 @@ public class AssetConnectionMgr {
 			if(!stringUtil.isEmpty(config)){
 				config=xAssetService.getConfigWithDecryptedPassword(config);
 			}
-			knoxClient = getKnoxClientByConfig(config);
+			knoxClient = getKnoxClientByConfig(asset.getName(), config);
 		}
 		return knoxClient;
 	}
 	
-	public KnoxClient getKnoxClientByConfig(String config) {
+	public KnoxClient getKnoxClientByConfig(String serviceName, String config) {
 		KnoxClient knoxClient = null;
 		if (config == null || config.trim().isEmpty()) {
 			logger.error("Connection Config is empty");
@@ -231,7 +241,7 @@ public class AssetConnectionMgr {
 			String knoxUrl = configMap.get("knox.url");
 			String knoxAdminUser = configMap.get("username");
 			String knoxAdminPassword = configMap.get("password");
-			knoxClient =  new KnoxClient(knoxUrl, knoxAdminUser, knoxAdminPassword);
+			knoxClient =  new KnoxClient(serviceName, knoxUrl, knoxAdminUser, knoxAdminPassword);
 		}
 		return knoxClient;
 	}
@@ -247,7 +257,7 @@ public class AssetConnectionMgr {
 			String knoxUrl = configMap.get("knox.url");
 			String knoxAdminUser = configMap.get("username");
 			String knoxAdminPassword = configMap.get("password");
-			knoxClient =  new KnoxClient(knoxUrl, knoxAdminUser, knoxAdminPassword);
+			knoxClient =  new KnoxClient(dataSourceName, knoxUrl, knoxAdminUser, knoxAdminPassword);
 		}
 		return knoxClient;
 	}
@@ -262,7 +272,7 @@ public class AssetConnectionMgr {
 		} else if (knoxAdminPassword == null || knoxAdminPassword.isEmpty()) {
 			logger.error("Can not create KnoxClient: knoxAdminPassword is empty");
 		} else {
-			knoxClient =  new KnoxClient(knoxUrl, knoxAdminUser, knoxAdminPassword);
+			knoxClient =  new KnoxClient("", knoxUrl, knoxAdminUser, knoxAdminPassword);
 		}
 		return knoxClient;
 	}
@@ -272,6 +282,7 @@ public class AssetConnectionMgr {
 		XXAsset asset = xADaoManager.getXXAsset().findByAssetName(
 				dataSourceName);
 		if (asset != null) {
+			final long timeout = executorHelper.getTimeoutValueForValidateConfigInMilliSeconds(dataSourceName);
 			// get it from the cache
 			synchronized (hbaseConnectionCache) {
 				client = hbaseConnectionCache.get(asset.getName());
@@ -286,10 +297,10 @@ public class AssetConnectionMgr {
 					if (stringUtil.isEmpty(config)
 							&& asset.getName().equals("hbase")) {
 						
-						final Callable<HBaseClient> connectHBase = new Callable<HBaseClient>() {
+						final Callable<HBaseClient> connectHBase = new TimedCallable<HBaseClient>() {
 							@Override
 							
-							public HBaseClient call() throws Exception {
+							public HBaseClient actualCall() throws Exception {
 								HBaseClient hBaseClient=null;
 								if(dataSourceName!=null){
 									try{
@@ -305,7 +316,7 @@ public class AssetConnectionMgr {
 						
 						try {
 							if(connectHBase!=null){
-								client = TimedEventUtil.timedTask(connectHBase, 5, TimeUnit.SECONDS);
+								client = timedExecutor.timedTask(connectHBase, timeout, TimeUnit.MILLISECONDS);
 							}
 						} catch(Exception e){
 							logger.error("Error connecting HBase repository : " + dataSourceName);
@@ -314,9 +325,9 @@ public class AssetConnectionMgr {
 						final HashMap<String, String> configMap = (HashMap<String, String>) jsonUtil
 								.jsonToMap(config);
 
-						final Callable<HBaseClient> connectHBase = new Callable<HBaseClient>() {
+						final Callable<HBaseClient> connectHBase = new TimedCallable<HBaseClient>() {
 							@Override
-							public HBaseClient call() throws Exception {
+							public HBaseClient actualCall() throws Exception {
 								HBaseClient hBaseClient=null;
 								if(dataSourceName!=null && configMap!=null){
 									try{
@@ -331,7 +342,7 @@ public class AssetConnectionMgr {
 						
 						try {
 							if(connectHBase!=null){
-								client = TimedEventUtil.timedTask(connectHBase, 5, TimeUnit.SECONDS);
+								client = timedExecutor.timedTask(connectHBase, timeout, TimeUnit.MILLISECONDS);
 							}
 						} catch(Exception e){
 							logger.error("Error connecting HBase repository : "+ 
