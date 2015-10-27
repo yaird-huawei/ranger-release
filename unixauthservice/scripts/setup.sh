@@ -108,6 +108,18 @@ MIN_UNIX_USER_ID_TO_SYNC=`grep '^[ \t]*MIN_UNIX_USER_ID_TO_SYNC[ \t]*=' ${cdir}/
 
 logdir=`grep '^[ \t]*logdir[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
 
+SYNC_MAPPING_USERNAME_HANDLER=`grep '^[ \t]*SYNC_MAPPING_HANDLER[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
+
+SYNC_MAPPING_GROUPNAME_HANDLER=`grep '^[ \t]*SYNC_MAPPING_HANDLER[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
+
+SYNC_MAPPING_USERNAME_REGEX=`grep '^[ \t]*SYNC_MAPPING_USERNAME_REGEX[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
+
+SYNC_MAPPING_USERNAME_ADDITIONAL_REGEX=`grep '^[ \t]*SYNC_MAPPING_USERNAME_REGEX_[0-9]*[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
+
+SYNC_MAPPING_GROUPNAME_REGEX=`grep '^[ \t]*SYNC_MAPPING_GROUPNAME_REGEX[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
+
+SYNC_MAPPING_GROUPNAME_ADDITIONAL_REGEX=`grep '^[ \t]*SYNC_MAPPING_GROUPNAME_REGEX_[0-9]*[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
+
 SYNC_SOURCE=`grep '^[ \t]*SYNC_SOURCE[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
 
 SYNC_INTERVAL=`grep '^[ \t]*SYNC_INTERVAL[ \t]*=' ${cdir}/install.properties | awk -F= '{ print $2 }' | sed -e 's:[ \t]*::g'`
@@ -153,6 +165,16 @@ then
     SYNC_INTERVAL=$((${SYNC_INTERVAL}*60*1000))
 else
     SYNC_INTERVAL=$((5*60*1000))
+fi
+
+if [ "${SYNC_MAPPING_USERNAME_HANDLER}" == "" ]
+then
+  SYNC_MAPPING_HANDLER="com.xasecure.usergroupsync.RegEx"
+fi
+
+if [ "${SYNC_MAPPING_GROUPNAME_HANDLER}" == "" ]
+then
+  SYNC_MAPPING_GROUPNAME_HANDLER="com.xasecure.usergroupsync.RegEx"
 fi
 
 if [ "${SYNC_SOURCE}" == "" ]
@@ -280,6 +302,8 @@ then
 	-e "s|^\( *usergroupSync.policymanager.baseURL *=\).*|\1 ${POLICY_MGR_URL}|" \
 	-e "s|^\( *usergroupSync.unix.minUserId *=\).*|\1 ${MIN_UNIX_USER_ID_TO_SYNC}|" \
 	-e "s|^\( *usergroupSync.sleepTimeInMillisBetweenSyncCycle *=\).*|\1 ${SYNC_INTERVAL}|" \
+	-e "s|^\( *userSync.mapping.UserName.handler *=\).*|\1 ${SYNC_MAPPING_USERNAME_HANDLER}|" \
+	-e "s|^\( *userSync.mapping.GroupName.handler *=\).*|\1 ${SYNC_MAPPING_GROUPNAME_HANDLER}|" \
 	-e "s|^\( *usergroupSync.source.impl.class *=\).*|\1 ${SYNC_SOURCE}|" \
 	-e "s|^\( *ldapGroupSync.ldapUrl *=\).*|\1 ${SYNC_LDAP_URL}|" \
 	-e "s|^\( *ldapGroupSync.ldapBindDn *=\).*|\1 ${SYNC_LDAP_BIND_DN}|" \
@@ -296,6 +320,22 @@ then
 	-e "s|^\( *ldapGroupSync.groupname.caseConversion *=\).*|\1 ${SYNC_LDAP_GROUPNAME_CASE_CONVERSION}|" \
 	-e "s|^\( *logdir *=\).*|\1 ${logdir}|" \
 	${CFG_FILE} > ${NEW_CFG_FILE}
+	
+	echo "userSync.mapping.UserName.regex = ${SYNC_MAPPING_USERNAME_REGEX}" >> ${NEW_CFG_FILE}
+	echo "userSync.mapping.GroupName.regex = ${SYNC_MAPPING_GROUPNAME_REGEX}" >> ${NEW_CFG_FILE}
+	i=1
+    for USERNAME_REGEX in ${SYNC_MAPPING_USERNAME_ADDITIONAL_REGEX}
+    do
+        echo "userSync.mapping.UserName.regex.$i = ${USERNAME_REGEX}" >> ${NEW_CFG_FILE}
+        i=$((i+1))
+    done
+    
+    i=1
+    for GROUPNAME_REGEX in ${SYNC_MAPPING_GROUPNAME_ADDITIONAL_REGEX}
+    do
+        echo "userSync.mapping.GroupName.regex.$i = ${GROUPNAME_REGEX}" >> ${NEW_CFG_FILE}
+        i=$((i+1))
+    done
 
     echo "<${logdir}> ${CFG_FILE} > ${NEW_CFG_FILE}"
 else

@@ -23,12 +23,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.List;
 
 import com.hortonworks.credentialapi.CredentialReader;
+import com.microsoft.azure.storage.core.Logger;
 import com.xasecure.usergroupsync.UserGroupSink;
 import com.xasecure.usergroupsync.UserGroupSource;
 
@@ -127,6 +131,16 @@ public class UserGroupSyncConfig  {
 	private static final String DEFAULT_POLICYMGR_USERNAME = "rangerusersync";
 
 	private static final String DEFAULT_POLICYMGR_PASSWORD = "rangerusersync";
+	
+	public static final String SYNC_MAPPING_USERNAME = "userSync.mapping.UserName.regex";
+	
+	public static final String SYNC_MAPPING_GROUPNAME = "userSync.mapping.GroupName.regex";
+	
+	private static final String SYNC_MAPPING_USERNAME_HANDLER = "userSync.mapping.handler";
+	private static final String DEFAULT_SYNC_MAPPING_USERNAME_HANDLER = "com.xasecure.usergroupsync.RegEx";
+	
+	private static final String SYNC_MAPPING_GROUPNAME_HANDLER = "userSync.mapping.handler";
+	private static final String DEFAULT_SYNC_MAPPING_GROUPNAME_HANDLER = "com.xasecure.usergroupsync.RegEx";
 
 	private Properties prop = new Properties() ;
 	
@@ -472,5 +486,38 @@ public class UserGroupSyncConfig  {
 
 	public String getDefaultPolicyMgrPassword(){
 		return DEFAULT_POLICYMGR_PASSWORD;
+	}
+	
+	public List<String> getAllRegexPatterns(String baseProperty) {
+		List<String> regexPatterns = new ArrayList<String>();
+		if (prop != null) {
+			Enumeration<?> propertyNames = prop.propertyNames();
+			while (propertyNames != null && propertyNames.hasMoreElements()) {
+				String propertyName = (String)propertyNames.nextElement();
+				if (propertyName != null && propertyName.contains(baseProperty)) {
+					regexPatterns.add(prop.getProperty(propertyName));
+				}
+			}
+		
+		}
+		return regexPatterns;
+	}
+	
+	public String getUserSyncMappingUserNameHandler() {
+		String val =  prop.getProperty(SYNC_MAPPING_USERNAME_HANDLER) ;
+
+		if(val == null) {
+			val = DEFAULT_SYNC_MAPPING_USERNAME_HANDLER;
+		}
+		return val;
+	}
+	
+	public String getUserSyncMappingGroupNameHandler() {
+		String val =  prop.getProperty(SYNC_MAPPING_GROUPNAME_HANDLER) ;
+
+		if(val == null) {
+			val = DEFAULT_SYNC_MAPPING_GROUPNAME_HANDLER;
+		}
+		return val;
 	}
 }

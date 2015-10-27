@@ -44,6 +44,7 @@ import org.apache.log4j.Logger;
 import com.xasecure.unixusersync.config.UserGroupSyncConfig;
 import com.xasecure.usergroupsync.UserGroupSink;
 import com.xasecure.usergroupsync.UserGroupSource;
+import com.xasecure.usergroupsync.AbstractMapper;
 
 public class LdapUserGroupBuilder implements UserGroupSource {
 	
@@ -64,6 +65,8 @@ public class LdapUserGroupBuilder implements UserGroupSource {
 	private boolean groupNameCaseConversionFlag = false ;
 	private boolean userNameLowerCaseFlag = false ;
 	private boolean groupNameLowerCaseFlag = false ;
+	AbstractMapper userNameRegExInst = null;
+	AbstractMapper groupNameRegExInst = null;
 
 	
 	public static void main(String[] args) throws Throwable {
@@ -92,6 +95,40 @@ public class LdapUserGroupBuilder implements UserGroupSource {
 		else {
 		    groupNameCaseConversionFlag = true ;
 		    groupNameLowerCaseFlag = UserGroupSyncConfig.UGSYNC_LOWER_CASE_CONVERSION_VALUE.equalsIgnoreCase(groupNameCaseConversion) ;
+		}
+		
+		String mappingUserNameHandler = config.getUserSyncMappingUserNameHandler();
+		try {
+			if (mappingUserNameHandler != null) {
+				Class<AbstractMapper> regExClass = (Class<AbstractMapper>)Class.forName(mappingUserNameHandler);
+				userNameRegExInst = regExClass.newInstance();
+				if (userNameRegExInst != null) {
+					userNameRegExInst.init(UserGroupSyncConfig.SYNC_MAPPING_USERNAME);
+				} else {
+					LOG.error("RegEx handler instance for username is null!");
+				}
+			}
+		} catch (ClassNotFoundException cne) {
+			LOG.error("Failed to load " + mappingUserNameHandler + " " + cne);
+		} catch (Throwable te) {
+			LOG.error("Failed to instantiate " + mappingUserNameHandler + " " + te);
+		}
+		
+		String mappingGroupNameHandler = config.getUserSyncMappingGroupNameHandler();
+		try {
+			if (mappingGroupNameHandler != null) {
+				Class<AbstractMapper> regExClass = (Class<AbstractMapper>)Class.forName(mappingGroupNameHandler);
+				groupNameRegExInst = regExClass.newInstance();
+				if (groupNameRegExInst != null) {
+					groupNameRegExInst.init(UserGroupSyncConfig.SYNC_MAPPING_GROUPNAME);
+				} else {
+					LOG.error("RegEx handler instance for groupname is null!");
+				}
+			}
+		} catch (ClassNotFoundException cne) {
+			LOG.error("Failed to load " + mappingGroupNameHandler + " " + cne);
+		} catch (Throwable te) {
+			LOG.error("Failed to instantiate " + mappingGroupNameHandler + " " + te);
 		}
 		
 	}
@@ -210,6 +247,9 @@ public class LdapUserGroupBuilder implements UserGroupSource {
 							userName = userName.toUpperCase() ;
 						}
 					}
+					if (userNameRegExInst != null) {
+						userName = userNameRegExInst.transform(userName);
+					}
 				
 					Set<String> groups = new HashSet<String>();
 					Set<String> userGroupNameAttributeSet = config.getUserGroupNameAttributeSet();
@@ -226,6 +266,9 @@ public class LdapUserGroupBuilder implements UserGroupSource {
 									} else {
 										gName = gName.toUpperCase();
 									}
+								}
+								if (groupNameRegExInst != null) {
+									gName = groupNameRegExInst.transform(gName);
 								}
 								groups.add(gName);
 							}
