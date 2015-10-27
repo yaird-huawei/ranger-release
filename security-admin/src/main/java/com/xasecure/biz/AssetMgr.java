@@ -63,7 +63,9 @@ import com.xasecure.common.MessageEnums;
 import com.xasecure.common.PropertiesUtil;
 import com.xasecure.common.SearchCriteria;
 import com.xasecure.common.StringUtil;
-import com.xasecure.common.TimedEventUtil;
+import com.xasecure.common.TimedExecutor;
+import com.xasecure.common.TimedExecutorHelper;
+import com.xasecure.common.TimedCallable;
 import com.xasecure.common.UserSessionBase;
 import com.xasecure.common.XACommonEnums;
 import com.xasecure.common.XAConstants;
@@ -152,6 +154,12 @@ public class AssetMgr extends AssetMgrBase {
 	
 	@Autowired
 	XUserMgr xUserMgr;
+
+	@Autowired
+	TimedExecutor timedExecutor;
+
+	@Autowired
+	TimedExecutorHelper executorHelper;
 
 	@Autowired
 	@Qualifier(value = "transactionManager")
@@ -762,18 +770,17 @@ public class AssetMgr extends AssetMgrBase {
 
 					final String finalBaseDir = baseDir;
 					final String finalWildCardToMatch = wildCardToMatch;
-					final Callable<List<String>> callableObj = new Callable<List<String>>() {
+					final Callable<List<String>> callableObj = new TimedCallable<List<String>>() {
 
 						@Override
-						public List<String> call() throws Exception {
+						public List<String> actualCall() throws Exception {
 							return hdfsClient.listFiles(finalBaseDir,
 									finalWildCardToMatch);
 						}
 
 					};
-
-					strList = TimedEventUtil.timedTask(callableObj, 5,
-							TimeUnit.SECONDS); // If
+					final long timeout = executorHelper.getTimeoutValueForLookupInMilliSeconds(dataSourceName);
+					strList = timedExecutor.timedTask(callableObj, timeout, TimeUnit.MILLISECONDS); // If
 					// strList = hdfsClient.listFiles(finalBaseDir,
 					// finalWildCardToMatch);
 					logger.debug("Resource dir : " + baseDir
@@ -1173,9 +1180,9 @@ public class AssetMgr extends AssetMgrBase {
 							finalDbName = databaseName;
 							finalTableName = tableName;
 
-							callableObj = new Callable<List<String>>() {
+							callableObj = new TimedCallable<List<String>>() {
 								@Override
-								public List<String> call() {
+								public List<String> actualCall() {
 									return hiveClient.getColumnList(
 											finalDbName, finalTableName,
 											finalColName);
@@ -1185,10 +1192,10 @@ public class AssetMgr extends AssetMgrBase {
 							tableName += "*";
 							finalTableName = tableName;
 							finalDbName = databaseName;
-							callableObj = new Callable<List<String>>() {
+							callableObj = new TimedCallable<List<String>>() {
 
 								@Override
-								public List<String> call() {
+								public List<String> actualCall() {
 									return hiveClient.getTableList(finalDbName,
 											finalTableName);
 								}
@@ -1198,9 +1205,9 @@ public class AssetMgr extends AssetMgrBase {
 					} else {
 						databaseName += "*";
 						finalDbName = databaseName;
-						callableObj = new Callable<List<String>>() {
+						callableObj = new TimedCallable<List<String>>() {
 							@Override
-							public List<String> call() {
+							public List<String> actualCall() {
 								return hiveClient.getDatabaseList(finalDbName);
 							}
 						};
@@ -1208,8 +1215,8 @@ public class AssetMgr extends AssetMgrBase {
 					}
 
 					synchronized (hiveClient) {
-						resultList = TimedEventUtil.timedTask(callableObj, 5,
-								TimeUnit.SECONDS);
+						final long timeout = executorHelper.getTimeoutValueForLookupInMilliSeconds(dataSourceName);
+						resultList = timedExecutor.timedTask(callableObj, timeout, TimeUnit.MILLISECONDS);
 					}
 
 				}
@@ -1462,9 +1469,9 @@ public class AssetMgr extends AssetMgrBase {
 						finalColFamilies = columnFamilies;
 						finalTableName = tableName;
 
-						callableObj = new Callable<List<String>>() {
+						callableObj = new TimedCallable<List<String>>() {
 							@Override
-							public List<String> call() {
+							public List<String> actualCall() {
 								return hBaseClient.getColumnFamilyList(
 										finalTableName, finalColFamilies);
 							}
@@ -1478,16 +1485,16 @@ public class AssetMgr extends AssetMgrBase {
 						tableName = tableName.replaceAll("\\*", ".\\*");
 						finalTableName = tableName;
 
-						callableObj = new Callable<List<String>>() {
+						callableObj = new TimedCallable<List<String>>() {
 							@Override
-							public List<String> call() {
+							public List<String> actualCall() {
 								return hBaseClient.getTableList(finalTableName);
 							}
 						};
 
 					}
-					resultList = TimedEventUtil.timedTask(callableObj, 5,
-							TimeUnit.SECONDS);
+					final long timeout = executorHelper.getTimeoutValueForLookupInMilliSeconds(dataSourceName);
+					resultList = timedExecutor.timedTask(callableObj, timeout, TimeUnit.MILLISECONDS);
 				}
 
 			} catch (Exception e) {
@@ -1499,7 +1506,7 @@ public class AssetMgr extends AssetMgrBase {
 	}
 	
 	public VXStringList getKnoxResources(
-			String knoxUrl,String knoxAdminUser, String knoxAdminPassword, 
+			String knoxUrl,String knoxAdminUser, String knoxAdminPassword,
 			String topologyName, String serviceName) {
 		List<String> resultList = new ArrayList<String>();
 		if (knoxUrl == null || knoxUrl.isEmpty()) {
@@ -1518,7 +1525,7 @@ public class AssetMgr extends AssetMgrBase {
 		VXStringList knoxResources = getKnoxResources(knoxClient, topologyName, serviceName);
 		return  knoxResources;
 	}
-	
+
 	public VXStringList getKnoxResources(final String dataSourceName,
 			String topologyName, String serviceName) {
 		List<String> resultList = new ArrayList<String>();
@@ -1549,9 +1556,9 @@ public class AssetMgr extends AssetMgrBase {
 			if (serviceName != null)  {
 				final String finalServiceNameMatching = serviceName.trim();
 				final String finalTopologyName = topologyName;
-				callableObj = new Callable<List<String>>() {
+				callableObj = new TimedCallable<List<String>>() {
 					@Override
-					public List<String> call() {
+					public List<String> actualCall() {
 						return knoxClient.getServiceList(finalTopologyName,
 								finalServiceNameMatching);
 					}
@@ -1560,15 +1567,15 @@ public class AssetMgr extends AssetMgrBase {
 			} else {
 				final String finalTopologyNameMatching = (topologyName == null) ?
 						"" : topologyName.trim();
-				callableObj = new Callable<List<String>>() {
+				callableObj = new TimedCallable<List<String>>() {
 					@Override
-					public List<String> call() {
+					public List<String> actualCall() {
 						return knoxClient.getTopologyList(finalTopologyNameMatching);
 					}
 				};
 			}
-			resultList = TimedEventUtil.timedTask(callableObj, 5,
-					TimeUnit.SECONDS);
+			final long timeout = executorHelper.getTimeoutValueForLookupInMilliSeconds(knoxClient.getServiceName());
+			resultList = timedExecutor.timedTask(callableObj, timeout, TimeUnit.MILLISECONDS);
 
 		} catch (Exception e) {
 			logger.error("Unable to get knox resources.", e);
@@ -1591,9 +1598,8 @@ public class AssetMgr extends AssetMgrBase {
 		
 		VXResponse testResponse = new VXResponse();
 		HashMap<String, Object> responseData = new HashMap<String, Object>();
-		
-		HashMap<String, String> configMap = (HashMap<String, String>) jsonUtil
-				.jsonToMap(vXAsset.getConfig());
+		// needs to be final since it is passed around to callables.
+		final HashMap<String, String> configMap = (HashMap<String, String>) jsonUtil.jsonToMap(vXAsset.getConfig());
 		String password = configMap.get("password");
 		String hiddenPasswordString = PropertiesUtil.getProperty(
 				"xa.password.hidden", "*****");
@@ -1616,55 +1622,47 @@ public class AssetMgr extends AssetMgrBase {
 				}
 			}
 		}
+		final long timeout = executorHelper.getTimeoutValueForValidateConfigInMilliSeconds(vXAsset.getName());
 
 		try {
-			String dataSource = vXAsset.getName();
+			final String dataSource = vXAsset.getName(); // needs to be final as it's passed around to callables.
 			if (assetType == AppConstants.ASSET_HDFS) {
-				// HadoopFS connectionObj = new HadoopFS(vXAsset.getName(),
-				// configMap);
-				// if (connectionObj != null) {
-				// List<String> testResult = connectionObj
-				// .listFiles("/", null);
-				// if (testResult != null && testResult.size() != 0) {
-				// connectivityStatus = true;
-				// }
-				// }
-				responseData = HadoopFS.testConnection(dataSource, configMap);
+				responseData = timedExecutor.timedTask(new TimedCallable<HashMap<String, Object>>() {
+					@Override
+					public HashMap<String, Object> actualCall() throws Exception {
+						return HadoopFS.testConnection(dataSource, configMap);
+					}
+				}, timeout, TimeUnit.MILLISECONDS);
 			} else if (assetType == AppConstants.ASSET_HIVE) {
-				// HiveClient connectionObj = new HiveClient(vXAsset.getName(),
-				// configMap);
-				// if (connectionObj != null) {
-				// List<String> testResult = connectionObj
-				// .getDatabaseList("*");
-				// if (testResult != null && testResult.size() != 0) {
-				// connectivityStatus = true;
-				// }
-				// }
-				// connectionObj.close();
-				responseData = HiveClient.testConnection(dataSource, configMap);
+				responseData = timedExecutor.timedTask(new TimedCallable<HashMap<String, Object>>() {
+					@Override
+					public HashMap<String, Object> actualCall() throws Exception {
+						return HiveClient.testConnection(dataSource, configMap);
+					}
+				}, timeout, TimeUnit.MILLISECONDS);
 			} else if (assetType == AppConstants.ASSET_HBASE) {
-				// HBaseClient connectionObj = new
-				// HBaseClient(vXAsset.getName(),
-				// configMap);
-				// if (connectionObj != null) {
-				// connectivityStatus = connectionObj.getHBaseStatus();
-				// } else {
-				// Log.error("testConfig: Not able to create HBaseClient");
-				// }
-				responseData = HBaseClient
-						.testConnection(dataSource, configMap);
+				responseData = timedExecutor.timedTask(new TimedCallable<HashMap<String, Object>>() {
+					@Override
+					public HashMap<String, Object> actualCall() throws Exception {
+						return HBaseClient.testConnection(dataSource, configMap);
+					}
+				}, timeout, TimeUnit.MILLISECONDS);
+
 			} else if (assetType == AppConstants.ASSET_KNOX) {
-				// KnoxClient knoxClient = assetConnectionMgr.getKnoxClient(
-				// vXAsset.getName(), configMap);
-				// VXStringList vxStringList = getKnoxResources(knoxClient, "",
-				// null);
-				// if (vxStringList != null && (vxStringList.getListSize() !=
-				// 0)) {
-				// connectivityStatus = true;
-				// }
-				responseData = KnoxClient.testConnection(dataSource, configMap);
+				responseData = timedExecutor.timedTask(new TimedCallable<HashMap<String, Object>>() {
+					@Override
+					public HashMap<String, Object> actualCall() throws Exception {
+						return KnoxClient.testConnection(dataSource, configMap);
+					}
+				}, timeout, TimeUnit.MILLISECONDS);
+
 			} else if (assetType == AppConstants.ASSET_STORM) {
-				responseData = StormClient.testConnection(dataSource, configMap);
+				responseData = timedExecutor.timedTask(new TimedCallable<HashMap<String, Object>>() {
+					@Override
+					public HashMap<String, Object> actualCall() throws Exception {
+						return StormClient.testConnection(dataSource, configMap);
+					}
+				}, timeout, TimeUnit.MILLISECONDS);
 			} else {
 				throw restErrorUtil.createRESTException(
 						"Invalid repository type.",
