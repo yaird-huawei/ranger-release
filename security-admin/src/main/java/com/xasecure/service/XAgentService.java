@@ -37,7 +37,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.xasecure.common.AppConstants;
-import com.xasecure.common.TimedEventUtil;
 import com.xasecure.view.VXAuditRecord;
 import com.xasecure.view.VXAuditRecordList;
 
