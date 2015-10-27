@@ -135,10 +135,10 @@ public class UserGroupSyncConfig  {
 	
 	public static final String SYNC_MAPPING_GROUPNAME = "userSync.mapping.GroupName.regex";
 	
-	private static final String SYNC_MAPPING_USERNAME_HANDLER = "userSync.mapping.handler";
+	private static final String SYNC_MAPPING_USERNAME_HANDLER = "userSync.mapping.UserName.handler";
 	private static final String DEFAULT_SYNC_MAPPING_USERNAME_HANDLER = "com.xasecure.usergroupsync.RegEx";
 	
-	private static final String SYNC_MAPPING_GROUPNAME_HANDLER = "userSync.mapping.handler";
+	private static final String SYNC_MAPPING_GROUPNAME_HANDLER = "userSync.mapping.GroupName.handler";
 	private static final String DEFAULT_SYNC_MAPPING_GROUPNAME_HANDLER = "com.xasecure.usergroupsync.RegEx";
 
 	private Properties prop = new Properties() ;
