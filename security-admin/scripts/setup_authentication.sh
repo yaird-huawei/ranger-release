@@ -27,7 +27,12 @@ curDt=`date '+%Y%m%d%H%M%S'`
 authentication_method=$1
 path=$2
 CONFIG_FILE=$path/WEB-INF/classes/conf/security-applicationContext.xml
-
+sed -i '/AD_SEC_SETTINGS_START/,/AD_SEC_SETTINGS_END/{//!d}' $CONFIG_FILE
+sed -i '/LDAP_SEC_SETTINGS_START/,/LDAP_SEC_SETTINGS_END/{//!d}' $CONFIG_FILE
+sed -i '/UNIX_SEC_SETTINGS_START/,/UNIX_SEC_SETTINGS_END/{//!d}' $CONFIG_FILE
+sed -i '/AD_BEAN_SETTINGS_START/,/AD_BEAN_SETTINGS_END/{//!d}' $CONFIG_FILE
+sed -i '/LDAP_BEAN_SETTINGS_START/,/LDAP_BEAN_SETTINGS_END/{//!d}' $CONFIG_FILE
+sed -i '/UNIX_BEAN_SETTINGS_START/,/UNIX_BEAN_SETTINGS_END/{//!d}' $CONFIG_FILE
 if [ $authentication_method = "UNIX" ] ; then
     	echo $path;
 	awk 'FNR==NR{ _[++d]=$0;next}

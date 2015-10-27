@@ -461,8 +461,8 @@ define(function(require) {'use strict';
 					cell: "html",
 					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 						fromRaw: function (rawValue, model) {
-							//return model.has('auditList') ? 'On' : 'Off';
-							return model.has('auditList') ? '<label class="label label-success">ON</label>' : '<label class="label label">OFF</label>';
+							return model.has('auditList') && !_.isEmpty(model.get('auditList')) ? '<label class="label label-success">ON</label>' 
+									: '<label class="label label">OFF</label>';
 						}
 					}),
 					click : false,
@@ -603,18 +603,6 @@ define(function(require) {'use strict';
 						}
 					})
 				},
-				/*views : {
-					label	: localization.tt("lbl.viewName")+'(s)',
-					editable:false,
-					cell :'string',
-					sortable: false,
-					// headerSearchStyle  : 'width:85%;',
-					//headerFilterList :["Student","Teacher","StudentTeacher"],
-					placeholder : 'View Name',
-					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-						fromRaw: function (rawValue) {	return rawValue ? rawValue : '--';}
-					}),
-				},*/
 				udfs : {
 					label	: localization.tt("lbl.udfName")+'(s)',
 					editable:false,
@@ -653,8 +641,8 @@ define(function(require) {'use strict';
 					cell: "html",
 					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 						fromRaw: function (rawValue, model) {
-							//return model.has('auditList') ? 'On' : 'Off';
-							return model.has('auditList') ? '<label class="label label-success">ON</label>' : '<label class="label label">OFF</label>';
+							return model.has('auditList') && !_.isEmpty(model.get('auditList')) ? '<label class="label label-success">ON</label>' 
+									: '<label class="label label">OFF</label>';
 						}
 					}),
 					click : false,
@@ -809,8 +797,8 @@ define(function(require) {'use strict';
 					cell: "html",
 					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 						fromRaw: function (rawValue, model) {
-							//return model.has('auditList') ? 'On' : 'Off';
-							return model.has('auditList') ? '<label class="label label-success">ON</label>' : '<label class="label label">OFF</label>';
+							return model.has('auditList') && !_.isEmpty(model.get('auditList')) ? '<label class="label label-success">ON</label>' 
+									: '<label class="label label">OFF</label>';
 						}
 					}),
 					click : false,
@@ -945,7 +933,8 @@ define(function(require) {'use strict';
 					cell: "html",
 					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 						fromRaw: function (rawValue, model) {
-							return model.has('auditList') ? '<label class="label label-success">ON</label>' : '<label class="label label">OFF</label>';
+							return model.has('auditList') && !_.isEmpty(model.get('auditList')) ? '<label class="label label-success">ON</label>' 
+									: '<label class="label label">OFF</label>';
 						}
 					}),
 					click : false,
@@ -1032,15 +1021,6 @@ define(function(require) {'use strict';
 					sortable : false
 						
 				},
-				/*services: {
-					label	: localization.tt("lbl.serivceName")+'(s)',
-					editable:false,
-					cell :'string',
-					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-						fromRaw: function (rawValue) {	return rawValue ? rawValue : '--';}
-					}),
-					sortable : false
-				},*/
 				assetName : {
 					label : localization.tt("lbl.repository"),
 					cell: "String",
@@ -1054,7 +1034,8 @@ define(function(require) {'use strict';
 					cell: "html",
 					formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
 						fromRaw: function (rawValue, model) {
-							return model.has('auditList') ? '<label class="label label-success">ON</label>' : '<label class="label label">OFF</label>';
+							return model.has('auditList') && !_.isEmpty(model.get('auditList')) ? '<label class="label label-success">ON</label>' 
+									: '<label class="label label">OFF</label>';
 						}
 					}),
 					click : false,

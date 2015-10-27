@@ -64,7 +64,21 @@ check_ret_status_for_groupadd(){
         exit 1;
     fi
 }
-
+password_validation() {
+        if [ -z "$1" ]
+        then
+                log "[I] For " $2 "user, blank password is not allowed. Please enter valid password."
+                exit 1
+        else
+                if [[ $1 =~ [\"\'\`\\\] ]]
+                then
+                        log "[E]" $2 "user password contains one of the unsupported special characters: \" ' \` \\"
+                        exit 1
+                else
+                        log "[I]" $2 "user password validated."
+                fi
+        fi
+}
 setup_unix_user_group(){
 
 	log "[I] Setting up UNIX user : ${unix_user} and group: ${unix_group}";
@@ -248,6 +262,7 @@ then
   if [[ "${SYNC_LDAP_BIND_ALIAS}" != ""  && "${SYNC_LDAP_BIND_KEYSTOREPATH}" != "" ]]
   then
     echo "Storing ldap bind password in credential store"
+	password_validation "$SYNC_LDAP_BIND_PASSWORD" "LDAP Bind"
 	mkdir -p `dirname "${SYNC_LDAP_BIND_KEYSTOREPATH}"`
 	chown ${unix_user}:${unix_group} `dirname "${SYNC_LDAP_BIND_KEYSTOREPATH}"`
 	$JAVA_HOME/bin/java -cp "./lib/*" com.hortonworks.credentialapi.buildks create $SYNC_LDAP_BIND_ALIAS -value $SYNC_LDAP_BIND_PASSWORD -provider jceks://file$SYNC_LDAP_BIND_KEYSTOREPATH

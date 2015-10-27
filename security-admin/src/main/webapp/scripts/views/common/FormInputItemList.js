@@ -368,7 +368,6 @@ define(function(require) {
 		//tagName : 'ul', 
 		//className : 'timeline-container',
 		templateHelpers :function(){
-			console.log(XAUtil.getPermHeaders(this.policyType));
 			return {
 				permHeaders : XAUtil.getPermHeaders(this.policyType)
 			};

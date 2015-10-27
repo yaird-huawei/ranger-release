@@ -237,11 +237,12 @@ define(function(require){
 		evAuditChange : function(form, fieldEditor){
 			XAUtil.checkDirtyFieldForToggle(fieldEditor);
 			if(fieldEditor.getValue() == 1){
-				this.model.set('auditList', new VXAuditMapList(new VXAuditMap({
+				if(this.model.has('auditList') && _.isEmpty(this.model.get('auditList'))){
+					this.model.set('auditList', new VXAuditMapList(new VXAuditMap({
 					'auditType' : XAEnums.XAAuditType.XA_AUDIT_TYPE_ALL.value,//fieldEditor.getValue()//
 					'resourceId' :this.model.get('id')
-					
-				})));
+					})));
+				}
 			} else {
 					var validation  = this.formValidation();
 					if(validation.groupPermSet || validation.isUsers)
@@ -281,8 +282,7 @@ define(function(require){
 			form.$el.find('[data-editors="isTableInclude"]').hide();
 			form.$el.find('[data-editors="isColumnInclude"]').hide();
 			this.fields.tables.editor.$el.select2('val','');
-			//this.fields.views.editor.$el.select2('val','');
-			this.fields.udfs.editor.$el.val('');
+			this.fields.udfs.editor.$el.select2('val','');
 			this.fields.columns.editor.$el.select2('val','');
 			this.showFields(fieldEditor);
 			console.log(fieldEditor);
@@ -334,6 +334,10 @@ define(function(require){
 		setUpForm : function(){
 			var that = this;
 			this.setUpSwitches();
+			//by default firefox not setting first option in resourceType select
+			if(_.isNull(that.fields.resourceType.getValue())){
+				this.fields.resourceType.editor.$el.find('option:first').prop("selected",true);
+			}
 			if(!_.isEmpty(that.fields.resourceType.getValue()) || !_.isEmpty(this.fields.databases.editor.$el.val())){
 				//that.fields.resourceType.editor.$el.val(that.fields.resourceType.getValue()).trigger('change');
 					
@@ -355,7 +359,7 @@ define(function(require){
 		setUpSwitches :function(){
 			var that = this;
 			var encryptStatus = false,auditStatus = false;
-			auditStatus = this.model.has('auditList') ? true : false; 
+			auditStatus = this.model.has('auditList') && !_.isEmpty(this.model.get('auditList')) ? true : false; 
 			this.fields._vAuditListToggle.editor.setValue(auditStatus);
 			
 			_.each(_.toArray(XAEnums.BooleanValue),function(m){
@@ -725,6 +729,7 @@ define(function(require){
 			if(this.model.get('resourceStatus') != XAEnums.BooleanValue.BOOL_TRUE.value){
 				this.model.set('resourceStatus', XAEnums.ActiveStatus.STATUS_DISABLED.value);
 			}
+			this.evAuditChange(this.form, this.fields._vAuditListToggle.editor)
 		},
 		checkMultiselectDirtyField : function(e, type){
 			var elem = $(e.currentTarget),columnName='',nameList = [], newNameList = [];
