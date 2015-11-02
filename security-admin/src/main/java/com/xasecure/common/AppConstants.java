@@ -437,6 +437,7 @@ public class AppConstants extends XACommonEnums {
 	 */
 	public static final int ClassTypes_MAX = 1014;
 
+	public static final String Masked_String = "*****";
 
 
 	static public String getLabelFor_AssetType( int elementValue ) {
