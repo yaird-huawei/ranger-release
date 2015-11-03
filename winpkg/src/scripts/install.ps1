@@ -526,6 +526,88 @@ function Main( $scriptDir )
     $configs.Add("SynchSourceUNIX",$SynchSourceUNIX)
     Configure "ranger-usersync" $nodeInstallRoot $serviceCredential $configs
     Write-Log "Installation of ranger-usersync completed successfully"
+    
+    $hdpLayoutLocation =  Split-Path -Parent (Resolve-Path $ENV:HDP_LAYOUT)
+	# Copy mysql connector jar to each components dir
+	if ((Test-Path ENV:RANGER) -and ($ENV:RANGER -ieq "yes") -and (($ENV:RANGER_DB_FLAVOR -eq "MYSQL") -or ($ENV:RANGER_AUDIT_DB_FLAVOR -eq "MYSQL")))
+	{
+		$mysqlConnJar = @(gci -Filter mysql-connector-java*.jar -Path $hdpLayoutLocation)[0]
+
+		Write-Log "Copying $mysqlConnJar.FullName to $ENV:HADOOP_HOME\share\hadoop\common\lib"
+		Copy-Item $mysqlConnJar.FullName "$ENV:HADOOP_HOME\share\hadoop\common\lib"
+
+		Write-Log "Copying $mysqlConnJar.FullName to $ENV:HIVE_HOME\lib"
+		Copy-Item $mysqlConnJar.FullName "$ENV:HIVE_HOME\lib"
+
+		Write-Log "Copying $mysqlConnJar.FullName to $ENV:HBASE_HOME\lib"
+		Copy-Item $mysqlConnJar.FullName "$ENV:HBASE_HOME\lib"
+
+		Write-Log "Copying $mysqlConnJar.FullName to $ENV:KNOX_HOME\lib"
+		Copy-Item $mysqlConnJar.FullName "$ENV:KNOX_HOME\lib"
+
+		Write-Log "Copying $mysqlConnJar.FullName to $ENV:STORM_HOME\lib"
+		Copy-Item $mysqlConnJar.FullName "$ENV:STORM_HOME\lib"
+	}
+	# Copy oracle connector jar to each components dir
+	if ((Test-Path ENV:RANGER) -and ($ENV:RANGER -ieq "yes") -and (($ENV:RANGER_DB_FLAVOR -eq "ORACLE") -or ($ENV:RANGER_AUDIT_DB_FLAVOR -eq "ORACLE")))
+	{
+		$oracleConnJar = @(gci -Filter ojdbc*.jar -Path $hdpLayoutLocation)[0]
+
+		Write-Log "Copying $oracleConnJar.FullName to $ENV:HADOOP_HOME\share\hadoop\common\lib"
+		Copy-Item $oracleConnJar.FullName "$ENV:HADOOP_HOME\share\hadoop\common\lib"
+
+		Write-Log "Copying $oracleConnJar.FullName to $ENV:HIVE_HOME\lib"
+		Copy-Item $oracleConnJar.FullName "$ENV:HIVE_HOME\lib"
+
+		Write-Log "Copying $oracleConnJar.FullName to $ENV:HBASE_HOME\lib"
+		Copy-Item $oracleConnJar.FullName "$ENV:HBASE_HOME\lib"
+
+		Write-Log "Copying $oracleConnJar.FullName to $ENV:KNOX_HOME\lib"
+		Copy-Item $oracleConnJar.FullName "$ENV:KNOX_HOME\lib"
+
+		Write-Log "Copying $oracleConnJar.FullName to $ENV:STORM_HOME\lib"
+		Copy-Item $oracleConnJar.FullName "$ENV:STORM_HOME\lib"
+	}
+	# Copy Postgres connector jar to each components dir
+	if ((Test-Path ENV:RANGER) -and ($ENV:RANGER -ieq "yes") -and (($ENV:RANGER_DB_FLAVOR -eq "POSTGRES") -or ($ENV:RANGER_AUDIT_DB_FLAVOR -eq "POSTGRES")))
+	{
+		$postgresConnJar = @(gci -Filter postgresql-connector-jdbc*.jar -Path $hdpLayoutLocation)[0]
+
+		Write-Log "Copying $postgresConnJar.FullName to $ENV:HADOOP_HOME\share\hadoop\common\lib"
+		Copy-Item $postgresConnJar.FullName "$ENV:HADOOP_HOME\share\hadoop\common\lib"
+
+		Write-Log "Copying $postgresConnJar.FullName to $ENV:HIVE_HOME\lib"
+		Copy-Item $postgresConnJar.FullName "$ENV:HIVE_HOME\lib"
+
+		Write-Log "Copying $postgresConnJar.FullName to $ENV:HBASE_HOME\lib"
+		Copy-Item $postgresConnJar.FullName "$ENV:HBASE_HOME\lib"
+
+		Write-Log "Copying $postgresConnJar.FullName to $ENV:KNOX_HOME\lib"
+		Copy-Item $postgresConnJar.FullName "$ENV:KNOX_HOME\lib"
+
+		Write-Log "Copying $postgresConnJar.FullName to $ENV:STORM_HOME\lib"
+		Copy-Item $postgresConnJar.FullName "$ENV:STORM_HOME\lib"			
+	}
+	# Copy SQLSERVER connector jar to each components dir
+	if ((Test-Path ENV:RANGER) -and ($ENV:RANGER -ieq "yes") -and (($ENV:RANGER_DB_FLAVOR -eq "MSSQL") -or ($ENV:RANGER_AUDIT_DB_FLAVOR -eq "MSSQL")))
+	{
+		$SQLSeverConnJar = @(gci -Filter sqljdbc*.jar -Path $hdpLayoutLocation)[0]
+
+		Write-Log "Copying $SQLSeverConnJar.FullName to $ENV:HADOOP_HOME\share\hadoop\common\lib"
+		Copy-Item $SQLSeverConnJar.FullName "$ENV:HADOOP_HOME\share\hadoop\common\lib"
+
+		Write-Log "Copying $SQLSeverConnJar.FullName to $ENV:HIVE_HOME\lib"
+		Copy-Item $SQLSeverConnJar.FullName "$ENV:HIVE_HOME\lib"
+
+		Write-Log "Copying $SQLSeverConnJar.FullName to $ENV:HBASE_HOME\lib"
+		Copy-Item $SQLSeverConnJar.FullName "$ENV:HBASE_HOME\lib"
+
+		Write-Log "Copying $SQLSeverConnJar.FullName to $ENV:KNOX_HOME\lib"
+		Copy-Item $SQLSeverConnJar.FullName "$ENV:KNOX_HOME\lib"
+
+		Write-Log "Copying $SQLSeverConnJar.FullName to $ENV:STORM_HOME\lib"
+		Copy-Item $SQLSeverConnJar.FullName "$ENV:STORM_HOME\lib"				
+	}
 }
 
 try
