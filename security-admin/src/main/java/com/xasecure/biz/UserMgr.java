@@ -1154,4 +1154,18 @@ public class UserMgr {
 		}
 		return xXPortalUser;
 	}
+
+	public VXResponse checkAuthentication() {
+		UserSessionBase session = ContextUtil.getCurrentUserSession();
+		VXResponse vXResponse = new VXResponse();
+		if (session != null && session.getLoginId()!=null) {
+			vXResponse.setStatusCode(HttpServletResponse.SC_OK);
+			vXResponse.setMsgDesc("Authentication Success");
+		}else{
+			vXResponse.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
+			vXResponse.setMsgDesc("Bad credentials");
+			throw restErrorUtil.generateRESTException(vXResponse);
+		}
+		return vXResponse;
+	}
 }

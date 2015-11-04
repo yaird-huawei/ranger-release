@@ -390,7 +390,7 @@ check_db_admin_password () {
 	if [ "${DB_FLAVOR}" == "MYSQL" ]
     then
 		log "[I] Checking ${DB_FLAVOR} $db_root_user password"
-		msg=`$SQL_COMMAND_INVOKER -u "$db_root_user" --password="$db_root_password" -h "$DB_HOST" -s -e "select version();" 2>&1`
+		msg=`$SQL_COMMAND_INVOKER -u "$db_root_user" --password="${db_root_password}" -h "$DB_HOST" -s -e "select version();" 2>&1`
 		cmdStatus=$?
     fi
 
@@ -1117,7 +1117,7 @@ create_audit_db_user(){
 			then
 				log "[E] Granting User: $AUDIT_USER Failed";
 				log "[E] $result11";
-				exit1
+				exit 1
 			elif test "${result12#*$strError}" != "$result12"
 			then
 				log "[E] Granting User: $AUDIT_USER Failed";
@@ -1363,7 +1363,7 @@ execute_java_patches(){
 				version=`echo ${className} | awk -F'_' '{ print $2 }'`
 				if [ "${version}" != "" ]
 				then
-					c=`${mysqlexec} -B --skip-column-names -e "select count(id) from x_db_version_h where version = '${version}' and active = 'Y'"`
+					c=`${SQL_COMMAND_INVOKER} -u ${db_root_user} --password="${db_root_password}" -h ${DB_HOST} ${db_name} -B --skip-column-names -e "select count(id) from x_db_version_h where version = '${version}' and active = 'Y'"`
 					check_ret_status $? "DBVerionCheck - ${version} Failed."
 					if [ ${c} -eq 0 ]
 					then
@@ -1373,7 +1373,8 @@ execute_java_patches(){
 						touch ${tempFile}
 						echo >> ${tempFile}
 						echo "insert into x_db_version_h (version, inst_at, inst_by, updated_at, updated_by) values ( '${version}', now(), user(), now(), user()) ;" >> ${tempFile}
-						${mysqlexec} < ${tempFile}
+						#${mysqlexec} < ${tempFile}
+						`${SQL_COMMAND_INVOKER} -u ${db_root_user} --password="${db_root_password}" -h ${DB_HOST} ${db_name} < ${tempFile}`
 						check_ret_status $? "Update patch - ${javaPatch} has failed."
 						rm -f ${tempFile}
 						log "[I] patch ${javaPatch} has been applied!!";

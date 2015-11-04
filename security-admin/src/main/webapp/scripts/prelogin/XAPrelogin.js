@@ -32,18 +32,18 @@ if (!Array.indexOf) {
 
 
 function doLogin() {
+	var userName = $('#username').val().trim();
+	var passwd = $('#password').val().trim();
 	
-	if ($("#username").val() === '' || $('#password').val() === '') {
+	if (userName === '' || passwd === '') {
 		$('#errorBox').show();
 		$('#signInLoading').hide();
 		$('#signIn').removeAttr('disabled');
 		return false;
 	}
-	var userName = $('#username').val().trim();
-	var passwd = $('#password').val().trim();
 
 	var regexEmail = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-	var regexPlain = /^([a-zA-Z0-9_\.\-\+])+$/;
+	var regexPlain = /^([a-zA-Z0-9_\.\-\+ ])+$/;
 	if(!regexPlain.test(userName)){
 		if(!regexEmail.test(userName)){
 			$('#errorBox').show();
@@ -62,8 +62,8 @@ function doLogin() {
 
 	$.ajax({
 		data : {
-			j_username : userName,
-			j_password : passwd
+			j_username : $('#username').val(),
+			j_password : $('#password').val()
 		},
 		url : url,
 		type : 'POST',
