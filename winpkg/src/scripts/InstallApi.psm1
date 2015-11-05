@@ -696,7 +696,7 @@ function InstallBinaries(
             Write-Log "Creating Ranger logs folder"
             New-Item -Path "$rangerLogsDir" -type directory | Out-Null
         }
-        GiveFullPermissions "$rangerLogsDir" "Users"
+        GiveFullPermissions "$rangerLogsDir" "*S-1-5-32-545"
         Write-Log "Setting the RANGER_LOG_DIR environment variable at machine scope to `"$rangerLogDir`""
         [Environment]::SetEnvironmentVariable("RANGER_LOG_DIR", $rangerLogsDir, [EnvironmentVariableTarget]::Machine)
         $ENV:RANGER_LOG_DIR = "$rangerLogsDir"
