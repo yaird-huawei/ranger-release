@@ -22,12 +22,9 @@ package org.apache.ranger.authorization.kafka.authorizer;
 import java.util.Date;
 import javax.security.auth.Subject;
 
-import kafka.security.auth.Acl;
-import kafka.security.auth.Authorizer;
-import kafka.security.auth.KafkaPrincipal;
-import kafka.security.auth.Operation;
-import kafka.security.auth.Resource;
-import kafka.security.auth.ResourceType;
+import kafka.security.auth.*;
+import kafka.utils.READY$;
+import org.apache.kafka.common.security.auth.KafkaPrincipal;
 import kafka.server.KafkaConfig;
 import kafka.common.security.LoginManager;
 import kafka.network.RequestChannel.Session;
@@ -44,7 +41,9 @@ import org.apache.ranger.plugin.policyengine.RangerAccessResourceImpl;
 import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 import org.apache.ranger.plugin.service.RangerBasePlugin;
 
+import scala.collection.immutable.HashMap;
 import scala.collection.immutable.HashSet;
+import scala.collection.immutable.Map;
 import scala.collection.immutable.Set;
 
 public class RangerKafkaAuthorizer implements Authorizer {
@@ -70,13 +69,8 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	public RangerKafkaAuthorizer() {
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see kafka.security.auth.Authorizer#initialize(kafka.server.KafkaConfig)
-	 */
 	@Override
-	public void initialize(KafkaConfig kafkaConfig) {
+	public void configure(java.util.Map<String, ?> map) {
 
 		if (rangerPlugin == null) {
 			try {
@@ -110,7 +104,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 		}
 
 		// TODO: If resource type if consumer group, then allow it by default
-		if (resource.resourceType().equals(ResourceType.CONSUMER_GROUP)) {
+		if (resource.resourceType().equals(Group$.MODULE$)) {
 			return true;
 		}
 
@@ -152,12 +146,12 @@ public class RangerKafkaAuthorizer implements Authorizer {
 		rangerRequest.setAction(action);
 		rangerRequest.setRequestData(resource.name());
 
-		if (resource.resourceType().equals(ResourceType.TOPIC)) {
+		if (resource.resourceType().equals(Topic$.MODULE$)) {
 			rangerResource.setValue(KEY_TOPIC, resource.name());
-		} else if (resource.resourceType().equals(ResourceType.CLUSTER)) {
+		} else if (resource.resourceType().equals(Cluster$.MODULE$)) {
 			// CLUSTER should go as null
 			// rangerResource.setValue(KEY_CLUSTER, resource.name());
-		} else if (resource.resourceType().equals(ResourceType.CONSUMER_GROUP)) {
+		} else if (resource.resourceType().equals(Group$.MODULE$)) {
 			rangerResource.setValue(KEY_CONSUMER_GROUP, resource.name());
 		} else {
 			logger.fatal("Unsupported resourceType=" + resource.resourceType());
@@ -250,26 +244,32 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	 * )
 	 */
 	@Override
-	public Set<Acl> getAcls(KafkaPrincipal principal) {
-		Set<Acl> aclList = new HashSet<Acl>();
+	public Map<Resource, Set<Acl>> getAcls(KafkaPrincipal principal) {
+		Map<Resource, Set<Acl>> aclList = new HashMap<Resource, Set<Acl>>();
 		logger.error("getAcls() is not supported by Ranger for Kafka");
 		return aclList;
 	}
 
+	@Override
+	public Map<Resource, Set<Acl>> getAcls() {
+		Map<Resource, Set<Acl>> aclList = new HashMap<Resource, Set<Acl>>();
+		logger.error("getAcls() is not supported by Ranger for Kafka");
+		return aclList;
+	}
 	/**
 	 * @param operation
 	 * @return
 	 */
 	private String mapToRangerAccessType(Operation operation) {
-		if (operation.equals(Operation.READ)) {
+		if (operation.equals(Read$.MODULE$)) {
 			return ACCESS_TYPE_READ;
-		} else if (operation.equals(Operation.WRITE)) {
+		} else if (operation.equals(Write$.MODULE$)) {
 			return ACCESS_TYPE_WRITE;
-		} else if (operation.equals(Operation.ALTER)) {
+		} else if (operation.equals(Alter$.MODULE$)) {
 			return ACCESS_TYPE_CONFIGURE;
-		} else if (operation.equals(Operation.DESCRIBE)) {
+		} else if (operation.equals(Describe$.MODULE$)) {
 			return ACCESS_TYPE_DESCRIBE;
-		} else if (operation.equals(Operation.CLUSTER_ACTION)) {
+		} else if (operation.equals(ClusterAction$.MODULE$)) {
 			return ACCESS_TYPE_KAFKA_ADMIN;
 		}
 		return null;

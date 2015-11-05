@@ -86,16 +86,16 @@ public class ServiceKafkaClient {
 
 		ZkClient zkClient = new ZkClient(zookeeperConnect);
 		try {
-			Seq<String> topicList = ZkUtils.getChildrenParentMayNotExist(
-					zkClient, ZkUtils.BrokerTopicsPath());
-
-			Iterator<String> iter = topicList.iterator();
-			while (iter.hasNext()) {
-				String topic = iter.next();
-				if (ignoreTopicList == null || !ignoreTopicList.contains(topic)) {
-					list.add(topic);
-				}
-			}
+//			Seq<String> topicList = ZkUtils.getChildrenParentMayNotExist(
+//					zkClient, ZkUtils.BrokerTopicsPath());
+//
+//			Iterator<String> iter = topicList.iterator();
+//			while (iter.hasNext()) {
+//				String topic = iter.next();
+//				if (ignoreTopicList == null || !ignoreTopicList.contains(topic)) {
+//					list.add(topic);
+//				}
+//			}
 		} finally {
 			try {
 				zkClient.close();
@@ -107,7 +107,6 @@ public class ServiceKafkaClient {
 	}
 
 	/**
-	 * @param serviceName
 	 * @param context
 	 * @return
 	 */
