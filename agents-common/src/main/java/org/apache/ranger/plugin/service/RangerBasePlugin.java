@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.admin.client.RangerAdminClient;
 import org.apache.ranger.admin.client.RangerAdminRESTClient;
 import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
+import org.apache.ranger.plugin.model.RangerPolicy;
 import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.policyengine.*;
 import org.apache.ranger.plugin.policyevaluator.RangerPolicyEvaluator;
@@ -98,29 +99,42 @@ public class RangerBasePlugin {
 		policyEngineOptions.cacheAuditResults       = RangerConfiguration.getInstance().getBoolean(propertyPrefix + ".policyengine.option.cache.audit.results", true);
 		policyEngineOptions.disableContextEnrichers = RangerConfiguration.getInstance().getBoolean(propertyPrefix + ".policyengine.option.disable.context.enrichers", false);
 		policyEngineOptions.disableCustomConditions = RangerConfiguration.getInstance().getBoolean(propertyPrefix + ".policyengine.option.disable.custom.conditions", false);
+		policyEngineOptions.disableTagPolicyEvaluation = RangerConfiguration.getInstance().getBoolean(propertyPrefix + ".policyengine.option.disable.tagpolicy.evaluation", false);
 
-
-		RangerAdminClient admin = createAdminClient(propertyPrefix);
+		RangerAdminClient admin = createAdminClient(serviceName, appId, propertyPrefix);
 
 		refresher = new PolicyRefresher(this, serviceType, appId, serviceName, admin, pollingIntervalMs, cacheDir);
 		refresher.startRefresher();
 	}
 
 	public void setPolicies(ServicePolicies policies) {
-		RangerPolicyEngine policyEngine = new RangerPolicyEngineImpl(policies, policyEngineOptions);
+		RangerPolicyEngine oldPolicyEngine = this.policyEngine;
+
+		RangerPolicyEngine policyEngine = new RangerPolicyEngineImpl(appId, policies, policyEngineOptions);
 
 		this.policyEngine = policyEngine;
+
+		if (oldPolicyEngine != null && !oldPolicyEngine.preCleanup()) {
+			LOG.error("preCleanup() failed on the previous policy engine instance !!");
+		}
 	}
 
 	public void cleanup() {
+
 		PolicyRefresher refresher = this.refresher;
+
+		RangerPolicyEngine policyEngine = this.policyEngine;
 
 		this.serviceName  = null;
 		this.policyEngine = null;
 		this.refresher    = null;
 
-		if(refresher != null) {
+		if (refresher != null) {
 			refresher.stopRefresher();
+		}
+
+		if (policyEngine != null) {
+			policyEngine.cleanup();
 		}
 	}
 
@@ -226,10 +240,9 @@ public class RangerBasePlugin {
 		}
 	}
 
-
-	private RangerAdminClient createAdminClient(String propertyPrefix) {
+	public static RangerAdminClient createAdminClient(String rangerServiceName, String applicationId, String propertyPrefix) {
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> RangerAdminRESTClient.createAdminClient(" + propertyPrefix + ")");
+			LOG.debug("==> RangerAdminRESTClient.createAdminClient(" + rangerServiceName + ", " + applicationId + ", " + propertyPrefix + ")");
 		}
 
 		RangerAdminClient ret = null;
@@ -259,10 +272,10 @@ public class RangerBasePlugin {
 			ret = new RangerAdminRESTClient();
 		}
 
-		ret.init(serviceName, appId, propertyPrefix);
+		ret.init(rangerServiceName, applicationId, propertyPrefix);
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerAdminRESTClient.createAdminClient(" + propertyPrefix + "): policySourceImpl=" + policySourceImpl + ", client=" + ret);
+			LOG.debug("<== RangerAdminRESTClient.createAdminClient(" + rangerServiceName + ", " + applicationId + ", " + propertyPrefix + "): policySourceImpl=" + policySourceImpl + ", client=" + ret);
 		}
 		return ret;
 	}

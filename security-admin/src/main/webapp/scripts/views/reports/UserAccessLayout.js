@@ -208,7 +208,7 @@ define(function(require) {'use strict';
 					label	: localization.tt("lbl.policyName"),
 					editable: false,
 					sortable : false
-				},	
+				},
 				isEnabled:{
 					label:localization.tt('lbl.status'),
 					cell :"html",

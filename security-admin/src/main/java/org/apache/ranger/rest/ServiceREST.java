@@ -49,7 +49,6 @@ import org.apache.ranger.biz.RangerBizUtil;
 import org.apache.ranger.biz.ServiceDBStore;
 import org.apache.ranger.biz.ServiceMgr;
 import org.apache.ranger.biz.XUserMgr;
-import org.apache.ranger.common.AppConstants;
 import org.apache.ranger.common.GUIDUtil;
 import org.apache.ranger.common.MessageEnums;
 import org.apache.ranger.common.RESTErrorUtil;
@@ -78,12 +77,12 @@ import org.apache.ranger.plugin.policyengine.RangerPolicyEngineCache;
 import org.apache.ranger.plugin.policyengine.RangerPolicyEngineOptions;
 import org.apache.ranger.plugin.policyevaluator.RangerPolicyEvaluator;
 import org.apache.ranger.plugin.service.ResourceLookupContext;
+import org.apache.ranger.plugin.store.PList;
 import org.apache.ranger.plugin.store.EmbeddedServiceDefsUtil;
 import org.apache.ranger.plugin.util.GrantRevokeRequest;
 import org.apache.ranger.plugin.util.SearchFilter;
 import org.apache.ranger.plugin.util.ServicePolicies;
 import org.apache.ranger.security.context.RangerAPIList;
-import org.apache.ranger.security.context.RangerPreAuthSecurityHandler;
 import org.apache.ranger.service.RangerPolicyService;
 import org.apache.ranger.service.RangerServiceDefService;
 import org.apache.ranger.service.RangerServiceService;
@@ -350,16 +349,30 @@ public class ServiceREST {
 
 		RangerServiceDefList ret = null;
 
+		PList<RangerServiceDef> paginatedSvcDefs = null;
+
 		SearchFilter filter = searchUtil.getSearchFilter(request, serviceDefService.sortFields);
 
 		try {
-			ret = svcStore.getPaginatedServiceDefs(filter);
+			paginatedSvcDefs = svcStore.getPaginatedServiceDefs(filter);
 		} catch(WebApplicationException excp) {
 			throw excp;
 		} catch (Throwable excp) {
 			LOG.error("getServiceDefs() failed", excp);
 
 			throw restErrorUtil.createRESTException(excp.getMessage());
+		}
+
+		if(paginatedSvcDefs != null) {
+			ret = new RangerServiceDefList();
+
+			ret.setServiceDefs(paginatedSvcDefs.getList());
+			ret.setPageSize(paginatedSvcDefs.getPageSize());
+			ret.setResultSize(paginatedSvcDefs.getResultSize());
+			ret.setStartIndex(paginatedSvcDefs.getStartIndex());
+			ret.setTotalCount(paginatedSvcDefs.getTotalCount());
+			ret.setSortBy(paginatedSvcDefs.getSortBy());
+			ret.setSortType(paginatedSvcDefs.getSortType());
 		}
 
 		if (LOG.isDebugEnabled()) {
@@ -557,16 +570,31 @@ public class ServiceREST {
 
 		RangerServiceList ret = null;
 
+		PList<RangerService> paginatedSvcs = null;
+
 		SearchFilter filter = searchUtil.getSearchFilter(request, svcService.sortFields);
 
 		try {
-			ret = svcStore.getPaginatedServices(filter);
+			paginatedSvcs = svcStore.getPaginatedServices(filter);
 		} catch(WebApplicationException excp) {
 			throw excp;
 		} catch (Throwable excp) {
 			LOG.error("getServices() failed", excp);
 
 			throw restErrorUtil.createRESTException(excp.getMessage());
+		}
+
+		if(paginatedSvcs != null) {
+			ret = new RangerServiceList();
+
+
+			ret.setServices(paginatedSvcs.getList());
+			ret.setPageSize(paginatedSvcs.getPageSize());
+			ret.setResultSize(paginatedSvcs.getResultSize());
+			ret.setStartIndex(paginatedSvcs.getStartIndex());
+			ret.setTotalCount(paginatedSvcs.getTotalCount());
+			ret.setSortBy(paginatedSvcs.getSortBy());
+			ret.setSortType(paginatedSvcs.getSortType());
 		}
 
 		if (LOG.isDebugEnabled()) {
@@ -1091,12 +1119,26 @@ public class ServiceREST {
 
 		RangerPolicyList ret = null;
 
+		PList<RangerPolicy> paginatedPolicies = null;
+
 		SearchFilter filter = searchUtil.getSearchFilter(request, policyService.sortFields);
 
 		try {
-			ret = svcStore.getPaginatedPolicies(filter);
+			paginatedPolicies = svcStore.getPaginatedPolicies(filter);
 
-			applyAdminAccessFilter(ret);
+			if(paginatedPolicies != null) {
+				ret = new RangerPolicyList();
+
+				ret.setPolicies(paginatedPolicies.getList());
+				ret.setPageSize(paginatedPolicies.getPageSize());
+				ret.setResultSize(paginatedPolicies.getResultSize());
+				ret.setStartIndex(paginatedPolicies.getStartIndex());
+				ret.setTotalCount(paginatedPolicies.getTotalCount());
+				ret.setSortBy(paginatedPolicies.getSortBy());
+				ret.setSortType(paginatedPolicies.getSortType());
+
+				applyAdminAccessFilter(ret);
+			}
 		} catch(WebApplicationException excp) {
 			throw excp;
 		} catch (Throwable excp) {
@@ -1179,12 +1221,26 @@ public class ServiceREST {
 
 		RangerPolicyList ret = null;
 
+		PList<RangerPolicy> paginatedPolicies = null;
+
 		SearchFilter filter = searchUtil.getSearchFilter(request, policyService.sortFields);
 
 		try {
-			ret = svcStore.getPaginatedServicePolicies(serviceId, filter);
+			paginatedPolicies = svcStore.getPaginatedServicePolicies(serviceId, filter);
 
-			applyAdminAccessFilter(ret);
+			if(paginatedPolicies != null) {
+				ret = new RangerPolicyList();
+
+				ret.setPolicies(paginatedPolicies.getList());
+				ret.setPageSize(paginatedPolicies.getPageSize());
+				ret.setResultSize(paginatedPolicies.getResultSize());
+				ret.setStartIndex(paginatedPolicies.getStartIndex());
+				ret.setTotalCount(paginatedPolicies.getTotalCount());
+				ret.setSortBy(paginatedPolicies.getSortBy());
+				ret.setSortType(paginatedPolicies.getSortType());
+
+				applyAdminAccessFilter(ret);
+			}
 		} catch(WebApplicationException excp) {
 			throw excp;
 		} catch (Throwable excp) {
@@ -1199,7 +1255,7 @@ public class ServiceREST {
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceREST.getServicePolicies(" + serviceId + "): count="
-					+ ret.getListSize());
+					+ (ret == null ? 0 : ret.getListSize()));
 		}
 		return ret;
 	}
@@ -1215,12 +1271,26 @@ public class ServiceREST {
 
 		RangerPolicyList ret = null;
 
+		PList<RangerPolicy> paginatedPolicies = null;
+
 		SearchFilter filter = searchUtil.getSearchFilter(request, policyService.sortFields);
 
 		try {
-			ret = svcStore.getPaginatedServicePolicies(serviceName, filter);
+			paginatedPolicies = svcStore.getPaginatedServicePolicies(serviceName, filter);
 
-			applyAdminAccessFilter(ret);
+			if(paginatedPolicies != null) {
+				ret = new RangerPolicyList();
+
+				ret.setPolicies(paginatedPolicies.getList());
+				ret.setPageSize(paginatedPolicies.getPageSize());
+				ret.setResultSize(paginatedPolicies.getResultSize());
+				ret.setStartIndex(paginatedPolicies.getStartIndex());
+				ret.setTotalCount(paginatedPolicies.getTotalCount());
+				ret.setSortBy(paginatedPolicies.getSortBy());
+				ret.setSortType(paginatedPolicies.getSortType());
+
+				applyAdminAccessFilter(ret);
+			}
 		} catch(WebApplicationException excp) {
 			throw excp;
 		} catch (Throwable excp) {
@@ -1235,7 +1305,7 @@ public class ServiceREST {
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceREST.getServicePolicies(" + serviceName + "): count="
-					+ ret.getListSize());
+					+ (ret == null ? 0 : ret.getListSize()));
 		}
 
 		return ret;
@@ -1334,21 +1404,30 @@ public class ServiceREST {
 	private boolean compactPolicy(RangerPolicy policy) {
 		boolean ret = false;
 
-		List<RangerPolicyItem> policyItems = policy.getPolicyItems();
+		List<?>[] policyItemsList = new List<?>[] { policy.getPolicyItems(),
+													policy.getDenyPolicyItems(),
+													policy.getAllowExceptions(),
+													policy.getDenyExceptions()
+												  };
 
-		int numOfItems = policyItems.size();
+		for(List<?> policyItemsObj : policyItemsList) {
+			@SuppressWarnings("unchecked")
+			List<RangerPolicyItem> policyItems = (List<RangerPolicyItem>)policyItemsObj;
+
+			int numOfItems = policyItems.size();
 		
-		for(int i = 0; i < numOfItems; i++) {
-			RangerPolicyItem policyItem = policyItems.get(i);
+			for(int i = 0; i < numOfItems; i++) {
+				RangerPolicyItem policyItem = policyItems.get(i);
 			
-			// remove the policy item if 1) there are no users and groups OR 2) if there are no accessTypes and not a delegate-admin
-			if((CollectionUtils.isEmpty(policyItem.getUsers()) && CollectionUtils.isEmpty(policyItem.getGroups())) ||
-			   (CollectionUtils.isEmpty(policyItem.getAccesses()) && !policyItem.getDelegateAdmin())) {
-				policyItems.remove(i);
-				numOfItems--;
-				i--;
+				// remove the policy item if 1) there are no users and groups OR 2) if there are no accessTypes and not a delegate-admin
+				if((CollectionUtils.isEmpty(policyItem.getUsers()) && CollectionUtils.isEmpty(policyItem.getGroups())) ||
+				   (CollectionUtils.isEmpty(policyItem.getAccesses()) && !policyItem.getDelegateAdmin())) {
+					policyItems.remove(i);
+					numOfItems--;
+					i--;
 
-				ret = true;
+					ret = true;
+				}
 			}
 		}
 
@@ -1504,7 +1583,10 @@ public class ServiceREST {
 	@Path("/policy/{policyId}/versionList")
 	@PreAuthorize("@rangerPreAuthSecurityHandler.isAPIAccessible(\"" + RangerAPIList.GET_POLICY_VERSION_LIST + "\")")
 	public VXString getPolicyVersionList(@PathParam("policyId") Long policyId) {
-		return svcStore.getPolicyVersionList(policyId);
+
+		VXString policyVersionListStr = svcStore.getPolicyVersionList(policyId);
+
+		return policyVersionListStr;
 	}
 
 	@GET

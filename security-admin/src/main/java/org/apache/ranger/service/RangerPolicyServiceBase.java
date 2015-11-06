@@ -48,6 +48,7 @@ import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItem;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemAccess;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemCondition;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
+import org.apache.ranger.plugin.policyevaluator.RangerPolicyItemEvaluator;
 import org.apache.ranger.plugin.util.SearchFilter;
 import org.apache.ranger.view.RangerPolicyList;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +84,7 @@ public abstract class RangerPolicyServiceBase<T extends XXPolicyBase, V extends 
 				"resMap.resourceId = polRes.id and polRes.policyId = obj.id"));
 		searchFields.add(new SearchField(SearchFilter.POLICY_NAME_PARTIAL, "obj.name", DATA_TYPE.STRING,
 				SEARCH_TYPE.PARTIAL));
+		searchFields.add(new SearchField(SearchFilter.POLICY_TYPE, "obj.policyType", DATA_TYPE.INTEGER, SEARCH_TYPE.FULL));
 
 		sortFields.add(new SortField(SearchFilter.CREATE_TIME, "obj.createTime"));
 		sortFields.add(new SortField(SearchFilter.UPDATE_TIME, "obj.updateTime"));
@@ -144,16 +146,30 @@ public abstract class RangerPolicyServiceBase<T extends XXPolicyBase, V extends 
 		return retList;
 	}
 
-	public List<RangerPolicyItem> getPolicyItemListForXXPolicy(XXPolicyBase xPolicy) {
-
-		List<RangerPolicyItem> policyItems = new ArrayList<RangerPolicyItem>();
+	public void getPolicyItemListForXXPolicy(XXPolicyBase xPolicy, RangerPolicy policy) {
 		List<XXPolicyItem> xPolicyItemList = daoMgr.getXXPolicyItem().findByPolicyId(xPolicy.getId());
+
+		policy.setPolicyItems(null);
+		policy.setDenyPolicyItems(null);
+		policy.setAllowExceptions(null);
+		policy.setDenyExceptions(null);
 
 		for (XXPolicyItem xPolItem : xPolicyItemList) {
 			RangerPolicyItem policyItem = populateXXToRangerPolicyItem(xPolItem);
-			policyItems.add(policyItem);
+			int              itemType   = xPolItem.getItemType() == null ? RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW : xPolItem.getItemType();
+
+			if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW) {
+				policy.getPolicyItems().add(policyItem);
+			} else if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY) {
+				policy.getDenyPolicyItems().add(policyItem);
+			} else if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW_EXCEPTIONS) {
+				policy.getAllowExceptions().add(policyItem);
+			} else if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY_EXCEPTIONS) {
+				policy.getDenyExceptions().add(policyItem);
+			} else { // unknown itemType.. set to default type
+				policy.getPolicyItems().add(policyItem);
+			}
 		}
-		return policyItems;
 	}
 
 	public RangerPolicyItem populateXXToRangerPolicyItem(XXPolicyItem xPolItem) {
@@ -202,6 +218,8 @@ public abstract class RangerPolicyServiceBase<T extends XXPolicyBase, V extends 
 		rangerPolItem.setGroups(grpList);
 
 		rangerPolItem.setDelegateAdmin(xPolItem.getDelegateAdmin());
+		rangerPolItem.setIsEnabled(xPolItem.getIsEnabled());
+		rangerPolItem.setComments(xPolItem.getComments());
 		return rangerPolItem;
 	}
 

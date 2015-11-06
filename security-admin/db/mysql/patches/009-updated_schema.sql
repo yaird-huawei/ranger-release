@@ -52,7 +52,7 @@ CREATE TABLE `x_service` (
 `upd_by_id` bigint(20) DEFAULT NULL,
 `version` bigint(20) DEFAULT NULL,
 `type` bigint(20) DEFAULT NULL,
-`name` varchar(512) DEFAULT NULL,   
+`name` varchar(255) DEFAULT NULL,   
 `policy_version` bigint(20) DEFAULT NULL,
 `policy_update_time`datetime DEFAULT NULL,
 `description` varchar(1024) DEFAULT NULL,
@@ -66,7 +66,7 @@ KEY `x_service_up_time` (`update_time`),
 KEY `x_service_type` (`type`),  
 CONSTRAINT `x_service_FK_added_by_id` FOREIGN KEY (`added_by_id`) REFERENCES `x_portal_user` (`id`),
 CONSTRAINT `x_service_FK_upd_by_id` FOREIGN KEY (`upd_by_id`) REFERENCES `x_portal_user` (`id`),
-CONSTRAINT `x_service_FK_type` FOREIGN KEY (`type`) REFERENCES `x_service_def` (`id`)                       
+CONSTRAINT `x_service_FK_type` FOREIGN KEY (`type`) REFERENCES `x_service_def` (`id`)
 );
 
 DROP TABLE IF EXISTS `x_policy`;

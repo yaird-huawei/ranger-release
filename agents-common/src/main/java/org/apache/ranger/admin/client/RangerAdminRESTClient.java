@@ -21,18 +21,20 @@
 
 
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.AccessControlException;
 import org.apache.ranger.admin.client.datatype.RESTResponse;
-import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
-import org.apache.ranger.plugin.util.GrantRevokeRequest;
-import org.apache.ranger.plugin.util.RangerRESTClient;
-import org.apache.ranger.plugin.util.RangerRESTUtils;
-import org.apache.ranger.plugin.util.ServicePolicies;
 
+import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
+import org.apache.ranger.plugin.util.*;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.List;
 
 public class RangerAdminRESTClient implements RangerAdminClient {
 	private static final Log LOG = LogFactory.getLog(RangerAdminRESTClient.class);
@@ -46,15 +48,36 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 	public RangerAdminRESTClient() {
 	}
 
+	public static <T> GenericType<List<T>> getGenericType(final T clazz) {
+
+		ParameterizedType parameterizedGenericType = new ParameterizedType() {
+			public Type[] getActualTypeArguments() {
+				return new Type[] { clazz.getClass() };
+			}
+
+			public Type getRawType() {
+				return List.class;
+			}
+
+			public Type getOwnerType() {
+				return List.class;
+			}
+		};
+
+		return new GenericType<List<T>>(parameterizedGenericType) {};
+	}
+
 	@Override
 	public void init(String serviceName, String appId, String propertyPrefix) {
 		this.serviceName = serviceName;
 		this.pluginId    = restUtils.getPluginId(serviceName, appId);
 
-		String url               = RangerConfiguration.getInstance().get(propertyPrefix + ".policy.rest.url");
-		String sslConfigFileName = RangerConfiguration.getInstance().get(propertyPrefix + ".policy.rest.ssl.config.file");
+		String url               		= RangerConfiguration.getInstance().get(propertyPrefix + ".policy.rest.url");
+		String sslConfigFileName 		= RangerConfiguration.getInstance().get(propertyPrefix + ".policy.rest.ssl.config.file");
+		int	 restClientConnTimeOutMs	= RangerConfiguration.getInstance().getInt(propertyPrefix + ".policy.rest.client.connection.timeoutMs", 120 * 1000);
+		int	 restClientReadTimeOutMs	= RangerConfiguration.getInstance().getInt(propertyPrefix + ".policy.rest.client.read.timeoutMs", 30 * 1000);
 
-		init(url, sslConfigFileName);
+		init(url, sslConfigFileName, restClientConnTimeOutMs , restClientReadTimeOutMs);
 	}
 
 	@Override
@@ -142,12 +165,14 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 		}
 	}
 
-	private void init(String url, String sslConfigFileName) {
+	private void init(String url, String sslConfigFileName, int restClientConnTimeOutMs , int restClientReadTimeOutMs ) {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAdminRESTClient.init(" + url + ", " + sslConfigFileName + ")");
 		}
 
 		restClient = new RangerRESTClient(url, sslConfigFileName);
+		restClient.setRestClientConnTimeOutMs(restClientConnTimeOutMs);
+		restClient.setRestClientReadTimeOutMs(restClientReadTimeOutMs);
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAdminRESTClient.init(" + url + ", " + sslConfigFileName + ")");
@@ -159,4 +184,70 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 		
 		return ret;
 	}
+
+	@Override
+	public ServiceTags getServiceTagsIfUpdated(long lastKnownVersion) throws Exception {
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerAdminRESTClient.getServiceTagsIfUpdated(" + lastKnownVersion + "): ");
+		}
+
+		ServiceTags ret = null;
+
+		WebResource webResource = createWebResource(RangerRESTUtils.REST_URL_GET_SERVICE_TAGS_IF_UPDATED + serviceName)
+				.queryParam(RangerRESTUtils.LAST_KNOWN_TAG_VERSION_PARAM, Long.toString(lastKnownVersion))
+				.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
+
+		ClientResponse response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
+
+		if(response != null && response.getStatus() == 200) {
+			ret = response.getEntity(ServiceTags.class);
+		} else if(response != null && response.getStatus() == 304) {
+			// no change
+		} else {
+			RESTResponse resp = RESTResponse.fromClientResponse(response);
+			LOG.error("Error getting taggedResources. request=" + webResource.toString()
+					+ ", response=" + resp.toString() + ", serviceName=" + serviceName
+					+ ", " + "lastKnownVersion=" + lastKnownVersion);
+			throw new Exception(resp.getMessage());
+		}
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerAdminRESTClient.getServiceTagsIfUpdated(" + lastKnownVersion + "): ");
+		}
+
+		return ret;
+	}
+
+	@Override
+	public List<String> getTagTypes(String pattern) throws Exception {
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerAdminRESTClient.getTagTypes(" + pattern + "): ");
+		}
+
+		List<String> ret = null;
+		String emptyString = "";
+
+		WebResource webResource = createWebResource(RangerRESTUtils.REST_URL_LOOKUP_TAG_NAMES)
+				.queryParam(RangerRESTUtils.SERVICE_NAME_PARAM, serviceName)
+				.queryParam(RangerRESTUtils.PATTERN_PARAM, pattern);
+
+		ClientResponse response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
+
+		if(response != null && response.getStatus() == 200) {
+			ret = response.getEntity(getGenericType(emptyString));
+		} else {
+			RESTResponse resp = RESTResponse.fromClientResponse(response);
+			LOG.error("Error getting taggedResources. request=" + webResource.toString()
+					+ ", response=" + resp.toString() + ", serviceName=" + serviceName
+					+ ", " + "pattern=" + pattern);
+			throw new Exception(resp.getMessage());
+		}
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerAdminRESTClient.getTagTypes(" + pattern + "): " + ret);
+		}
+
+		return ret;
+	}
+
 }

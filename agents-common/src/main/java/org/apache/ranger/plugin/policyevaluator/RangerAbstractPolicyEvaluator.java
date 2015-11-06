@@ -21,6 +21,7 @@ package org.apache.ranger.plugin.policyevaluator;
 
 
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.plugin.model.RangerPolicy;
@@ -60,6 +61,14 @@ public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvalu
 		return serviceDef;
 	}
 
+	public boolean hasAllow() {
+		return policy != null && CollectionUtils.isNotEmpty(policy.getPolicyItems());
+	}
+
+	public boolean hasDeny() {
+		return policy != null && CollectionUtils.isNotEmpty(policy.getDenyPolicyItems());
+	}
+
 	@Override
 	public int getEvalOrder() {
 		return evalOrder;
@@ -77,10 +86,6 @@ public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvalu
 		}
 
 		int result = Integer.compare(this.getEvalOrder(), other.getEvalOrder());
-
-		if (result == 0) {
-			result = Integer.compare(getCustomConditionsCount(), other.getCustomConditionsCount());
-		}
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAbstractPolicyEvaluator.compareTo(), result:" + result);

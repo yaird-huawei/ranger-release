@@ -34,6 +34,7 @@ define(function(require) {
 	var VXGroupList			= require('collections/VXGroupList');
 	var VXUserList			= require('collections/VXUserList');
 	require('bootstrap-editable');
+	require('esprima');
     	
 	var FormInputItem = Backbone.Marionette.ItemView.extend({
 		_msvName : 'FormInputItem',
@@ -59,14 +60,14 @@ define(function(require) {
 		},
 		events : {
 			'click [data-action="delete"]'	: 'evDelete',
-			'click td'						: 'evClickTD',
+			'click [data-js="delegatedAdmin"]'	: 'evClickTD',
 			'change [data-js="selectGroups"]': 'evSelectGroup',
 			'change [data-js="selectUsers"]': 'evSelectUser',
 			'change input[class="policy-conditions"]'	: 'policyCondtionChange'
 		},
 
 		initialize : function(options) {
-			_.extend(this, _.pick(options, 'groupList','policyType','accessTypes','policyConditions','userList'));
+			_.extend(this, _.pick(options, 'groupList','accessTypes','policyConditions','userList','rangerServiceDefModel'));
 			this.setupPermissionsAndConditions();
 			
 		},
@@ -82,8 +83,13 @@ define(function(require) {
 			this.dropDownChange(this.ui.selectGroups);
 			this.dropDownChange(this.ui.selectUsers);
 			//render permissions and policy conditions
-			this.renderPerms();
+			if(this.rangerServiceDefModel.get('name') == XAEnums.ServiceType.SERVICE_TAG.label){
+				this.renderPermsForTagBasedPolicies()
+			}else{
+				this.renderPerms();
+			}
 			this.renderPolicyCondtion();
+			//this.initializePlugins();
 		},
 		setupFormForEditMode : function() {
 			this.accessItems = _.map(this.accessTypes, function(perm){ 
@@ -291,6 +297,89 @@ define(function(require) {
 			});
 			
 		},
+		renderPermsForTagBasedPolicies :function(){
+			var that = this;
+			this.ui.addPerms.attr('data-type','tagchecklist')
+			this.ui.addPerms.attr('title','Components Permissions')
+			this.ui.delegatedAdmin.parent('td').hide();
+			this.perms =  _.map(this.accessTypes,function(m){return {text:m.label, value:m.name};});
+//			this.perms.push({'value' : -1, 'text' : 'Select/Deselect All'});
+			//create x-editable for permissions
+			this.ui.addPerms.editable({
+			    emptytext : 'Add Permissions',
+				source: this.perms,
+				value : this.permsIds,
+				placement : 'top',
+				showbuttons : 'bottom',
+				display: function(values,srcData) {
+					if(_.isNull(values) || _.isEmpty(values)){
+						$(this).empty();
+						that.model.unset('accesses');
+						that.ui.addPermissionsSpan.find('i').attr('class', 'icon-plus');
+						that.ui.addPermissionsSpan.attr('title','add');
+						return;
+					}
+					if(_.contains(values,"on")){
+						values = _.without(values,"on")
+					}
+					//To remove selectall options
+					values = _.uniq(values);
+					if(values.indexOf("selectall") >= 0){
+						values.splice(values.indexOf("selectall"), 1)
+					}
+//			    	that.checkDirtyFieldForGroup(values);
+					
+					
+					var permTypeArr = [];
+					var valArr = _.map(values, function(id){
+						if(!_.isUndefined(id)){
+							var obj = _.findWhere(srcData,{'value' : id});
+							permTypeArr.push({permType : obj.value});
+							return "<span class='label label-info'>" + id.substr(0,id.indexOf(":")).toUpperCase() + "</span>";
+						}
+					});
+					var perms = []
+					if(that.model.has('accesses')){
+							perms = that.model.get('accesses');
+					}
+					
+					var items=[];
+					_.each(that.accessItems, function(item){ 
+						if($.inArray( item.type, values) >= 0){
+							item.isAllowed = true;
+							items.push(item) ;
+						}
+					},this);
+					// Save form data to model
+					that.model.set('accesses', items);
+					$(this).html(_.uniq(valArr).join(" "));
+					that.ui.addPermissionsSpan.find('i').attr('class', 'icon-pencil');
+					that.ui.addPermissionsSpan.attr('title','edit');
+				},
+			}).on('hide',function(e){
+					$(e.currentTarget).parent().find('.tag-fixed-popover-wrapper').remove()
+			}).on('click', function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+				that.clickOnPermissions(that);
+				 //Sticky popup
+				var pop = $(this).parent('td').find('.popover')
+				pop.wrap('<div class="tag-fixed-popover-wrapper"></div>');
+				pop.addClass('tag-fixed-popover');
+				pop.find('.arrow').removeClass('arrow')
+			});
+			that.ui.addPermissionsSpan.click(function(e) {
+				e.stopPropagation();
+				that.$('a[data-js="permissions"]').editable('toggle');
+//				that.clickOnPermissions(that);
+				
+				var pop = $(this).parent('td').find('.popover')
+				pop.wrap('<div class="tag-fixed-popover-wrapper"></div>');
+				pop.addClass('tag-fixed-popover');
+				pop.find('.arrow').removeClass('arrow')
+			});
+			
+		},
 		clickOnPermissions : function(that) {
 			var selectAll = true;
 			var checklist = that.$('.editable-checklist').find('input[type="checkbox"]')
@@ -311,15 +400,23 @@ define(function(require) {
 			var that = this;
 			
 			if(this.policyConditions.length > 0){
-				var tmpl = _.map(this.policyConditions,function(obj){ 
+				var tmpl = _.map(this.policyConditions,function(obj){
+					if(!_.isUndefined(obj.evaluatorOptions) && !_.isUndefined(obj.evaluatorOptions['ui.isMultiline']) && Boolean(obj.evaluatorOptions['ui.isMultiline'])){
+						return '<div class="editable-address margin-bottom-5"><label style="display:block !important;"><span>'+obj.label+' : </span><i title="JavaScript Condition Examples :\ncountry_code == \'USA\', time_range >= 900 && time_range <= 1800 etc." class="icon-info-sign" style="float: right;margin-top: 6px;"></i>\
+						</label><textarea name="'+obj.name+'" placeholder="Please enter condtion.."></textarea></div>'
+					}
 					return '<div class="editable-address margin-bottom-5"><label style="display:block !important;"><span>'+obj.label+' : </span></label><input type="text" name="'+obj.name+'" ></div>'
+						
 				});
+				//to show only mutiline line policy codition 
+				this.multiLinecond = _.filter(that.policyConditions, function(m){ return (!_.isUndefined(m.evaluatorOptions['ui.isMultiline']) && m.evaluatorOptions['ui.isMultiline']) });
+				this.multiLinecond = _.isArray(this.multiLinecond) ? this.multiLinecond : [this.multiLinecond];
 				//Create new bootstrap x-editable `policyConditions` dataType for policy conditions 
 				XAUtil.customXEditableForPolicyCond(tmpl.join(''));
 				//create x-editable for policy conditions
 				this.$('#policyConditions').editable({
 					emptytext : 'Add Conditions',
-					value : this.conditions, 
+					value : this.conditions,
 					display: function(value) {
 						var continue_ = false, i = 0;
 						if(!value) {
@@ -328,14 +425,26 @@ define(function(require) {
 						}
 						_.each(value, function(val, name){ if(!_.isEmpty(val)) continue_ = true; });
 						if(continue_){
+							//Generate html to show on UI
 							var html = _.map(value, function(val,name) {
 								var label = (i%2 == 0) ? 'label label-inverse' : 'label';
+								if(_.isEmpty(val)){
+									return ''; 
+								}
+								//Add label for policy condition
+								var pcond = _.findWhere(that.multiLinecond, { 'name': name})
+								if(!_.isUndefined(pcond) && !_.isUndefined(pcond['evaluatorOptions']) 
+										&& ! _.isUndefined(pcond['evaluatorOptions']["ui.isMultiline"]) 
+										&& ! _.isUndefined(pcond['evaluatorOptions']['engineName'])){
+									val = 	pcond['evaluatorOptions']['engineName'] + ' Condition'
+								}
 								i++;
-								return _.isEmpty(val) ? '' : '<span class="'+label+'">'+name+' : '+ val + '</span>';	
+								return '<span class="'+label+' white-space-normal" >'+name+' : '+ val + '</span>';
 							});
 							var cond = _.map(value, function(val, name) {
-								return {'type' : name, 'values' : !_.isArray(val) ?  val.split(',') : val};
+								return {'type' : name, 'values' : !_.isArray(val) ?  val.split(', ') : val};
 							});
+							
 							that.model.set('conditions', cond);
 							$(this).html(html);
 							that.ui.addConditionsSpan.find('i').attr('class', 'icon-pencil');
@@ -346,7 +455,31 @@ define(function(require) {
 							that.ui.addConditionsSpan.find('i').attr('class', 'icon-plus');
 							that.ui.addConditionsSpan.attr('title','add');
 						}
-					}
+					},
+					validate:function(value){
+						var error = {'flag' : false};
+						_.each(value, function(val, name){
+							var tmp = _.findWhere(that.multiLinecond, { 'name' : name});
+							if(!_.isUndefined(tmp)){
+								try {
+									var t = esprima.parse(val);
+								}catch(e){
+									if(!error.flag){
+										console.log(e.message)
+										error.flag = true;
+										error.message = e.message;
+										error.fieldName = name;
+									}
+								}
+							}
+						})
+						$('.editableform').find('.editable-error-block').remove();
+						if(error.flag){
+							$('.editableform').find('.editable-error-block').remove();
+							$('.editableform').find('[name="'+error.fieldName+'"]').parent().append('<div class="editable-error-block help-block" style="display: none;"></div>')
+							return error.message;
+						}
+				    },
 				});
 				that.ui.addConditionsSpan.click(function(e) {
 					e.stopPropagation();
@@ -358,11 +491,11 @@ define(function(require) {
 		getSelectdValues : function($select, typeGroup){
 			var vals = [],selectedVals = [];
 			var name = typeGroup ? 'group' : 'user';
-			this.collection.each(function(m){
-				if(!_.isUndefined(m.get(name+'Name')) && !_.isNull(m.get(name+'Name'))){
-					vals.push.apply(vals, m.get(name+'Name').split(','));
-				}
-			});
+//			this.collection.each(function(m){
+//				if(!_.isUndefined(m.get(name+'Name')) && !_.isNull(m.get(name+'Name'))){
+//					vals.push.apply(vals, m.get(name+'Name').split(','));
+//				}
+//			});
 			if(!_.isEmpty($select.select2('data')))
 				selectedVals = _.map($select.select2('data'),function(obj){ return obj.text});
 			vals.push.apply(vals , selectedVals);
@@ -379,10 +512,11 @@ define(function(require) {
 			XAUtil.checkDirtyFieldForToggle($el);
 			//Set Delegated Admin value 
 			if(!_.isUndefined($el.find('input').data('js'))){
-				this.model.set('delegateAdmin',$el.find('input').is(':checked'))
+				this.model.set('delegateAdmin',$el.is(':checked'));
 				return;
 			}
 		},
+
 		checkDirtyFieldForCheckBox : function(perms){
 			var permList = [];
 			if(!_.isUndefined(this.model.get('_vPermList')))
@@ -437,6 +571,7 @@ define(function(require) {
 				groupIdList = this.model.get('groupId').split(',');
 			XAUtil.checkDirtyField(groupIdList, e.val, $(e.currentTarget));
 		},
+
 	});
 
 
@@ -446,7 +581,8 @@ define(function(require) {
 		template : require('hbs!tmpl/policies/PermissionList'),
 		templateHelpers :function(){
 			return {
-				permHeaders : this.getPermHeaders()
+				permHeaders : this.getPermHeaders(),
+				headerTitle : this.headerTitle
 			};
 		},
 		getItemView : function(item){
@@ -461,23 +597,25 @@ define(function(require) {
 				'collection' 	: this.collection,
 				'groupList' 	: this.groupList,
 				'userList' 	: this.userList,
-				'policyType'	: this.policyType,
 				'accessTypes'	: this.accessTypes,
-				'policyConditions' : this.rangerServiceDefModel.get('policyConditions')
+				'policyConditions' : this.rangerServiceDefModel.get('policyConditions'),
+				'rangerServiceDefModel' : this.rangerServiceDefModel
 			};
 		},
 		events : {
 			'click [data-action="addGroup"]' : 'addNew'
 		},
 		initialize : function(options) {
-			_.extend(this, _.pick(options, 'groupList','policyType','accessTypes','rangerServiceDefModel','userList'));
+			_.extend(this, _.pick(options, 'groupList','accessTypes','rangerServiceDefModel','userList', 'headerTitle'));
 			this.listenTo(this.groupList, 'sync', this.render, this);
 			if(this.collection.length == 0)
 				this.collection.add(new Backbone.Model());
 		},
 		onRender : function(){
 //			this.toggleAddButton();
+			//this.initializePlugins();
 		},
+
 		addNew : function(){
 			var that =this;
 //			if(this.groupList.length > this.collection.length && (this.userList.length > this.collection.length)){
@@ -504,8 +642,12 @@ define(function(require) {
 		},
 		getPermHeaders : function(){
 			var permList = [];
-			permList.unshift(localization.tt('lbl.delegatedAdmin'));
-			permList.unshift(localization.tt('lbl.permissions'));
+			if(this.rangerServiceDefModel.get('name') != XAEnums.ServiceType.SERVICE_TAG.label){
+				permList.unshift(localization.tt('lbl.delegatedAdmin'));
+				permList.unshift(localization.tt('lbl.permissions'));
+			}else{
+				permList.unshift(localization.tt('lbl.componentPermissions'));
+			}
 			if(!_.isEmpty(this.rangerServiceDefModel.get('policyConditions'))){
 				permList.unshift(localization.tt('h.policyCondition'));
 			}

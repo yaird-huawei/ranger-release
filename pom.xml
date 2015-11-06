@@ -14,8 +14,7 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>org.apache</groupId>
@@ -92,10 +91,20 @@
   <module>security-admin</module>
   <module>plugin-solr</module>
   <module>ugsync</module>
+  <module>ugsync/ldapconfigchecktool/ldapconfigcheck</module>
   <module>unixauthclient</module>
   <module>unixauthservice</module>
   <module>ranger-util</module>
   <module>plugin-kms</module>
+  <module>tagsync</module>
+  <module>ranger-hdfs-plugin-shim</module>
+  <module>ranger-plugin-classloader</module>
+  <module>ranger-hive-plugin-shim</module>
+  <module>ranger-hbase-plugin-shim</module>
+  <module>ranger-knox-plugin-shim</module>
+  <module>ranger-yarn-plugin-shim</module>
+  <module>ranger-storm-plugin-shim</module>
+  <module>ranger-examples</module>
   </modules>
   <properties>
         <javac.source.version>1.7</javac.source.version>
@@ -150,7 +159,7 @@
 		<jersey-client.version>2.6</jersey-client.version>
 		<junit.version>4.11</junit.version>
 		<kafka.version>0.8.2.0</kafka.version>
-		<!-- <kafka.version>0.8.2.2.3.0.0-2208</kafka.version> -->
+		<!-- <kafka.version>0.8.2.2.3.2.0-2950</kafka.version> -->
 		<mockito.version>1.8.4</mockito.version>
 		<hamcrest-version>1.3</hamcrest-version>
 		<knox.gateway.version>0.6.0</knox.gateway.version>
@@ -204,6 +213,7 @@
 		<jaxb-api.version>2.2.2</jaxb-api.version>
 		<jackson.version>1.9.13</jackson.version>
 		<sun-jersey-bundle.version>1.19</sun-jersey-bundle.version>
+		<atlas.version>0.5.0.2.3.1.1-19</atlas.version>
 		<distMgmtStagingId>apache.staging.https</distMgmtStagingId>
     	<distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
     	<distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
@@ -287,6 +297,13 @@
                 <enabled>false</enabled>
             </snapshots>
           </repository>
+    <repository>
+      <id>repo</id>
+      <url>file://${basedir}/local-repo</url>
+      <snapshots>
+         <enabled>true</enabled>
+      </snapshots>
+  </repository>
   </repositories>
 	<dependencyManagement>
 		<dependencies>
@@ -295,6 +312,12 @@
 				<artifactId>junit</artifactId>
 				<version>${junit.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+			  <groupId>mysql</groupId>
+			  <artifactId>mysql-connector-java</artifactId>
+			  <version>${mysql-connector-java.version}</version>
+			  <scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
@@ -330,7 +353,7 @@
 				<artifactId>gson</artifactId>
 				<version>${gson.version}</version>
 			</dependency>
-		</dependencies>
+		  </dependencies>
 	</dependencyManagement>
   <build>
   	<pluginManagement>
@@ -415,6 +438,7 @@
 	         <descriptor>src/main/assembly/plugin-solr.xml</descriptor>
              <descriptor>src/main/assembly/admin-web.xml</descriptor>
              <descriptor>src/main/assembly/usersync.xml</descriptor>
+             <descriptor>src/main/assembly/tagsync.xml</descriptor>
              <descriptor>src/main/assembly/migration-util.xml</descriptor>
              <descriptor>src/main/assembly/kms.xml</descriptor>
              <descriptor>src/main/assembly/ranger-src.xml</descriptor>
@@ -518,6 +542,7 @@
           <exclude>**/patchprocess/**</exclude>
           <exclude>**/test/resources/**</exclude>
           <exclude>**/main/resources/**/*.json</exclude>
+          <exclude>**/samples/**/*.json</exclude>
           <exclude>**/.externalToolBuilders/*</exclude>
           <exclude>*.patch</exclude>
           <exclude>atlassian-ide-plugin.xml</exclude>
@@ -536,7 +561,7 @@
              <phase>process-resources</phase>
              <configuration>
                <target>
-                  <echo message="${project.version}" file="${project.build.directory}/version" />
+                  <echo message="${project.version}" file="${project.build.directory}/version"/>
                </target>
              </configuration>
              <goals>

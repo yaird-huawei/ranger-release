@@ -23,7 +23,7 @@ function getInstallProperty() {
     do
         if [ -f "${file}" ]
         then
-            propertyValue=`grep "^${propertyName}" ${file} | awk -F= '{  sub("^[ \t]*", "", $2); sub("[ \t]*$", "", $2); print $2 }'`
+            propertyValue=`grep "^${propertyName}[ \t]*=" ${file} | awk -F= '{  sub("^[ \t]*", "", $2); sub("[ \t]*$", "", $2); print $2 }'`
             if [ "${propertyValue}" != "" ]
             then
                 break
@@ -121,7 +121,36 @@ INSTALL_ARGS="${PROJ_INSTALL_DIR}/install.properties"
 COMPONENT_INSTALL_ARGS="${PROJ_INSTALL_DIR}/${COMPONENT_NAME}-install.properties"
 JAVA=$JAVA_HOME/bin/java
 
+PLUGIN_DEPENDENT_LIB_DIR=lib/"${PROJ_NAME}-${COMPONENT_NAME}-impl"
+PROJ_LIB_PLUGIN_DIR=${PROJ_INSTALL_DIR}/${PLUGIN_DEPENDENT_LIB_DIR}
+
 HCOMPONENT_INSTALL_DIR_NAME=$(getInstallProperty 'COMPONENT_INSTALL_DIR_NAME')
+
+
+CUSTOM_USER=$(getInstallProperty 'CUSTOM_USER')
+CUSTOM_USER=${CUSTOM_USER// }
+
+CUSTOM_GROUP=$(getInstallProperty 'CUSTOM_GROUP')
+CUSTOM_GROUP=${CUSTOM_GROUP// }
+
+
+
+if [ ! -z "${CUSTOM_USER}" ] && [ ! -z "${CUSTOM_GROUP}" ]
+then
+  echo "Custom user and group is available, using custom user and group."
+  CFG_OWNER_INF="${CUSTOM_USER}:${CUSTOM_GROUP}"
+elif [ ! -z "${CUSTOM_USER}" ] && [ -z "${CUSTOM_GROUP}" ]
+then
+  echo "Custom user is available, using custom user and default group."
+  CFG_OWNER_INF="${CUSTOM_USER}:${HCOMPONENT_NAME}"
+elif [ -z  "${CUSTOM_USER}" ] && [ ! -z  "${CUSTOM_GROUP}" ]
+then
+  echo "Custom group is available, using default user and custom group."
+  CFG_OWNER_INF="${HCOMPONENT_NAME}:${CUSTOM_GROUP}"
+else
+  echo "Custom user and group are not available, using default user and group."
+  CFG_OWNER_INF="${HCOMPONENT_NAME}:${HCOMPONENT_NAME}"
+fi
 
 if [ "${HCOMPONENT_INSTALL_DIR_NAME}" = "" ]
 then
@@ -153,6 +182,8 @@ elif [ "${HCOMPONENT_NAME}" = "solr" ]; then
     HCOMPONENT_LIB_DIR=${HCOMPONENT_INSTALL_DIR}/solr-webapp/webapp/WEB-INF/lib
 elif [ "${HCOMPONENT_NAME}" = "kafka" ]; then
     HCOMPONENT_LIB_DIR=${HCOMPONENT_INSTALL_DIR}/libs
+elif [ "${HCOMPONENT_NAME}" = "storm" ]; then
+    HCOMPONENT_LIB_DIR=${HCOMPONENT_INSTALL_DIR}/extlib-daemon
 fi
 
 HCOMPONENT_CONF_DIR=${HCOMPONENT_INSTALL_DIR}/conf
@@ -470,8 +501,7 @@ then
 	#if [ -d "${PROJ_LIB_DIR}" ]
 	#then
 		dt=`date '+%Y%m%d%H%M%S'`
-		dbJar=$(getInstallProperty 'SQL_CONNECTOR_JAR')
-		for f in ${PROJ_LIB_DIR}/*.jar ${dbJar}
+		for f in ${PROJ_LIB_DIR}/*.jar
 		do
 			if [ -f "${f}" ]
 			then	
@@ -487,6 +517,22 @@ then
 				fi
 			fi
 		done
+		
+		# ADD SQL CONNECTOR JAR TO PLUGIN DEPENDENCY JAR FOLDER
+		dbJar=$(getInstallProperty 'SQL_CONNECTOR_JAR')
+		if [ -f "${dbJar}" ]
+		then	
+			bn=`basename ${dbJar}`
+			if [ -f ${PROJ_LIB_PLUGIN_DIR}/${bn} ]
+			then
+			 	rm ${PROJ_LIB_PLUGIN_DIR}/${bn} 
+			fi
+			if [ ! -f ${PROJ_LIB_PLUGIN_DIR}/${bn} ]
+			then
+			    ln -s ${dbJar} ${PROJ_LIB_PLUGIN_DIR}/${bn}
+			fi
+		fi
+
 	#fi
 
 	#

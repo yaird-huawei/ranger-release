@@ -232,4 +232,8 @@ public class RangerAccessRequestImpl implements RangerAccessRequest {
 
 		return sb;
 	}
+	@Override
+	public RangerAccessRequest getReadOnlyCopy() {
+		return new RangerAccessRequestReadOnly(this);
+	}
 }

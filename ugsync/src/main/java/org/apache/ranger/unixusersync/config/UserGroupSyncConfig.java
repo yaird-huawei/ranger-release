@@ -24,7 +24,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -75,11 +77,11 @@ public class UserGroupSyncConfig  {
 	
 	private static final String UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_PARAM = "ranger.usersync.sleeptimeinmillisbetweensynccycle" ;
 	
-	private static final long UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE = 30000L ;
+	private static final long UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE = 60000L;
 
-	private static final long UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_UNIX_DEFAULT_VALUE = 300000L ;
+	private static final long UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_UNIX_DEFAULT_VALUE = 60000L;
 	
-	private static final long UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_LDAP_DEFAULT_VALUE = 21600000L ;
+	private static final long UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_LDAP_DEFAULT_VALUE = 3600000L;
 
 	private static final String UGSYNC_SOURCE_CLASS_PARAM = "ranger.usersync.source.impl.class";
 
@@ -174,6 +176,17 @@ public class UserGroupSyncConfig  {
 	private static final String SYNC_SOURCE = "ranger.usersync.sync.source";
 	private static final String LGSYNC_REFERRAL = "ranger.usersync.ldap.referral";
 	private static final String DEFAULT_LGSYNC_REFERRAL = "ignore";
+	
+	public static final String SYNC_MAPPING_USERNAME = "ranger.usersync.mapping.username.regex";
+
+    public static final String SYNC_MAPPING_GROUPNAME = "ranger.usersync.mapping.groupname.regex";
+
+    private static final String SYNC_MAPPING_USERNAME_HANDLER = "ranger.usersync.mapping.username.handler";
+    private static final String DEFAULT_SYNC_MAPPING_USERNAME_HANDLER = "org.apache.ranger.usergroupsync.RegEx";
+
+    private static final String SYNC_MAPPING_GROUPNAME_HANDLER = "ranger.usersync.mapping.groupname.handler";
+    private static final String DEFAULT_SYNC_MAPPING_GROUPNAME_HANDLER = "org.apache.ranger.usergroupsync.RegEx";
+    
 	private Properties prop = new Properties() ;
 	
 	private static volatile UserGroupSyncConfig me = null ;
@@ -365,9 +378,18 @@ public class UserGroupSyncConfig  {
 		}
 		else {
 			long ret = Long.parseLong(val) ;
-			if (ret < UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE) { 
-				LOG.info("Sleep Time Between Cycle can not be lower than [" + UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE  + "] millisec. resetting to min value.") ;
-				ret = UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE ;
+			long min_interval;
+			if (LGSYNC_SOURCE_CLASS.equals(getUserGroupSource().getClass().getName())) {
+				min_interval = UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_LDAP_DEFAULT_VALUE ;
+			}else if(UGSYNC_SOURCE_CLASS.equals(getUserGroupSource().getClass().getName())){
+				min_interval = UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_UNIX_DEFAULT_VALUE;
+			} else {
+				min_interval = UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE ;
+			}
+			if(ret < min_interval)
+			{
+				LOG.info("Sleep Time Between Cycle can not be lower than [" + min_interval  + "] millisec. resetting to min value.") ;
+				ret = min_interval;
 			}
 			return ret;
 		}
@@ -728,5 +750,43 @@ public class UserGroupSyncConfig  {
 			}
 		}
 		return referral;
+	}
+	
+	public List<String> getAllRegexPatterns(String baseProperty) throws Throwable {
+		List<String> regexPatterns = new ArrayList<String>();
+		if (prop != null) {
+			String baseRegex = prop.getProperty(baseProperty);
+			if (baseRegex == null) {
+				return regexPatterns;
+			}
+			regexPatterns.add(baseRegex);
+			int i = 1;
+			String nextRegex = prop.getProperty(baseProperty + "." + i);;
+			while (nextRegex != null) {
+				regexPatterns.add(nextRegex);
+				i++;
+				nextRegex = prop.getProperty(baseProperty + "." + i);
+			}
+
+		}
+		return regexPatterns;
+	}
+
+	public String getUserSyncMappingUserNameHandler() {
+		String val =  prop.getProperty(SYNC_MAPPING_USERNAME_HANDLER) ;
+
+		if(val == null) {
+			val = DEFAULT_SYNC_MAPPING_USERNAME_HANDLER;
+		}
+		return val;
+	}
+
+	public String getUserSyncMappingGroupNameHandler() {
+		String val =  prop.getProperty(SYNC_MAPPING_GROUPNAME_HANDLER) ;
+
+		if(val == null) {
+			val = DEFAULT_SYNC_MAPPING_GROUPNAME_HANDLER;
+		}
+		return val;
 	}
 }

@@ -61,6 +61,9 @@ define(function(require){
 		},
         
     	breadCrumbs : function(){
+    		if(this.rangerService.get('type') == XAEnums.ServiceType.SERVICE_TAG.label){
+    			return [XALinks.get('TagBasedServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService})];
+    		}
     		return [XALinks.get('ServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService})];
 //    		return [];
    		},        
@@ -316,11 +319,12 @@ define(function(require){
 		addVisualSearch : function(){
 			var that = this;
 			var resourceSearchOpt = _.map(this.rangerServiceDefModel.get('resources'), function(resource){ return XAUtil.capitaliseFirstLetter(resource.name) });
+			var PolicyStatusValue = _.map(XAEnums.ActiveStatus, function(status) { return { 'label': status.label, 'value': Boolean(status.value)}; });
 	
 			var searchOpt = ['Policy Name','Group Name','User Name','Status'];//,'Start Date','End Date','Today'];
 			searchOpt = _.union(searchOpt, resourceSearchOpt)
 			var serverAttrName  = [{text : "Policy Name", label :"policyName"},{text : "Group Name", label :"group"},
-			                       {text : "User Name", label :"user"}, {text : "Status", label :"isEnabled"}];
+			                       {text : "User Name", label :"user"}, {text : "Status", label :"isEnabled",'multiple' : true, 'optionsArr' : PolicyStatusValue}];
 			                     // {text : 'Start Date',label :'startDate'},{text : 'End Date',label :'endDate'},
 				                 //  {text : 'Today',label :'today'}];
 			var serverRsrcAttrName = _.map(resourceSearchOpt,function(opt){ 
@@ -338,6 +342,10 @@ define(function(require){
 									case 'Status':
 										callback(that.getActiveStatusNVList());
 										break;
+									case 'Policy Type':
+										callback(that.getNameOfPolicyTypeNVList());
+//										callback(XAUtil.enumToSelectLabelValuePairs(XAEnums.PolicyType));
+										break;		
 								/*	case 'Audit Status':
 										callback(XAUtil.enumToSelectLabelValuePairs(XAEnums.AuthType));
 										break;	
@@ -363,7 +371,10 @@ define(function(require){
 				if(obj.label != XAEnums.ActiveStatus.STATUS_DELETED.label)
 					return obj;
 			});
-			return _.map(activeStatusList, function(status) { return { 'label': status.label, 'value': status.label.toLowerCase()}; })
+			return _.map(activeStatusList, function(status) { return { 'label': status.label, 'value': status.label}; })
+		},
+		getNameOfPolicyTypeNVList : function() {
+			return _.map(XAEnums.PolicyType, function(type) { return { 'label': type.label, 'value': type.label};});
 		},
 		/** on close */
 		onClose: function(){

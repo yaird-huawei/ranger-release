@@ -466,14 +466,19 @@ define(function(require) {
 			return '--';
 	};
 	XAUtils.showGroupsOrUsersForPolicy = function(rawValue, model, showGroups) {
-		var showMoreLess = false, groupArr = [];
+		var showMoreLess = false, groupArr = [], items = [];
+		var itemList = ['policyItems','allowExceptions','denyPolicyItems','denyExceptions']
 		var type = _.isUndefined(showGroups) ? 'groups' : 'users';
-		if (!_.isArray(rawValue) && !_.isUndefined(rawValue[type]))
-			return '--';
-		_.each(rawValue, function(perm) {
+		_.each(itemList, function(item){
+		    if(!_.isUndefined(model.get(item)) && !_.isEmpty(model.get(item))) {
+		    	items =_.union(items,  model.get(item))
+		    }
+		});
+		_.each(items, function(perm) {
 			groupArr = _.union(groupArr, perm[type])
 		});
-
+		if (_.isEmpty(items))
+			return '--';
 		var newGroupArr = _.map(groupArr, function(name, i) {
 			if (i >= 4) {
 				return '<span class="label label-info float-left-margin-2" policy-' + type
@@ -575,7 +580,7 @@ define(function(require) {
 			$(this).select2('open');
 		}
 	};
-	XAUtils.makeCollForGroupPermission = function(model) {
+	XAUtils.makeCollForGroupPermission = function(model, listName) {
 		var XAEnums = require('utils/XAEnums');
 		var formInputColl = new Backbone.Collection();
 		// permMapList = [ {id: 18, groupId : 1, permType :5}, {id: 18, groupId
@@ -584,8 +589,8 @@ define(function(require) {
 		// permType :4} ]
 		// [2] => [ {id: 18, groupId : 2, permType :5} ]
 		if (!model.isNew()) {
-			if (!_.isUndefined(model.get('policyItems'))) {
-				var policyItems = model.get('policyItems');
+			if (!_.isUndefined(model.get(listName))) {
+				var policyItems = model.get(listName);
 				// var groupPolicyItems =
 				// _.filter(policyItems,function(m){if(!_.isEmpty(m.groups))
 				// return m;});
@@ -611,7 +616,7 @@ define(function(require) {
 		return formInputColl;
 	};
 
-	XAUtils.makeCollForUserPermission = function(model) {
+	XAUtils.makeCollForUserPermission = function(model, listName) {
 		var XAEnums = require('utils/XAEnums');
 		var coll = new Backbone.Collection();
 		// permMapList = [ {id: 18, groupId : 1, permType :5}, {id: 18, groupId
@@ -620,8 +625,8 @@ define(function(require) {
 		// permType :4} ]
 		// [2] => [ {id: 18, groupId : 2, permType :5} ]
 		if (!model.isNew()) {
-			if (!_.isUndefined(model.get('policyItems'))) {
-				var policyItems = model.get('policyItems');
+			if (!_.isUndefined(model.get(listName))) {
+				var policyItems = model.get(listName);
 				var userPolicyItems = _.filter(policyItems, function(m) {
 					if (!_.isEmpty(m.users))
 						return m;
@@ -944,7 +949,7 @@ define(function(require) {
 
 		$.extend(PolicyConditions.prototype, {
 			render : function() {
-				this.$input = this.$tpl.find('input');
+				this.$input = this.$tpl.find('input, textarea');
 				var pluginOpts = {
 					tags : true,
 					width : '220px',
@@ -952,7 +957,12 @@ define(function(require) {
 					minimumInputLength : 1,
 					tokenSeparators : [ ",", ";" ],
 				}
-				this.$input.select2(pluginOpts);
+				_.each(this.$input, function(elem){
+					if($(elem).is('input')){
+						$(elem).select2(pluginOpts);
+				    }	
+				})
+						
 			},
 
 			value2str : function(value) {
@@ -967,8 +977,14 @@ define(function(require) {
 
 			value2input : function(value) {
 				_.each(value, function(val, name) {
-					this.$input.filter('[name=' + name + ']').select2('val',
-							value[name]);
+					var elem = this.$input.filter('[name=' + name + ']');
+					if((elem).is('input')){
+						elem.select2('val',
+								value[name]);
+					}else{
+						elem.val(value[name])
+					}
+					
 				}, this);
 			},
 
@@ -976,8 +992,11 @@ define(function(require) {
 				var obj = {};
 				_.each(this.$input, function(input) {
 					var name = input.name;
-					var val = this.$input.filter('[name="' + name + '"]')
-							.select2('val');
+					if($(input).is('input')){
+						var val = this.$input.filter('[name="' + name + '"]').select2('val');
+					}else{
+						var val = $(input).val();
+					}
 					obj[name] = val;
 				}, this);
 
@@ -1010,29 +1029,23 @@ define(function(require) {
 	};
 	XAUtils.filterAllowedActions = function(controller) {
 		var SessionMgr = require('mgrs/SessionMgr');
-		if (!SessionMgr.isSystemAdmin()) {
-
 			var XAGlobals = require('utils/XAGlobals');
 			var that = this;
 			var vXPortalUser = SessionMgr.getUserProfile();
 			if(_.isEmpty(vXPortalUser.attributes)){
 				return controller;
 			}
-			var denyControllerActions = [];
-			var denyModulesObj = [];
+			var denyControllerActions = [], denyModulesObj = [];
 			var userModuleNames = _.pluck(vXPortalUser.get('userPermList'),'moduleName');
+			//TODO Temporary fix for tag based policies : need to come from server
+			userModuleNames.push('Tag Based Policies')
+			//add by default permission module to admin user
+			if (SessionMgr.isSystemAdmin()){
+				userModuleNames.push('Permissions')
+			}
 			var groupModuleNames = _.pluck(vXPortalUser.get('groupPermissions'), 'moduleName');
 			var moduleNames = _.union(userModuleNames, groupModuleNames);
-			//TODO
-			/*if($.inArray('Policy Manager',moduleNames) >= 0){
-				moduleNames.push('Resource Based Policies')
-			}
-			if($.inArray('Analytics',moduleNames) >= 0){
-				moduleNames.push('Reports')
-			}
-			if($.inArray('KMS',moduleNames) >= 0){
-				moduleNames.push('Key Manager')
-			}*/
+			
 			_.each(XAGlobals.ListOfModuleActions,function(val,key){
 				if(!_.isArray(val)){
 					_.each(val,function(val1,key1){
@@ -1062,8 +1075,6 @@ define(function(require) {
 					}
 				});
 			}
-
-		}
 		return controller;
 	};
 	XAUtils.getRangerServiceByName = function(name) {
@@ -1116,6 +1127,16 @@ define(function(require) {
 			var erroMsg = erroCodeMsg +"<br/>"+XAUtils.capitaliseFirstLetter(reason);
 			return XAUtils.notifyError('Error', erroMsg);
 		});
+	};
+	XAUtils.isSinglevValueInput = function(obj){
+		//single value support
+		var singleValue = false;
+		if(!_.isUndefined(obj.uiHint) && !_.isEmpty(obj.uiHint)){
+			var UIHint = JSON.parse(obj.uiHint);
+			if(!_.isUndefined(UIHint.singleValue))
+				singleValue = UIHint.singleValue;
+		}
+		return singleValue;
 	};
 	
 	return XAUtils;

@@ -33,6 +33,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.SequenceGenerator;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.audit.model.EnumRepositoryType;
@@ -83,6 +84,7 @@ public class AuthzAuditEventDbObj implements Serializable {
 	private String clientType;
 	private String clientIP;
 	private String requestData;
+	private String tags;
 
 	public static void init(Properties props)
 	{
@@ -163,6 +165,7 @@ public class AuthzAuditEventDbObj implements Serializable {
 		this.clientType     = event.getClientType();
 		this.clientIP       = event.getClientIP();
 		this.requestData    = event.getRequestData();
+		this.tags           = StringUtils.join(event.getTags(), ", ");
 	}
 
 	@Id
@@ -330,6 +333,16 @@ public class AuthzAuditEventDbObj implements Serializable {
 	public void setRequestData(String requestData) {
 		this.requestData = requestData;
 	}
+
+	@Column(name = "tags")
+	public String getTags() {
+		return this.tags;
+	}
+
+	public void setTags(String tags) {
+		this.tags = tags;
+	}
+
 	static final String TruncationMarker = "...";
 	static final int TruncationMarkerLength = TruncationMarker.length();
 
@@ -371,5 +384,4 @@ public class AuthzAuditEventDbObj implements Serializable {
 		}
 		return result;
 	}
-
 }

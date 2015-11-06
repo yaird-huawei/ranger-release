@@ -177,6 +177,11 @@
 		</query>
 	</named-query>
 
+	<named-query name="XXGroupUser.findByGroupId">
+		<query>SELECT obj FROM XXGroupUser obj WHERE obj.parentGroupId=:groupId
+		</query>
+	</named-query>
+
 	<named-query name="XXTrxLog.findByTrxId">
 		<query>SELECT obj FROM XXTrxLog obj WHERE obj.transactionId = :transactionId
 		</query>
@@ -185,6 +190,11 @@
 	<named-query name="XXUser.findByPolicyItemId">
 		<query>select obj.name from XXUser obj, XXPolicyItemUserPerm polItemUser 
 		where polItemUser.policyItemId = :polItemId and polItemUser.userId = obj.id </query>
+	</named-query>
+
+	<named-query name="XXUser.findByPortalUserId">
+		<query>select obj from XXUser obj, XXPortalUser portalUser where portalUser.id = :portalUserId and 
+		obj.name = portalUser.loginId</query>
 	</named-query>
 
 	<named-query name="XXGroup.findByPolicyItemId">
@@ -361,6 +371,10 @@
 		<query>select obj from XXService obj where obj.type = :serviceDefId</query>
 	</named-query>
 
+	<named-query name="XXService.findByTagServiceId">
+		<query>select obj from XXService obj where obj.tagService = :tagServiceId</query>
+	</named-query>
+
 	<!-- XXPolicyResource -->
 	<named-query name="XXPolicyResource.findByResDefIdAndPolicyId">
 		<query>select obj from XXPolicyResource obj where 
@@ -484,16 +498,15 @@
 		 </query>
 	</named-query>
 
-	<named-query name="XXUserPermission.findByModuleIdAndUserId">
+	<named-query name="XXUserPermission.findByModuleIdAndPortalUserId">
 		<query>SELECT XXUserPermObj
 				FROM XXUserPermission XXUserPermObj
 				WHERE XXUserPermObj.moduleId = :moduleId AND XXUserPermObj.userId =:userId
 		</query>
 	</named-query>
-	
-	<named-query name="XXModuleDef.findModuleNamesWithIds">
-		<query>SELECT XXMObj
-				FROM XXModuleDef XXMObj
+
+	<named-query name="XXGroupPermission.findByModuleIdAndGroupId">
+		<query>SELECT obj FROM XXGroupPermission obj WHERE obj.moduleId = :moduleId AND obj.groupId =:groupId
 		</query>
 	</named-query>
 	
@@ -547,4 +560,149 @@
 			   xpu.id=:userId and gmp.isAllowed=:isAllowed
 		</query>
 	</named-query>
+	
+	<!-- Start ==> JPA Queries for Tag Based Policies  -->
+	
+	<named-query name="XXServiceResourceElement.findByResourceId">
+		<query>select obj from XXServiceResourceElement obj where obj.resourceId = :resourceId</query>
+	</named-query>
+	
+	<named-query name="XXServiceResourceElementValue.findByResElementId">
+		<query>select obj from XXServiceResourceElementValue obj where obj.resElementId = :resElementId</query>
+	</named-query>
+
+	<named-query name="XXServiceResourceElementValue.findValuesByResElementId">
+		<query>select obj.value from XXServiceResourceElementValue obj where obj.resElementId = :resElementId</query>
+	</named-query>
+
+	<named-query name="XXTagResourceMap.findByGuid">
+		<query>select obj from XXTagResourceMap obj where obj.guid = :guid</query>
+	</named-query>
+
+	<named-query name="XXTagResourceMap.findByResourceId">
+		<query>select obj from XXTagResourceMap obj where obj.resourceId = :resourceId</query>
+	</named-query>
+
+	<named-query name="XXTagResourceMap.findByResourceGuid">
+		<query>select obj from XXTagResourceMap obj, XXServiceResource res where res.guid = :resourceGuid and obj.resourceId = res.id</query>
+	</named-query>
+	
+	<named-query name="XXTagResourceMap.findByTagId">
+		<query>select obj from XXTagResourceMap obj where obj.tagId = :tagId</query>
+	</named-query>
+
+	<named-query name="XXTagResourceMap.findByTagGuid">
+		<query>select obj from XXTagResourceMap obj, XXTag tag where tag.guid = :tagGuid and obj.tagId = tag.id</query>
+	</named-query>
+
+	<named-query name="XXTagResourceMap.findByTagAndResourceId">
+		<query>select obj from XXTagResourceMap obj where obj.resourceId = :resourceId and obj.tagId = :tagId</query>
+	</named-query>
+
+	<named-query name="XXTagResourceMap.findByTagAndResourceGuid">
+		<query>select obj from XXTagResourceMap obj, XXTag tag, XXServiceResource res where tag.guid = :tagGuid and res.guid = :resourceGuid and obj.tagId = tag.id and obj.resourceId = res.id</query>
+	</named-query>
+
+	<named-query name="XXTagResourceMap.findByServiceId">
+		<query>select obj from XXTagResourceMap obj, XXServiceResource res
+				where obj.resourceId = res.id and res.serviceId = :serviceId
+				order by obj.resourceId</query>
+	</named-query>
+
+	<named-query name="XXTagResourceMap.getTagIdsForResourceId">
+		<query>select obj.tagId from XXTagResourceMap obj
+				where obj.resourceId = :resourceId
+		</query>
+	</named-query>
+	
+	<named-query name="XXTagDef.findByGuid">
+		<query>select obj from XXTagDef obj where obj.guid = :guid</query>
+	</named-query>
+	
+	<named-query name="XXTagDef.findByName">
+		<query>select obj from XXTagDef obj where obj.name = :name</query>
+	</named-query>
+	
+	<named-query name="XXTagDef.findByServiceId">
+		<query>select obj from XXTagDef obj where obj.id in
+				(select tag.type from XXTag tag, XXTagResourceMap tagRes, XXServiceResource resource where tag.id = tagRes.tagId and tagRes.resourceId = resource.id and resource.serviceId = :serviceId)</query>
+	</named-query>
+
+	<named-query name="XXTagDef.getAllNames">
+		<query>select obj.name from XXTagDef obj</query>
+	</named-query>
+
+	<named-query name="XXTagDef.updateTagVersionInService">
+		<query>update XXService obj set obj.tagVersion = obj.tagVersion + 1, obj.tagUpdateTime = :tagUpdateTime
+				where obj.id in (select res.serviceId from XXServiceResource res, XXTagResourceMap tagRes, XXTag tag
+								  where res.id = tagRes.resourceId and tagRes.tagId = tag.id and tag.type = :tagDefId)</query>
+	</named-query>	
+
+	<named-query name="XXTagAttributeDef.findByTagDefId">
+		<query>select obj from XXTagAttributeDef obj where obj.tagDefId = :tagDefId</query>
+	</named-query>
+
+	
+	<named-query name="XXTag.findByGuid">
+		<query>select obj from XXTag obj where obj.guid = :guid</query>
+	</named-query>
+	
+	<named-query name="XXTag.findByName">
+		<query>select obj from XXTag obj, XXTagDef tagDef where obj.type = tagDef.id and tagDef.name = :name</query>
+	</named-query>
+
+	<named-query name="XXTag.findByResourceId">
+		<query>select obj from XXTag obj, XXTagResourceMap tagResMap where tagResMap.resourceId = :resourceId and obj.id = tagResMap.tagId</query>
+	</named-query>
+
+	<named-query name="XXTag.findByResourceGuid">
+		<query>select obj from XXTag obj, XXTagResourceMap tagRes, XXServiceResource res where res.guid = :resourceGuid and res.id = tagRes.resourceId and tagRes.tagId = obj.id</query>
+	</named-query>
+
+	<named-query name="XXTag.findTagTypesByServiceId">
+		<query>select obj.name from XXTagDef obj, XXTag tag, XXServiceResource resource, XXTagResourceMap tagRes
+			    where obj.id = tag.type and tag.id = tagRes.tagId and tagRes.resourceId = resource.id and resource.serviceId = :serviceId</query>
+	</named-query>	
+	
+	<named-query name="XXTag.findByServiceId">
+		<query>select obj from XXTag obj where obj.id in
+			(select tagRes.tagId from XXTagResourceMap tagRes, XXServiceResource resource where tagRes.resourceId = resource.id and resource.serviceId = :serviceId)</query>
+	</named-query>
+
+	<named-query name="XXTag.updateTagVersionInService">
+		<query>update XXService obj set obj.tagVersion = obj.tagVersion + 1, obj.tagUpdateTime = :tagUpdateTime
+				where obj.id in (select res.serviceId from XXServiceResource res, XXTagResourceMap tagRes, XXTag tag
+								  where res.id = tagRes.resourceId and tagRes.tagId = tag.id and tag.id = :tagId)</query>
+	</named-query>	
+	
+	<named-query name="XXTagAttribute.findByTagId">
+		<query>select obj from XXTagAttribute obj where obj.tagId = :tagId</query>
+	</named-query>
+
+
+	<named-query name="XXServiceResource.findByGuid">
+		<query>select obj from XXServiceResource obj where obj.guid = :guid</query>
+	</named-query>
+	
+	<named-query name="XXServiceResource.findByServiceId">
+		<query>select obj from XXServiceResource obj where obj.serviceId = :serviceId</query>
+	</named-query>
+	
+	<named-query name="XXServiceResource.findTaggedResourcesInServiceId">
+		<query>select obj from XXServiceResource obj where obj.serviceId = :serviceId and obj.id in
+					(select tagResMap.resourceId from XXTagResourceMap tagResMap)</query>
+	</named-query>
+
+	<named-query name="XXServiceResource.findByResourceSignature">
+		<query>select obj from XXServiceResource obj where obj.resourceSignature = :resourceSignature</query>
+	</named-query>
+
+	<named-query name="XXServiceResource.updateTagVersionInService">
+		<query>update XXService obj set obj.tagVersion = obj.tagVersion + 1, obj.tagUpdateTime = :tagUpdateTime
+				where obj.id in (select res.serviceId from XXServiceResource res, XXTagResourceMap tagRes
+								  where res.id = :resourceId and res.id = tagRes.resourceId)</query>
+	</named-query>	
+
+	<!-- End <== JPA Queries for Tag Based Policies  -->
+	
 </entity-mappings>

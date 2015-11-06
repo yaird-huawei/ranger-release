@@ -34,7 +34,6 @@ import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemAccess;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemCondition;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerPolicyConditionDef;
 import org.apache.ranger.plugin.policyengine.RangerAccessRequest;
-import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 import org.apache.ranger.plugin.policyengine.RangerPolicyEngine;
 import org.apache.ranger.plugin.policyengine.RangerPolicyEngineOptions;
 
@@ -43,8 +42,8 @@ public class RangerDefaultPolicyItemEvaluator extends RangerAbstractPolicyItemEv
 	private static final Log LOG = LogFactory.getLog(RangerDefaultPolicyItemEvaluator.class);
 
 
-	public RangerDefaultPolicyItemEvaluator(RangerServiceDef serviceDef, RangerPolicy policy, RangerPolicyItem policyItem, RangerPolicyEngineOptions options) {
-		super(serviceDef, policy, policyItem, options);
+	public RangerDefaultPolicyItemEvaluator(RangerServiceDef serviceDef, RangerPolicy policy, RangerPolicyItem policyItem, int policyItemType, RangerPolicyEngineOptions options) {
+		super(serviceDef, policy, policyItem, policyItemType, options);
 	}
 
 	public void init() {
@@ -67,6 +66,7 @@ public class RangerDefaultPolicyItemEvaluator extends RangerAbstractPolicyItemEv
 				RangerConditionEvaluator conditionEvaluator = newConditionEvaluator(conditionDef.getEvaluator());
 
 				if (conditionEvaluator != null) {
+					conditionEvaluator.setServiceDef(serviceDef);
 					conditionEvaluator.setConditionDef(conditionDef);
 					conditionEvaluator.setPolicyItemCondition(condition);
 					conditionEvaluator.init();
@@ -84,41 +84,41 @@ public class RangerDefaultPolicyItemEvaluator extends RangerAbstractPolicyItemEv
 	}
 
 	@Override
-	public void evaluate(RangerAccessRequest request, RangerAccessResult result) {
+	public boolean isMatch(RangerAccessRequest request) {
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> RangerDefaultPolicyItemEvaluator.evaluate(" + request + ", " + result + ")");
+			LOG.debug("==> RangerDefaultPolicyItemEvaluator.isMatch(" + request + ")");
 		}
+
+		boolean ret = false;
 
 		if(policyItem != null) {
 			if(matchUserGroup(request.getUser(), request.getUserGroups())) {
 				if (request.isAccessTypeDelegatedAdmin()) { // used only in grant/revoke scenario
 					if (policyItem.getDelegateAdmin()) {
-						result.setIsAllowed(true);
-						result.setPolicyId(policyId);
+						ret = true;
 					}
 				} else if (CollectionUtils.isNotEmpty(policyItem.getAccesses())) {
-					boolean accessAllowed = false;
+					boolean isAccessTypeMatched = false;
 
 					if (request.isAccessTypeAny()) {
 						for (RangerPolicy.RangerPolicyItemAccess access : policyItem.getAccesses()) {
 							if (access.getIsAllowed()) {
-								accessAllowed = true;
+								isAccessTypeMatched = true;
 								break;
 							}
 						}
 					} else {
 						for (RangerPolicy.RangerPolicyItemAccess access : policyItem.getAccesses()) {
 							if (access.getIsAllowed() && StringUtils.equalsIgnoreCase(access.getType(), request.getAccessType())) {
-								accessAllowed = true;
+								isAccessTypeMatched = true;
 								break;
 							}
 						}
 					}
 
-					if(accessAllowed) {
+					if(isAccessTypeMatched) {
 						if(matchCustomConditions(request)) {
-							result.setIsAllowed(true);
-							result.setPolicyId(policyId);
+							ret = true;
 						}
 					}
 				}
@@ -126,8 +126,10 @@ public class RangerDefaultPolicyItemEvaluator extends RangerAbstractPolicyItemEv
 		}
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerDefaultPolicyItemEvaluator.evaluate(" + request + ", " + result + ")");
+			LOG.debug("<== RangerDefaultPolicyItemEvaluator.isMatch(" + request + "): " + ret);
 		}
+
+		return ret;
 	}
 
 	@Override
@@ -208,8 +210,19 @@ public class RangerDefaultPolicyItemEvaluator extends RangerAbstractPolicyItemEv
 		boolean ret = true;
 
 		if (CollectionUtils.isNotEmpty(conditionEvaluators)) {
+			if(LOG.isDebugEnabled()) {
+				LOG.debug("RangerDefaultPolicyItemEvaluator.matchCustomConditions(): conditionCount=" + conditionEvaluators.size());
+			}
 			for(RangerConditionEvaluator conditionEvaluator : conditionEvaluators) {
+				if(LOG.isDebugEnabled()) {
+					LOG.debug("evaluating condition: " + conditionEvaluator);
+				}
+
 				if(!conditionEvaluator.isMatched(request)) {
+					if(LOG.isDebugEnabled()) {
+						LOG.debug(conditionEvaluator + " returned false");
+					}
+
 					ret = false;
 
 					break;

@@ -180,7 +180,6 @@ public class TestRangerPolicyService {
 		xService.setType(1L);
 		xService.setUpdatedByUserId(Id);
 		xService.setUpdateTime(new Date());
-		xService.setVersion(1L);
 
 		return xService;
 	}
@@ -573,9 +572,9 @@ public class TestRangerPolicyService {
 		Mockito.when(xGroupDao.findByPolicyItemId(xPolicyItem.getId()))
 				.thenReturn(groupsList);
 
-		List<RangerPolicyItem> dbRangerPolicyItem = policyService
-				.getPolicyItemListForXXPolicy(policy);
-		Assert.assertNotNull(dbRangerPolicyItem);
+		RangerPolicy vPolicy = new RangerPolicy();
+		policyService.getPolicyItemListForXXPolicy(policy, vPolicy);
+		Assert.assertNotNull(vPolicy.getPolicyItems());
 
 		Mockito.verify(daoManager).getXXPolicyItemAccess();
 		Mockito.verify(daoManager).getXXAccessTypeDef();

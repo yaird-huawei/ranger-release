@@ -64,6 +64,7 @@ import org.apache.ranger.plugin.model.validation.RangerPolicyValidator;
 import org.apache.ranger.plugin.model.validation.RangerServiceDefValidator;
 import org.apache.ranger.plugin.model.validation.RangerServiceValidator;
 import org.apache.ranger.plugin.service.ResourceLookupContext;
+import org.apache.ranger.plugin.store.PList;
 import org.apache.ranger.plugin.util.GrantRevokeRequest;
 import org.apache.ranger.plugin.util.SearchFilter;
 import org.apache.ranger.plugin.util.ServicePolicies;
@@ -284,7 +285,6 @@ public class TestServiceREST {
 		xServiceDef.setDescription("HDFS Repository");
 		xServiceDef.setGuid("1427365526516_835_0");
 		xServiceDef.setId(Id);
-		xServiceDef.setVersion(Id);
 		xServiceDef.setUpdateTime(new Date());
 		xServiceDef.setUpdatedByUserId(Id);
 		xServiceDef.setImplclassname("RangerServiceHdfs");
@@ -310,7 +310,6 @@ public class TestServiceREST {
 		xService.setType(1L);
 		xService.setUpdatedByUserId(Id);
 		xService.setUpdateTime(new Date());
-		xService.setVersion(1L);
 
 		return xService;
 	}
@@ -512,18 +511,18 @@ public class TestServiceREST {
 		List<RangerServiceDef> serviceDefsList = new ArrayList<RangerServiceDef>();
 		RangerServiceDef serviceDef = rangerServiceDef();
 		serviceDefsList.add(serviceDef);
-		RangerServiceDefList serviceDefList = new RangerServiceDefList();
+		PList<RangerServiceDef> serviceDefList = new PList<RangerServiceDef>();
 		serviceDefList.setPageSize(0);
 		serviceDefList.setResultSize(1);
 		serviceDefList.setSortBy("asc");
 		serviceDefList.setSortType("1");
 		serviceDefList.setStartIndex(0);
 		serviceDefList.setTotalCount(10);
-		serviceDefList.setServiceDefs(serviceDefsList);
+		serviceDefList.setList(serviceDefsList);
 		Mockito.when(svcStore.getPaginatedServiceDefs(filter)).thenReturn(
 				serviceDefList);
 		Mockito.when(serviceDefService.searchRangerServiceDefs(filter))
-				.thenReturn(serviceDefList);
+				.thenReturn(new RangerServiceDefList(serviceDefsList));
 		RangerServiceDefList dbRangerServiceDef = serviceREST
 				.getServiceDefs(request);
 		Assert.assertNotNull(dbRangerServiceDef);
@@ -870,7 +869,8 @@ public class TestServiceREST {
 	@Test
 	public void test21countPolicies() throws Exception {
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-		RangerPolicyList ret = Mockito.mock(RangerPolicyList.class);
+
+		PList<RangerPolicy> ret  = Mockito.mock(PList.class);
 		SearchFilter filter = new SearchFilter();
 		filter.setParam(SearchFilter.POLICY_NAME, "policyName");
 		filter.setParam(SearchFilter.SERVICE_NAME, "serviceName");
@@ -892,7 +892,7 @@ public class TestServiceREST {
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		RangerPolicy rangerPolicy = rangerPolicy();
 
-		RangerPolicyList ret = Mockito.mock(RangerPolicyList.class);
+		PList<RangerPolicy> ret  = Mockito.mock(PList.class);
 		SearchFilter filter = new SearchFilter();
 		filter.setParam(SearchFilter.POLICY_NAME, "policyName");
 		filter.setParam(SearchFilter.SERVICE_NAME, "serviceName");
@@ -915,7 +915,8 @@ public class TestServiceREST {
 	public void test23getServicePoliciesByName() throws Exception {
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		RangerPolicy rangerPolicy = rangerPolicy();
-		RangerPolicyList ret = Mockito.mock(RangerPolicyList.class);
+
+		PList<RangerPolicy> ret  = Mockito.mock(PList.class);
 		SearchFilter filter = new SearchFilter();
 		filter.setParam(SearchFilter.POLICY_NAME, "policyName");
 		filter.setParam(SearchFilter.SERVICE_NAME, "serviceName");
@@ -1021,7 +1022,7 @@ public class TestServiceREST {
 	@Test
 	public void test34countServices() throws Exception {
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-		RangerServiceList ret = Mockito.mock(RangerServiceList.class);
+		PList<RangerService> ret  = Mockito.mock(PList.class);
 		SearchFilter filter = new SearchFilter();
 		filter.setParam(SearchFilter.POLICY_NAME, "policyName");
 		filter.setParam(SearchFilter.SERVICE_NAME, "serviceName");

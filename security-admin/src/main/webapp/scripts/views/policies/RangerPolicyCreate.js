@@ -48,11 +48,11 @@ define(function(require){
     		};
     	},
     	breadCrumbs :function(){
-	    	
+    		var name  = this.rangerServiceDefModel.get('name') != XAEnums.ServiceType.SERVICE_TAG.label ? 'ServiceManager' : 'TagBasedServiceManager';
     		if(this.model.isNew())
-    			return [XALinks.get('ServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService}),XALinks.get('PolicyCreate')];
+    			return [XALinks.get(name),XALinks.get('ManagePolicies',{model : this.rangerService}),XALinks.get('PolicyCreate')];
     		else
-    			return [XALinks.get('ServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService}),XALinks.get('PolicyEdit')];
+    			return [XALinks.get(name),XALinks.get('ManagePolicies',{model : this.rangerService}),XALinks.get('PolicyEdit')];
     	} ,        
 
 		/** Layout sub regions */
@@ -133,15 +133,36 @@ define(function(require){
 			});
 		},
 		onSave: function(){
-			var that = this, valid = false;
 			var errors = this.form.commit({validate : false});
 			if(! _.isEmpty(errors)){
 				return;
 			}
-			var validateObj = this.form.formValidation();
+			//validate policyItems in the policy
+			var validateObj1 = this.form.formValidation(this.form.formInputList);
+			if(!this.validatePolicyItem(validateObj1)) return;
+			var	validateObj2 = this.form.formValidation(this.form.formInputAllowExceptionList);
+			if(!this.validatePolicyItem(validateObj2)) return;
+			var	validateObj3 = this.form.formValidation(this.form.formInputDenyList);
+			if(!this.validatePolicyItem(validateObj3)) return;
+			var	validateObj4 = this.form.formValidation(this.form.formInputDenyExceptionList);
+			if(!this.validatePolicyItem(validateObj4)) return;
+			if((!validateObj1.auditLoggin) && !(validateObj1.groupPermSet || validateObj2.groupPermSet 
+										|| validateObj3.groupPermSet || validateObj4.groupPermSet)){
+				XAUtil.alertPopup({ msg :localization.tt('msg.yourAuditLogginIsOff') });
+				return;
+			}
+			this.savePolicy();
+		},
+		validatePolicyItem : function(validateObj){
+			var that = this, valid = false;
 			valid = (validateObj.groupSet && validateObj.permSet) || (validateObj.userSet && validateObj.userPerm);
 			if(!valid){
-				if(validateObj.groupSet && (!validateObj.permSet)){
+				if((!validateObj.groupSet && !validateObj.userSet) && (validateObj.condSet)) {
+					this.popupCallBack(localization.tt('msg.addUserOrGroupForPC'),validateObj);
+				}else if((!validateObj.groupSet && !validateObj.userSet) && (validateObj.permSet)) {
+					this.popupCallBack(localization.tt('msg.addUserOrGroup'),validateObj);
+					
+				}else if(validateObj.groupSet && (!validateObj.permSet)){
 					this.popupCallBack(localization.tt('msg.addGroupPermission'),validateObj);
 				}else if((!validateObj.groupSet) && (validateObj.permSet)) {
 					this.popupCallBack(localization.tt('msg.addGroup'),validateObj);
@@ -152,22 +173,11 @@ define(function(require){
 					this.popupCallBack(localization.tt('msg.addUser'),validateObj);
 						
 				}else if((!validateObj.auditLoggin) && (!validateObj.groupPermSet)){
-					XAUtil.alertPopup({
-						msg :localization.tt('msg.yourAuditLogginIsOff'),
-						callback : function(){
-							/*if(!that.model.isNew()){
-								that.model.destroy({success: function(model, response) {
-									XAUtil.notifySuccess('Success', localization.tt('msg.policyDeleteMsg'));
-									App.appRouter.navigate("#!/hdfs/"+that.assetModel.id+"/policies",{trigger: true});
-								}});
-							}else{
-								XAUtil.notifyError('Error', localization.tt('msg.policyNotAddedMsg'));
-								App.appRouter.navigate("#!/hdfs/"+that.assetModel.id+"/policies",{trigger: true});
-							}*/
-						}
-					});
+					return true;
+//					XAUtil.alertPopup({ msg :localization.tt('msg.yourAuditLogginIsOff') });
 				}else{
-					this.savePolicy();
+//					this.savePolicy();
+					return true;
 				}
 			}else{
 				if(validateObj.groupSet && (!validateObj.permSet)){
@@ -181,9 +191,11 @@ define(function(require){
 					this.popupCallBack(localization.tt('msg.addUser'),validateObj);
 						
 				}else{
-					this.savePolicy();
+//					this.savePolicy();
+					return true;
 				}
 			}
+			return false;
 		},
 		savePolicy : function(){
 			var that = this;
