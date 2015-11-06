@@ -41,7 +41,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.xasecure.biz.AssetMgr;
-import com.xasecure.biz.UserMgr;
 import com.xasecure.common.AppConstants;
 import com.xasecure.common.MessageEnums;
 import com.xasecure.common.RESTErrorUtil;
@@ -103,9 +102,6 @@ public class PublicAPIs {
 
 	@Autowired
 	XADaoManager xaDaoMgr;
-
-	@Autowired
-	UserMgr userMgr;
 
 	@GET
 	@Path("/api/repository/{id}")
@@ -320,10 +316,4 @@ public class PublicAPIs {
 		return assetMgr.getXResourceSearchCount(searchCriteria);
 	}
 
-	@GET
-	@Path("/api/user/authentication")
-	@Produces({ "application/xml", "application/json" })
-	public VXResponse isAuthenticated(@Context HttpServletRequest request) {
-		return userMgr.checkAuthentication();
-	}
 }
