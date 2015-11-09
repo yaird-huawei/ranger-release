@@ -5,8 +5,9 @@
 .metadata
 .classpath
 .project
-/target/
+target/
 winpkg/target
 .DS_Store
-.gitignore
 .idea
+*.swp
+bin/
