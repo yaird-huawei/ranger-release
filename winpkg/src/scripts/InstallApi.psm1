@@ -584,7 +584,8 @@ function InstallUserSync(
 						$cmd = "mkdir `"$credStorePath`""
 						Invoke-CmdChk $cmd
 					}
-
+					$cmd = "python ${ENV:RANGER_ADMIN_HOME}\dba_script.py ${ENV:RANGER_SYNC_LDAP_BIND_PASSWORD} LDAP_BIND password_validation"
+			                Invoke-CmdChk $cmd
 					CreateJCEKS "ranger.usersync.ldap.bindalias" "${ENV:RANGER_SYNC_LDAP_BIND_PASSWORD}" "${ENV:RANGER_ADMIN_HOME}\cred\lib" "$credStorePath/usersync.jceks"
 
 					$username = $serviceCredential.UserName
