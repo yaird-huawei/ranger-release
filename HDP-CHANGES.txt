@@ -1,5 +1,25 @@
+
 Changes only in Hortonworks github and not in ranger 0.4.0 and hence not covered by CHANGES.txt.
 ================================================================================================
+BUG-47401:adding HDP-CHANGES.txt for 2.2.9 release
+BUG-36250:check_db_connnection in Ambari does not properly escape before passing to shell
+BUG-46555:Restrict group and role data for only ADMIN users
+BUG-46587:Port of TimedExecutor changes from 2.3 to 2.2, i.e. RANGER-265 and RANGER-272
+RMP3882:Added support for Ranger Usersync to transform AD usernames and/or group names to linux compliant format
+BUG-28507:Add timeout for db connection settings
+BUG-37456:Ambari's treatment of ranger-admin setup.sh can corrupt security-applicationContext.xml
+BUG-44484:hbase plugin now audits split, close region and compact operations.
+BUG-45675:Allow special characters in passwords for manual install of Ranger
+BUG-38391:Ranger setup in Ambari does not respect custom service users
+BUG-44891:Implement Best Practices for authentication cookies
+BUG-44889:Implement X-Frame-Option header
+BUG-44039:Data consistency across API and UI to include PUT
+BUG-43246:Fixed:Ranger admin should redirect back to login page when login cookies are no longer valid.
+BUG-43350:Ranger install fails as ojdbc.jar missing in classpath in ambari2.1.0
+BUG-43717: adding HDP-CHANGES.txt for 2.2.8 release
+BUG-39244: Ranger usersync stops logging users after 2000 without any notice
+BUG-32021: Fixed-Hive Policy persisted doesn't have the right value when a UDF policy with * as value is fliped to TABLE and come back to UDF again
+BUG-34413: Fixed : Audit on/off toggle slider not working as expected.
 
 BUG-43335 Add start/stop/progress log messages so processing of Audit's JVM shutdown hooks can be monitored
 BUG-43078 enable source jar.
