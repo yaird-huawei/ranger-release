@@ -1,11 +1,15 @@
 
 Changes only in Hortonworks github and not in ranger 0.4.0 and hence not covered by CHANGES.txt.
 ================================================================================================
+
+Apache JIRA(s):
+RANGER-684: Added support for Ranger Usersync to transform AD usernames and/or group names to linux compliant format
+
+Non-Apache JIRA(s):
 BUG-47401:adding HDP-CHANGES.txt for 2.2.9 release
 BUG-36250:check_db_connnection in Ambari does not properly escape before passing to shell
 BUG-46555:Restrict group and role data for only ADMIN users
 BUG-46587:Port of TimedExecutor changes from 2.3 to 2.2, i.e. RANGER-265 and RANGER-272
-RMP3882:Added support for Ranger Usersync to transform AD usernames and/or group names to linux compliant format
 BUG-28507:Add timeout for db connection settings
 BUG-37456:Ambari's treatment of ranger-admin setup.sh can corrupt security-applicationContext.xml
 BUG-44484:hbase plugin now audits split, close region and compact operations.
@@ -32,7 +36,7 @@ BUG-35987:Disabling Hive Ranger does not restore original functionality
 BUG-36850 Fixed Ambari overwrites file permissions of /etc/ranger/admin/conf/security-applicationContext.xml
 BUG-38722: fixed URI access check during external table creation
 BUG-36065 PRIVACY case issue in HBase Ranger plugin
-(BUG-37054) (2.2) Found Jersey client API incompatibility that prevent HTTPS Knox from working, committing to 2.2-maint branch
+BUG-37054 (2.2) Found Jersey client API incompatibility that prevent HTTPS Knox from working, committing to 2.2-maint branch
 BUG-36124:First Name and Last Name should support underscore and hyphen as well as SPACE character(s)
 BUG-35442: UserSync Process didn't sync the group when groups are added to the user at later time
 BUG-34504: Remove condition to copy DB driver jar file
@@ -43,4 +47,3 @@ EAR-1002:Admin REST API appears to be open to password-less modifications
 BUG-32018:Issue in Hive policy creation in ranger for UDF resource if we specify {{*}} ( access for all UDF)
 BUG-31949:In hive plugin TABLE policy restriction for all tables {{*}} fails when UDF policy for all functions {{*}} is maintained for a database
 BUG-33792 - removing ojdbc library out of the bundle
-
