@@ -211,7 +211,7 @@ public class RemoteUnixLoginModule implements LoginModule {
 				if (trustStorePathPassword == null) {
 					trustStorePathPassword = "";
 				}
-				log("trustStorePathPassword:" + trustStorePathPassword);
+				log("trustStorePathPassword:*****");
 			}
 	
 			keyStorePath = (String) options.get(SSL_KEYSTORE_PATH_PARAM);
@@ -221,7 +221,7 @@ public class RemoteUnixLoginModule implements LoginModule {
 				if (keyStorePathPassword == null) {
 					keyStorePathPassword = "";
 				}
-				log("keyStorePathPassword:" + keyStorePathPassword);
+				log("keyStorePathPassword:*****");
 			}
 			
 			String certValidationFlag = (String) options.get(SERVER_CERT_VALIDATION_PARAM) ;

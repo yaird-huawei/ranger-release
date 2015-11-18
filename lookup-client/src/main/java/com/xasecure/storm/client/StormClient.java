@@ -329,8 +329,10 @@ public class StormClient {
 	public static StormClient getStormClient(String dataSourceName,
 			Map<String, String> configMap) {
 		StormClient stormClient = null;
-		LOG.debug("Getting StormClient for datasource: " + dataSourceName
-				+ "configMap: " + configMap);
+		if(LOG.isDebugEnabled()){
+			LOG.debug("Getting StormClient for datasource: " + dataSourceName);
+			LOG.debug("configMap: " + BaseClient.getMaskedConfigMap(configMap));
+		}
 		String errMsg = " You can still save the repository and start creating "
 				+ "policies, but you would not be able to use autocomplete for "
 				+ "resource names. Check xa_portal.log for more info.";
