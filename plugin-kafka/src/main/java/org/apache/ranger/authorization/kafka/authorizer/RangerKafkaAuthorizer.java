@@ -20,11 +20,14 @@
 package org.apache.ranger.authorization.kafka.authorizer;
 
 import java.util.Date;
+import java.util.Map;
+
 import javax.security.auth.Subject;
 
-import kafka.security.auth.*;
-import kafka.utils.READY$;
+import kafka.security.auth.Acl;
+import kafka.security.auth.Authorizer;
 import org.apache.kafka.common.security.auth.KafkaPrincipal;
+import kafka.security.auth.*;
 import kafka.server.KafkaConfig;
 import kafka.common.security.LoginManager;
 import kafka.network.RequestChannel.Session;
@@ -41,9 +44,7 @@ import org.apache.ranger.plugin.policyengine.RangerAccessResourceImpl;
 import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 import org.apache.ranger.plugin.service.RangerBasePlugin;
 
-import scala.collection.immutable.HashMap;
 import scala.collection.immutable.HashSet;
-import scala.collection.immutable.Map;
 import scala.collection.immutable.Set;
 
 public class RangerKafkaAuthorizer implements Authorizer {
@@ -69,9 +70,13 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	public RangerKafkaAuthorizer() {
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see kafka.security.auth.Authorizer#configure(Map<String, Object>)
+	 */
 	@Override
-	public void configure(java.util.Map<String, ?> map) {
-
+	public void configure(Map<String, ?> configs) {
 		if (rangerPlugin == null) {
 			try {
 				Subject subject = LoginManager.subject();
@@ -117,6 +122,11 @@ public class RangerKafkaAuthorizer implements Authorizer {
 		java.util.Set<String> userGroups = MiscUtil
 				.getGroupsForRequestUser(userName);
 		String ip = session.host();
+
+		// skip leading slash
+		if(StringUtils.isNotEmpty(ip) && ip.charAt(0) == '/') {
+			ip = ip.substring(1);
+		}
 
 		Date eventTime = StringUtil.getUTCDate();
 		String accessType = mapToRangerAccessType(operation);
@@ -195,7 +205,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	 */
 	@Override
 	public void addAcls(Set<Acl> acls, Resource resource) {
-		logger.error("addAcls() is not supported by Ranger for Kafka");
+		logger.error("addAcls(Set<Acl>, Resource) is not supported by Ranger for Kafka");
 	}
 
 	/*
@@ -207,7 +217,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	 */
 	@Override
 	public boolean removeAcls(Set<Acl> acls, Resource resource) {
-		logger.error("removeAcls() is not supported by Ranger for Kafka");
+		logger.error("removeAcls(Set<Acl>, Resource) is not supported by Ranger for Kafka");
 		return false;
 	}
 
@@ -219,7 +229,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	 */
 	@Override
 	public boolean removeAcls(Resource resource) {
-		logger.error("removeAcls() is not supported by Ranger for Kafka");
+		logger.error("removeAcls(Resource) is not supported by Ranger for Kafka");
 		return false;
 	}
 
@@ -231,7 +241,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	@Override
 	public Set<Acl> getAcls(Resource resource) {
 		Set<Acl> aclList = new HashSet<Acl>();
-		logger.error("getAcls() is not supported by Ranger for Kafka");
+		logger.error("getAcls(Resource) is not supported by Ranger for Kafka");
 
 		return aclList;
 	}
@@ -240,22 +250,28 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * kafka.security.auth.Authorizer#getAcls(kafka.security.auth.KafkaPrincipal
-	 * )
+	 * kafka.security.auth.Authorizer#getAcls(kafka.security.auth.KafkaPrincipal)
 	 */
 	@Override
-	public Map<Resource, Set<Acl>> getAcls(KafkaPrincipal principal) {
-		Map<Resource, Set<Acl>> aclList = new HashMap<Resource, Set<Acl>>();
+	public scala.collection.immutable.Map<Resource, Set<Acl>> getAcls(KafkaPrincipal principal) {
+		scala.collection.immutable.Map<Resource, Set<Acl>> aclList = new scala.collection.immutable.HashMap<Resource, Set<Acl>>();
+		logger.error("getAcls(KafkaPrincipal) is not supported by Ranger for Kafka");
+		return aclList;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * kafka.security.auth.Authorizer#getAcls()
+	 */
+	@Override
+	public scala.collection.immutable.Map<Resource, Set<Acl>> getAcls() {
+		scala.collection.immutable.Map<Resource, Set<Acl>> aclList = new scala.collection.immutable.HashMap<Resource, Set<Acl>>();
 		logger.error("getAcls() is not supported by Ranger for Kafka");
 		return aclList;
 	}
 
-	@Override
-	public Map<Resource, Set<Acl>> getAcls() {
-		Map<Resource, Set<Acl>> aclList = new HashMap<Resource, Set<Acl>>();
-		logger.error("getAcls() is not supported by Ranger for Kafka");
-		return aclList;
-	}
 	/**
 	 * @param operation
 	 * @return
@@ -271,6 +287,10 @@ public class RangerKafkaAuthorizer implements Authorizer {
 			return ACCESS_TYPE_DESCRIBE;
 		} else if (operation.equals(ClusterAction$.MODULE$)) {
 			return ACCESS_TYPE_KAFKA_ADMIN;
+		} else if (operation.equals(Create$.MODULE$)) {
+			return ACCESS_TYPE_CREATE;
+		} else if (operation.equals(Delete$.MODULE$)) {
+			return ACCESS_TYPE_DELETE;
 		}
 		return null;
 	}
