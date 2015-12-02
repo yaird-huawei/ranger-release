@@ -26,7 +26,9 @@ import javax.security.auth.Subject;
 
 import kafka.security.auth.Acl;
 import kafka.security.auth.Authorizer;
+
 import org.apache.kafka.common.security.auth.KafkaPrincipal;
+
 import kafka.security.auth.*;
 import kafka.server.KafkaConfig;
 import kafka.common.security.LoginManager;
@@ -100,7 +102,20 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	}
 
 	@Override
-	public boolean authorize(Session session, Operation operation, Resource resource) {
+	public void close() {
+		logger.info("close() called on authorizer.");
+		try {
+			if (rangerPlugin != null) {
+				rangerPlugin.cleanup();
+			}
+		} catch (Throwable t) {
+			logger.error("Error closing RangerPlugin.", t);
+		}
+	}
+
+	@Override
+	public boolean authorize(Session session, Operation operation,
+			Resource resource) {
 
 		if (rangerPlugin == null) {
 			MiscUtil.logErrorMessageByInterval(logger,
@@ -121,10 +136,10 @@ public class RangerKafkaAuthorizer implements Authorizer {
 		}
 		java.util.Set<String> userGroups = MiscUtil
 				.getGroupsForRequestUser(userName);
-		String ip = session.host();
+		String ip = session.clientAddress().getHostAddress();
 
 		// skip leading slash
-		if(StringUtils.isNotEmpty(ip) && ip.charAt(0) == '/') {
+		if (StringUtils.isNotEmpty(ip) && ip.charAt(0) == '/') {
 			ip = ip.substring(1);
 		}
 
@@ -250,10 +265,12 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * kafka.security.auth.Authorizer#getAcls(kafka.security.auth.KafkaPrincipal)
+	 * kafka.security.auth.Authorizer#getAcls(kafka.security.auth.KafkaPrincipal
+	 * )
 	 */
 	@Override
-	public scala.collection.immutable.Map<Resource, Set<Acl>> getAcls(KafkaPrincipal principal) {
+	public scala.collection.immutable.Map<Resource, Set<Acl>> getAcls(
+			KafkaPrincipal principal) {
 		scala.collection.immutable.Map<Resource, Set<Acl>> aclList = new scala.collection.immutable.HashMap<Resource, Set<Acl>>();
 		logger.error("getAcls(KafkaPrincipal) is not supported by Ranger for Kafka");
 		return aclList;
@@ -262,8 +279,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * kafka.security.auth.Authorizer#getAcls()
+	 * @see kafka.security.auth.Authorizer#getAcls()
 	 */
 	@Override
 	public scala.collection.immutable.Map<Resource, Set<Acl>> getAcls() {
