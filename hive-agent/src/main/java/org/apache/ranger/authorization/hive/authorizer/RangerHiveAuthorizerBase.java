@@ -217,10 +217,6 @@ public abstract class RangerHiveAuthorizerBase implements HiveAuthorizer {
 		throwNotImplementedException("setCurrentRole");
 	}
 
-	public  Object getHiveAuthorizationTranslator() throws HiveAuthzPluginException {
-		return null;
-	}
-
 	private void throwNotImplementedException(String method) throws HiveAuthzPluginException {
 		throw new HiveAuthzPluginException(method + "() not implemented in Ranger HiveAuthorizer");
 	}
