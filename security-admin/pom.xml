@@ -459,7 +459,9 @@
 						<packagingExcludes>
 							WEB-INF/lib/spring-*.SEC03.jar,
 							WEB-INF/lib/spring-*.RC3.jar,
-							WEB-INF/lib/spring-2.*.jar
+							WEB-INF/lib/spring-2.*.jar,
+							WEB-INF/lib/*-tests*.jar,
+							WEB-INF/lib/*-test*.jar
 						</packagingExcludes>
 						<warSourceDirectory>${project.build.directory}/${project.build.finalName}</warSourceDirectory>
 					</configuration>
