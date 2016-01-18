@@ -109,6 +109,12 @@ BUG
      [RANGER-761] - Transaction logs not getting generated under audit menu admin tab if policy name is changed
      [RANGER-766] - Yarn Plugin Config hadoop.security.authentication should be non-mandatory with default value
      [RANGER-767] - Refactor UserGroupSink implementation and consolidate performance improvements
+     [RANGER-772] - Hive plugin: Update Ranger authorizer to mimic changes made by Hive standard authorizer for the case when IMPORT can end up creating a table
+     [RANGER-767] - Refactor UserGroupSink implementation and consolidate performance improvements
+     [RANGER-773] - Fix newly found Coverity scan issues for Ranger KMS
+     [RANGER-778] - Fix user update issue
+     [RANGER-725] - Add the right .gitignore file to the newly added projects so that directory listing is clean after a build
+     [RANGER-809] - Audit framework need to cache the getHostName() values to reuse for successive calls
 
 NEW FEATURE
 
@@ -127,6 +133,7 @@ IMPROVEMENTS
 TASK
 
      [RANGER-573] - Updated Ranger WebSite Doc
+     [RANGER-173] - Utility scripts to create HDFS audit folders and policies
 
 HDP CHANGES:
 
@@ -153,3 +160,5 @@ HDP CHANGES:
      BUG-43616-Update USERSEARCHFILTER for Ranger Authentication on Windows
      BUG-44939: Package commons-io, which is a required dependency, as part of storm plugin
      BUG-44234: Update to HDP-CHANGES.txt file
+     BUG-50517: remove test jar.
+     BUG-50954: HBase plugin: Implement the new methods added to MasterObservers Interface and mimic their implementation in Hbase AccessController
