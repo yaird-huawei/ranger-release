@@ -1497,6 +1497,7 @@ function ConfigureRangerUserSync(
 
     UpdateXmlConfig $xmlFile $configs["UserSync"]
     UpdateXmlConfig $xmlFile $configs["GroupSync"]
+    UpdateXmlConfig $xmlFile @{"ranger.usersync.group.searchenabled"="false"}
  }
 
 ### Helper routing that converts a $null object to nothing. Otherwise, iterating over

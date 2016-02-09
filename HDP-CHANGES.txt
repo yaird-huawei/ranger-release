@@ -8,6 +8,7 @@ SUB-TASK
      [RANGER-551] - Policy Validation: If resource levels are not valid for any hierarchy then checks about missing mandatory levels should be skipped.
      [RANGER-564] - Add incubating to the release name
      [RANGER-551] - Policy Validation: If resource levels are not valid for any hierarchy then checks about missing mandatory levels should be skipped.
+     [RANGER-246] - Need to update the current implementation for recent changes in Kafka
 
 BUG
 
@@ -56,10 +57,72 @@ BUG
      [RANGER-642] - Update USERSEARCHFILTER for Ranger Authentication on Windows
      [RANGER-653] - Move delegated admin check to mgr layer from service layer for XPermMap and XAuditMap
      [RANGER-672] - v0.4 plugins are unable to download policies from 0.5 server
+     [RANGER-590] - Escape spaces in the user and group names which are part of rest call uri in UserSync process
+     [RANGER-607] - Unable to create multiple policyItems for same user or group
+     [RANGER-663] - Race condition during policy update causes policy to get in an bad state
+     [RANGER-658] - Package ranger_credential_helper.py with Ranger Usersync assembly
+     [RANGER-665] - ranger.ldap.ad.referral property is not getting updated in ranger-admin-site.xml
+     [RANGER-656] - Ranger UI - KMS Need to handle 404 error when clicked on breadcrumb
+     [RANGER-664] - Ranger PolicyRefresh REST Client timeout parameter should be configurable
+     [RANGER-674] - Ranger public rest api gives 200 response for wrong credential instead of 401
+     [RANGER-677] - Ranger Admin fails to render policies referring to groups that contain "." in name
+     [RANGER-671] - Add support to retrieve permissions for the logged in user from UserSession rather going to database every time
+     [RANGER-682] - Ranger to support Azure Blob Datastore as an audit destination via HDFS audit handler
+     [RANGER-673] - Setup changes to allow Ranger service to installed using custom service user
+     [RANGER-681] - Update default sync intervals for LDAP and UNIX
+     [RANGER-697] - KeyAdmin role user should see only KMS related audit access logs in Audit tab
+     [RANGER-661] - Plugin receives empty policy list though the service has policies
+     [RANGER-688] - Handle scenario where ids of XUser and XPortalUser are not in sync
+     [RANGER-687] - after each 30 seconds audit is getting updated in plugin tab
+     [RANGER-701] - Update setup scripts to allow special characters in passwords
+     [RANGER-705] - Ranger Usersync should provide summary logs on the sync progress instead of not loggin any details after 2000 users.
+     [RANGER-586] - Ranger plugins should not add dependent libraries to component's CLASSPATH
+     [RANGER-700] - Provide a wrapper shell script to run the FileSourceUserGroupBuilder process
+     [RANGER-706] - Optimize audit db upgrade patches to minimize timeout issues
+     [RANGER-713] - Knox-plugin failed to enable after plugin modification for not to add dependent libraries to component's CLASSPATH
+     [RANGER-715] - Fix issues reported by coverity test in Ranger Plugin ClassLoader
+     [RANGER-608] - Denied access to list a directory does not generate audit
+     [RANGER-724] - AuditBatchQueue: prevQueueSize not recomputed after initial assignment - static code analyzer flagged issue
+     [RANGER-717] - Hive and Hbase ranger plugin Audit to DB failed to log after plugin modification for not to add dependent libraries to component's CLASSPATH
+     [RANGER-714] - Enhancements to the db admin setup scripts.
+     [RANGER-725] - Add the right .gitignore file to the newly projects so that directory listing is clean after a build
+     [RANGER-702] - Optimize policy download performance
+     [RANGER-727] - Knox Plugin failed to AuditToSpool file when Audit Destination is down
+     [RANGER-680] - Remove public group (by default) in default policy for KMS repo
+     [RANGER-731] - Ranger plugin for YARN doesn't seem to be able to write audit to Kerberized HDFS
+     [RANGER-733] - Implement best coding practices to resolve issues found during code scan
+     [RANGER-720] - Ldap discovery tool doesn't seem to be working as expected
+     [RANGER-744] - Kafka Authorizer has updated how IP/Host is passed
+     [RANGER-741] - Fix installation script to skip Audit DB password check if audit source is SOLR
+     [RANGER-743] - External users with Admin Role should be allowed to create/update users
+     [RANGER-747] - RangerAdmin is considering "none" as valid ZK Host Name for Solr
+     [RANGER-602] - Solr client in SolrCloud mode should work with zookeeper settings also
+     [RANGER-739] - Ranger HBase Plugin returning null for RegionObserver.preCompact calls causing hbase:acl issue
+     [RANGER-745] - Upgrade Apache commons-collections
+     [RANGER-756] - LdapTool fails with -r option to retrieve only users/group/all
+     [RANGER-755] - ldap run.sh script fails since auth directory does not exist
+     [RANGER-757] - [LDAP tool] authentication fails if use -d option to search only users
+     [RANGER-742] - Ranger usersync fails after syncing 500 users from AD or ldap server when paged results is enabled.
+     [RANGER-748] - Users in policy got changed after upgrade
+     [RANGER-754] - Ranger YARN Plugin lookup and test connection should support SPENGO enabled HTTP Authentication
+     [RANGER-758] - Handle special characters in passwords starting from -r
+     [RANGER-761] - Transaction logs not getting generated under audit menu admin tab if policy name is changed
+     [RANGER-766] - Yarn Plugin Config hadoop.security.authentication should be non-mandatory with default value
+     [RANGER-767] - Refactor UserGroupSink implementation and consolidate performance improvements
 
 NEW FEATURE
 
      [RANGER-614] - Provide support of SQL Anywhere as a DB in Ranger
+     [RANGER-666] - Ranger to support Azure SQL Database
+     [RANGER-526] - Provide REST API to change user role
+     [RANGER-712] - Create a new project which can serve as a template to write ranger extensions
+     [RANGER-652] - LDAP configuration tool
+
+IMPROVEMENTS
+
+     [RANGER-684] - Ranger Usersync - Add Ability to transform user/group names
+     [RANGER-740] - Kafka Authorizer interface has added close() method. Ranger should also implement it
+     [RANGER-749] - Ranger KMS to support multiple KMS instances with keys across multiple clusters
 
 TASK
 
