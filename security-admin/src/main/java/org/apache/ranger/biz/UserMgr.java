@@ -1275,9 +1275,9 @@ public class UserMgr {
 		XXPortalUser xXPortalUser=daoManager.getXXPortalUser().findByLoginId(loginId);
 		if(xXPortalUser==null){
 			return DEFAULT_ROLE_LIST;
-		}
+        }
 		Collection<XXPortalUserRole> xXPortalUserRoles = daoManager
-				.getXXPortalUserRole().findByUserId(xXPortalUser.getId());
+                        .getXXPortalUserRole().findByUserId(xXPortalUser.getId());
 		if(xXPortalUserRoles==null){
 			return DEFAULT_ROLE_LIST;
 		}
@@ -1288,7 +1288,7 @@ public class UserMgr {
 					roleList.add(role.getUserRole());
 				}
 			}
-		}
+        }
 		if(roleList==null || roleList.size()==0){
 			return DEFAULT_ROLE_LIST;
 		}

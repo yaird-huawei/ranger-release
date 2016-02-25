@@ -22,6 +22,7 @@
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.ranger.entity.XXAuthSession;
@@ -39,6 +40,7 @@ public class UserSessionBase implements Serializable {
 	private List<String> userRoleList = new ArrayList<String>();
 	private RangerUserPermission rangerUserPermission;
 	int clientTimeOffsetInMinute = 0;
+	private Boolean isSSOEnabled;
 
 	public Long getUserId() {
 		if (xXPortalUser != null) {
@@ -127,6 +129,14 @@ public class UserSessionBase implements Serializable {
 	}
 
 
+
+	public Boolean isSSOEnabled() {
+		return isSSOEnabled;
+	}
+
+	public void setSSOEnabled(Boolean isSSOEnabled) {
+		this.isSSOEnabled = isSSOEnabled;
+	}
 
 	public static class RangerUserPermission implements Serializable {
 		private static final long serialVersionUID = 1L;

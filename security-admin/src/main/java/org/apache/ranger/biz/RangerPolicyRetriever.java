@@ -114,7 +114,7 @@ public class RangerPolicyRetriever {
 		RangerPerfTracer   perf = null;
 
 		if(RangerPerfTracer.isPerfTraceEnabled(PERF_LOG)) {
-			perf = RangerPerfTracer.getPerfTracer(PERF_LOG, "RangerPolicyRetriever.getServicePolicies(serviceName=" + serviceName + ", serviceId=" + serviceId + ")");
+			perf = RangerPerfTracer.getPerfTracer(PERF_LOG, "RangerPolicyRetriever.getServicePolicies(serviceName=" + serviceName + ",serviceId=" + serviceId + ")");
 		}
 
 		if(xService != null) {
@@ -645,7 +645,19 @@ public class RangerPolicyRetriever {
 						}
 					}
 
-					policy.getPolicyItems().add(policyItem);
+					int itemType = xPolicyItem.getItemType() == null ? RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW : xPolicyItem.getItemType();
+
+					if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW) {
+						policy.getPolicyItems().add(policyItem);
+					} else if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY) {
+						policy.getDenyPolicyItems().add(policyItem);
+					} else if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW_EXCEPTIONS) {
+						policy.getAllowExceptions().add(policyItem);
+					} else if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY_EXCEPTIONS) {
+						policy.getDenyExceptions().add(policyItem);
+					} else { // unknown itemType.. set to default type
+						policy.getPolicyItems().add(policyItem);
+					}
 				} else if(xPolicyItem.getPolicyid().compareTo(policy.getId()) > 0) {
 					if(iterPolicyItems.hasPrevious()) {
 						iterPolicyItems.previous();

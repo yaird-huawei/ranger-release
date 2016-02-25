@@ -159,7 +159,7 @@ public class RangerAccessRequestImpl implements RangerAccessRequest {
 	}
 
 	public void setAccessTime(Date accessTime) {
-		this.accessTime = (accessTime == null) ? StringUtil.getUTCDate() : accessTime;
+		this.accessTime = (accessTime == null) ? new Date() : accessTime;
 	}
 
 	public void setClientIPAddress(String clientIPAddress) {
@@ -231,5 +231,9 @@ public class RangerAccessRequestImpl implements RangerAccessRequest {
 		sb.append("}");
 
 		return sb;
+	}
+	@Override
+	public RangerAccessRequest getReadOnlyCopy() {
+		return new RangerAccessRequestReadOnly(this);
 	}
 }

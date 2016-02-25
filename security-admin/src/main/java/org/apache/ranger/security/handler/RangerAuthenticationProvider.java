@@ -76,6 +76,8 @@ public class RangerAuthenticationProvider implements AuthenticationProvider {
 
 	private LdapAuthenticator authenticator;
 
+	private boolean ssoEnabled = false;
+
 	public RangerAuthenticationProvider() {
 
 	}
@@ -83,6 +85,14 @@ public class RangerAuthenticationProvider implements AuthenticationProvider {
 	@Override
 	public Authentication authenticate(Authentication authentication)
 			throws AuthenticationException {
+		if(isSsoEnabled()){
+			if (authentication != null){
+				authentication = getSSOAuthentication(authentication);
+				if(authentication!=null && authentication.isAuthenticated()){
+					return authentication;
+				}
+			}
+		}else{
 		String sha256PasswordUpdateDisable=PropertiesUtil.getProperty("ranger.sha256Password.update.disable", "false");
 		if(rangerAuthenticationMethod==null){
 			rangerAuthenticationMethod="NONE";
@@ -156,6 +166,7 @@ public class RangerAuthenticationProvider implements AuthenticationProvider {
 			}
 			return authentication;
 		}
+		}
 		return authentication;
 	}
 
@@ -207,7 +218,8 @@ public class RangerAuthenticationProvider implements AuthenticationProvider {
 			// Creating BindAuthenticator using Ldap Context Source.
 			BindAuthenticator bindAuthenticator = new BindAuthenticator(
 					ldapContextSource);
-			String[] userDnPatterns = new String[] { rangerLdapUserDNPattern };
+			//String[] userDnPatterns = new String[] { rangerLdapUserDNPattern };
+			String[] userDnPatterns = rangerLdapUserDNPattern.split(";");
 			bindAuthenticator.setUserDnPatterns(userDnPatterns);
 
 			// Creating Ldap authentication provider using BindAuthenticator and
@@ -274,7 +286,6 @@ public class RangerAuthenticationProvider implements AuthenticationProvider {
 						principal, userPassword, grantedAuths);
 				authentication = adAuthenticationProvider
 						.authenticate(finalAuthentication);
-				authentication=getAuthenticationWithGrantedAuthority(authentication);
 				return authentication;
 			} else {
 				return authentication;
@@ -525,6 +536,7 @@ public class RangerAuthenticationProvider implements AuthenticationProvider {
 		}
 		return authentication;
 	}
+	
 	private List<GrantedAuthority> getAuthorities(String username) {
 		Collection<String> roleList=userMgr.getRolesByLoginId(username);
 		final List<GrantedAuthority> grantedAuths = new ArrayList<>();
@@ -533,7 +545,7 @@ public class RangerAuthenticationProvider implements AuthenticationProvider {
 		}
 		return grantedAuths;
 	}
-
+ 
 	public Authentication getAuthenticationWithGrantedAuthority(Authentication authentication){
 		UsernamePasswordAuthenticationToken result=null;
 		if(authentication!=null && authentication.isAuthenticated()){
@@ -544,5 +556,23 @@ public class RangerAuthenticationProvider implements AuthenticationProvider {
 			return result;
 		}
 		return authentication;
+	}
+	
+	private Authentication getSSOAuthentication(Authentication authentication) throws AuthenticationException{
+		return authentication;
+	}
+
+	/**
+	 * @return the ssoEnabled
+	 */
+	public boolean isSsoEnabled() {
+		return ssoEnabled;
+	}
+
+	/**
+	 * @param ssoEnabled the ssoEnabled to set
+	 */
+	public void setSsoEnabled(boolean ssoEnabled) {
+		this.ssoEnabled = ssoEnabled;
 	}
 }

@@ -64,6 +64,7 @@ public class RangerSearchUtil extends SearchUtil {
 		ret.setParam(SearchFilter.GROUP, request.getParameter(SearchFilter.GROUP));
 		ret.setParam(SearchFilter.POL_RESOURCE, request.getParameter(SearchFilter.POL_RESOURCE));
 		ret.setParam(SearchFilter.RESOURCE_SIGNATURE, request.getParameter(SearchFilter.RESOURCE_SIGNATURE));
+		ret.setParam(SearchFilter.POLICY_TYPE, request.getParameter(SearchFilter.POLICY_TYPE));
 
 		for (Map.Entry<String, String[]> e : request.getParameterMap().entrySet()) {
 			String name = e.getKey();
@@ -158,7 +159,7 @@ public class RangerSearchUtil extends SearchUtil {
 		int pageSize = restErrorUtil.parseInt(request.getParameter(SearchFilter.PAGE_SIZE),
 				configUtil.getDefaultMaxRows(), "Invalid value for parameter pageSize",
 				MessageEnums.INVALID_INPUT_DATA, null, SearchFilter.PAGE_SIZE);
-		ret.setMaxRows(pageSize);
+		ret.setMaxRows(validatePageSize(pageSize));
 
 		ret.setGetCount(restErrorUtil.parseBoolean(request.getParameter("getCount"), true));
 		String sortBy = restErrorUtil.validateString(request.getParameter(SearchFilter.SORT_BY),

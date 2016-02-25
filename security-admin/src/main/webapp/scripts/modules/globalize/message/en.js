@@ -227,7 +227,10 @@ define(function(require) {
 				createService					: 'Create Service',
 				editService						: 'Edit Service',
 				serviceDetails					: 'Service Details',
-				serviceName						: 'Service Name'
+				serviceName						: 'Service Name',
+				PolicyType_ALLOW				: 'Allow',
+				PolicyType_DENY					: 'Deny',
+				componentPermissions			: 'Component Permissions'
 			},
 			btn : {
 				add							: 'Add',
@@ -313,8 +316,8 @@ define(function(require) {
 				youDontHavePermission 	  : 'You don\'t have permission for the resource !!',
 				myProfileError			  :'Your password does not match. Please try again with proper password',
 				myProfileSuccess		  :'Profile Edited successfully',
-				userNameAlreadyExist		  : 'User name already exists',
-				groupNameAlreadyExist		  : 'Group name already exists',
+				userNameAlreadyExist	  : 'User name already exists',
+				groupNameAlreadyExist	  : 'Group name already exists',
 				yourAuditLogginIsOff 	  :'You must have at least one or more user/group access defined for the policy.',
 				policyNotHavingPerm		  : 'The policy does not have any permissions so audit logging cannot be turned off',
 				areSureWantToLogout		  : 'Are you sure want to logout ?',
@@ -324,7 +327,13 @@ define(function(require) {
 				policyDisabledMsg		  : 'This policy is currently in disabled state.',
 				noRecordsFound			  : 'No Records Found',
 				keyDeleteMsg			  : 'Key deleted successfully',
-				rolloverSuccessfully	  : 'Key rollover successfully'
+				rolloverSuccessfully	  : 'Key rollover successfully',
+				addUserOrGroup			  : 'Please select group/user for the selected permission, else group/user will not be added.',
+				addUserOrGroupForPC		  : 'Please select group/user for the added policy condition, else group/user will not be added.',
+				userCreatedSucc		      : 'User created successfully',
+				userUpdatedSucc           :     'User updated successfully',
+				grpUpdatedSucc            : 'Group updated successfully',
+				grpCreatedSucc            : 'Group created successfully',
 				
 				
 				

@@ -19,30 +19,17 @@
 
 package org.apache.ranger.biz;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ranger.common.AppConstants;
-import org.apache.ranger.common.ContextUtil;
-import org.apache.ranger.common.DateUtil;
-import org.apache.ranger.common.MessageEnums;
-import org.apache.ranger.common.PasswordUtils;
-import org.apache.ranger.common.RESTErrorUtil;
-import org.apache.ranger.common.RangerCommonEnums;
-import org.apache.ranger.common.RangerConstants;
-import org.apache.ranger.common.RangerFactory;
-import org.apache.ranger.common.StringUtil;
-import org.apache.ranger.common.UserSessionBase;
+import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
+import org.apache.ranger.common.*;
 import org.apache.ranger.db.RangerDaoManager;
 import org.apache.ranger.db.XXAccessTypeDefDao;
 import org.apache.ranger.db.XXAccessTypeDefGrantsDao;
@@ -101,9 +88,8 @@ import org.apache.ranger.plugin.model.RangerServiceDef.RangerPolicyConditionDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerResourceDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerServiceConfigDef;
 import org.apache.ranger.plugin.model.validation.RangerServiceDefHelper;
-import org.apache.ranger.plugin.store.EmbeddedServiceDefsUtil;
-import org.apache.ranger.plugin.store.ServicePredicateUtil;
-import org.apache.ranger.plugin.store.ServiceStore;
+import org.apache.ranger.plugin.policyevaluator.RangerPolicyItemEvaluator;
+import org.apache.ranger.plugin.store.*;
 import org.apache.ranger.plugin.util.SearchFilter;
 import org.apache.ranger.plugin.util.ServicePolicies;
 import org.apache.ranger.service.RangerAuditFields;
@@ -130,8 +116,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 
 @Component
-public class ServiceDBStore implements ServiceStore {
+public class ServiceDBStore extends AbstractServiceStore {
 	private static final Log LOG = LogFactory.getLog(ServiceDBStore.class);
+	public static final String RANGER_TAG_EXPIRY_CONDITION_NAME = "accessed-after-expiry";
 
 	@Autowired
 	RangerServiceDefService serviceDefService;
@@ -190,7 +177,8 @@ public class ServiceDBStore implements ServiceStore {
 	public static final String CONFIG_KEY_PASSWORD = "password";
 
 	private ServicePredicateUtil predicateUtil = null;
-	
+
+
 	@Override
 	public void init() throws Exception {
 		if (LOG.isDebugEnabled()) {
@@ -211,6 +199,11 @@ public class ServiceDBStore implements ServiceStore {
 		if(! legacyServiceDefsInitDone) {
 			synchronized(ServiceDBStore.class) {
 				if(!legacyServiceDefsInitDone) {
+
+					if (! RangerConfiguration.getInstance().addAdminResources()) {
+						LOG.error("Could not add ranger-admin resources to RangerConfiguration.");
+					}
+
 					TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 					final ServiceDBStore dbStore = this;
@@ -370,6 +363,8 @@ public class ServiceDBStore implements ServiceStore {
 		RangerServiceDef createdServiceDef = serviceDefService.getPopulatedViewObject(createdSvcDef);
 		dataHistService.createObjectDataHistory(createdServiceDef, RangerDataHistService.ACTION_CREATE);
 
+		postCreate(createdServiceDef);
+
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDefDBStore.createServiceDef(" + serviceDef + "): " + createdServiceDef);
 		}
@@ -423,6 +418,9 @@ public class ServiceDBStore implements ServiceStore {
 
 		RangerServiceDef updatedSvcDef = getServiceDef(serviceDefId);
 		dataHistService.createObjectDataHistory(updatedSvcDef, RangerDataHistService.ACTION_UPDATE);
+
+		postUpdate(updatedSvcDef);
+
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDefDBStore.updateServiceDef(" + serviceDef + "): " + serviceDef);
@@ -788,7 +786,7 @@ public class ServiceDBStore implements ServiceStore {
 		deleteServiceDef(serviceDefId, false);
 	}
 
-	public void deleteServiceDef(Long serviceDefId, boolean forceDelete) throws Exception {
+	public void deleteServiceDef(Long serviceDefId, Boolean forceDelete) throws Exception {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDefDBStore.deleteServiceDef(" + serviceDefId + ")");
 		}
@@ -799,9 +797,9 @@ public class ServiceDBStore implements ServiceStore {
 					MessageEnums.DATA_NOT_FOUND);
 		}
 		
+		List<XXService> serviceList = daoMgr.getXXService().findByServiceDefId(serviceDefId);
 		if (!forceDelete) {
-			List<XXService> svcDefServiceList = daoMgr.getXXService().findByServiceDefId(serviceDefId);
-			if (!stringUtil.isEmpty(svcDefServiceList)) {
+			if(CollectionUtils.isNotEmpty(serviceList)) {
 				throw restErrorUtil.createRESTException(
 						"Services exists under given service definition, can't delete Service-Def: "
 								+ serviceDef.getName(), MessageEnums.OPER_NOT_ALLOWED_FOR_ENTITY);
@@ -851,10 +849,10 @@ public class ServiceDBStore implements ServiceStore {
 			configDefDao.remove(configDef);
 		}
 		
-		XXServiceDao serviceDao = daoMgr.getXXService();
-		List<XXService> serviceList = serviceDao.findByServiceDefId(serviceDefId);
-		for(XXService service : serviceList) {
-			deleteService(service.getId());
+		if(CollectionUtils.isNotEmpty(serviceList)) {
+			for(XXService service : serviceList) {
+				deleteService(service.getId());
+			}
 		}
 		
 		Long version = serviceDef.getVersion();
@@ -870,6 +868,8 @@ public class ServiceDBStore implements ServiceStore {
 		LOG.info("ServiceDefinition has been deleted successfully. Service-Def Name: " + serviceDef.getName());
 		
 		dataHistService.createObjectDataHistory(serviceDef, RangerDataHistService.ACTION_DELETE);
+
+		postDelete(serviceDef);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDefDBStore.deleteServiceDef(" + serviceDefId + ")");
@@ -968,7 +968,9 @@ public class ServiceDBStore implements ServiceStore {
 		return ret;
 	}
 
-	public RangerServiceDefList getPaginatedServiceDefs(SearchFilter filter) throws Exception {
+	@Override
+
+	public PList<RangerServiceDef> getPaginatedServiceDefs(SearchFilter filter) throws Exception {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getPaginatedServiceDefs(" + filter + ")");
 		}
@@ -981,7 +983,9 @@ public class ServiceDBStore implements ServiceStore {
 			LOG.debug("==> ServiceDBStore.getPaginatedServiceDefs(" + filter + ")");
 		}
 
-		return svcDefList;
+		return new PList<RangerServiceDef>(svcDefList.getServiceDefs(), svcDefList.getStartIndex(), svcDefList.getPageSize(), svcDefList.getTotalCount(),
+				svcDefList.getResultSize(), svcDefList.getSortType(), svcDefList.getSortBy());
+
 	}
 
 	@Override
@@ -1007,6 +1011,7 @@ public class ServiceDBStore implements ServiceStore {
 
 		// While creating, value of version should be 1.
 		service.setVersion(new Long(1));
+		service.setTagVersion(new Long(1));
 
 		if (populateExistingBaseFields) {
 			svcServiceWithAssignedId.setPopulateExistingBaseFields(true);
@@ -1065,6 +1070,11 @@ public class ServiceDBStore implements ServiceStore {
 			xConfMap = xConfMapDao.create(xConfMap);
 		}
 		RangerService createdService = svcService.getPopulatedViewObject(xCreatedService);
+
+		if (createdService == null) {
+			throw restErrorUtil.createRESTException("Could not create service - Internal error ", MessageEnums.ERROR_CREATING_OBJECT);
+		}
+
 		dataHistService.createObjectDataHistory(createdService, RangerDataHistService.ACTION_CREATE);
 
 		List<XXTrxLog> trxLogList = svcService.getTransactionLog(createdService,
@@ -1117,6 +1127,45 @@ public class ServiceDBStore implements ServiceStore {
 
 		List<XXTrxLog> trxLogList = svcService.getTransactionLog(service, existing, RangerServiceService.OPERATION_UPDATE_CONTEXT);
 
+		boolean hasTagServiceValueChanged = false;
+		Long    existingTagServiceId      = existing.getTagService();
+		String  newTagServiceName         = service.getTagService(); // null for old clients; empty string to remove existing association
+		Long    newTagServiceId           = null;
+
+		if(newTagServiceName == null) { // old client; don't update existing tagService
+			if(existingTagServiceId != null) {
+				newTagServiceName = getServiceName(existingTagServiceId);
+
+				service.setTagService(newTagServiceName);
+
+				LOG.info("ServiceDBStore.updateService(id=" + service.getId() + "; name=" + service.getName() + "): tagService is null; using existing tagService '" + newTagServiceName + "'");
+			}
+		}
+
+		if (StringUtils.isNotBlank(newTagServiceName)) {
+			RangerService tmp = getServiceByName(newTagServiceName);
+
+			if (tmp == null || !tmp.getType().equals(EmbeddedServiceDefsUtil.EMBEDDED_SERVICEDEF_TAG_NAME)) {
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("ServiceDBStore.updateService() - " + newTagServiceName + " does not refer to a valid tag service.(" + service + ")");
+				}
+				throw restErrorUtil.createRESTException("Invalid tag service name " + newTagServiceName, MessageEnums.ERROR_CREATING_OBJECT);
+
+			} else {
+				newTagServiceId = tmp.getId();
+			}
+		}
+
+		if (existingTagServiceId == null) {
+			if (newTagServiceId != null) {
+				hasTagServiceValueChanged = true;
+			}
+		} else if (!existingTagServiceId.equals(newTagServiceId)) {
+			hasTagServiceValueChanged = true;
+		}
+
+		boolean hasIsEnabledChanged = !existing.getIsenabled().equals(service.getIsEnabled());
+
 		if(populateExistingBaseFields) {
 			svcServiceWithAssignedId.setPopulateExistingBaseFields(true);
 			service = svcServiceWithAssignedId.update(service);
@@ -1127,8 +1176,14 @@ public class ServiceDBStore implements ServiceStore {
 			service.setVersion(existing.getVersion());
 			service.setPolicyUpdateTime(existing.getPolicyUpdateTime());
 			service.setPolicyVersion(existing.getPolicyVersion());
+			service.setTagVersion(existing.getTagVersion());
+			service.setTagUpdateTime(existing.getTagUpdateTime());
 
 			service = svcService.update(service);
+
+			if (hasTagServiceValueChanged || hasIsEnabledChanged) {
+				updatePolicyVersion(service);
+			}
 		}
 
 		XXService xUpdService = daoMgr.getXXService().getById(service.getId());
@@ -1316,7 +1371,7 @@ public class ServiceDBStore implements ServiceStore {
 		return ret;
 	}
 
-	public RangerServiceList getPaginatedServices(SearchFilter filter) throws Exception {
+	public PList<RangerService> getPaginatedServices(SearchFilter filter) throws Exception {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getPaginatedServices()");
 		}
@@ -1329,7 +1384,9 @@ public class ServiceDBStore implements ServiceStore {
 			LOG.debug("<== ServiceDBStore.getPaginatedServices()");
 		}
 
-		return serviceList;
+		return new PList<RangerService>(serviceList.getServices(), serviceList.getStartIndex(), serviceList.getPageSize(), serviceList.getTotalCount(),
+				serviceList.getResultSize(), serviceList.getSortType(), serviceList.getSortBy());
+
 	}
 
 	@Override
@@ -1354,7 +1411,10 @@ public class ServiceDBStore implements ServiceStore {
 		}
 
 		Map<String, RangerPolicyResource> resources = policy.getResources();
-		List<RangerPolicyItem> policyItems = policy.getPolicyItems();
+		List<RangerPolicyItem> policyItems     = policy.getPolicyItems();
+		List<RangerPolicyItem> denyPolicyItems = policy.getDenyPolicyItems();
+		List<RangerPolicyItem> allowExceptions = policy.getAllowExceptions();
+		List<RangerPolicyItem> denyExceptions  = policy.getDenyExceptions();
 
 		policy.setVersion(new Long(1));
 		updatePolicySignature(policy);
@@ -1375,7 +1435,10 @@ public class ServiceDBStore implements ServiceStore {
 		XXPolicy xCreatedPolicy = daoMgr.getXXPolicy().getById(policy.getId());
 
 		createNewResourcesForPolicy(policy, xCreatedPolicy, resources);
-		createNewPolicyItemsForPolicy(policy, xCreatedPolicy, policyItems, xServiceDef);
+		createNewPolicyItemsForPolicy(policy, xCreatedPolicy, policyItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW);
+		createNewPolicyItemsForPolicy(policy, xCreatedPolicy, denyPolicyItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY);
+		createNewPolicyItemsForPolicy(policy, xCreatedPolicy, allowExceptions, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW_EXCEPTIONS);
+		createNewPolicyItemsForPolicy(policy, xCreatedPolicy, denyExceptions, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY_EXCEPTIONS);
 		handlePolicyUpdate(service);
 		RangerPolicy createdPolicy = policyService.getPopulatedViewObject(xCreatedPolicy);
 		dataHistService.createObjectDataHistory(createdPolicy, RangerDataHistService.ACTION_CREATE);
@@ -1424,7 +1487,10 @@ public class ServiceDBStore implements ServiceStore {
 			}
 		}
 		Map<String, RangerPolicyResource> newResources = policy.getResources();
-		List<RangerPolicyItem> newPolicyItems = policy.getPolicyItems();
+		List<RangerPolicyItem> policyItems     = policy.getPolicyItems();
+		List<RangerPolicyItem> denyPolicyItems = policy.getDenyPolicyItems();
+		List<RangerPolicyItem> allowExceptions = policy.getAllowExceptions();
+		List<RangerPolicyItem> denyExceptions  = policy.getDenyExceptions();
 		
 		policy.setCreateTime(xxExisting.getCreateTime());
 		policy.setGuid(xxExisting.getGuid());
@@ -1441,7 +1507,10 @@ public class ServiceDBStore implements ServiceStore {
 		deleteExistingPolicyItems(policy);
 		
 		createNewResourcesForPolicy(policy, newUpdPolicy, newResources);
-		createNewPolicyItemsForPolicy(policy, newUpdPolicy, newPolicyItems, xServiceDef);
+		createNewPolicyItemsForPolicy(policy, newUpdPolicy, policyItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW);
+		createNewPolicyItemsForPolicy(policy, newUpdPolicy, denyPolicyItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY);
+		createNewPolicyItemsForPolicy(policy, newUpdPolicy, allowExceptions, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW_EXCEPTIONS);
+		createNewPolicyItemsForPolicy(policy, newUpdPolicy, denyExceptions, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY_EXCEPTIONS);
 		
 		handlePolicyUpdate(service);
 		RangerPolicy updPolicy = policyService.getPopulatedViewObject(newUpdPolicy);
@@ -1493,7 +1562,7 @@ public class ServiceDBStore implements ServiceStore {
 		
 		bizUtil.createTrxLog(trxLogList);
 		
-		LOG.info("Policy Deleted Successfully. PolicyName : " +policyName);
+		LOG.info("Policy Deleted Successfully. PolicyName : " + policyName);
 	}
 
 	@Override
@@ -1520,7 +1589,8 @@ public class ServiceDBStore implements ServiceStore {
 		return ret;
 	}
 
-	public RangerPolicyList getPaginatedPolicies(SearchFilter filter) throws Exception {
+
+	public PList<RangerPolicy> getPaginatedPolicies(SearchFilter filter) throws Exception {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getPaginatedPolicies(+ " + filter + ")");
 		}
@@ -1539,7 +1609,10 @@ public class ServiceDBStore implements ServiceStore {
 			LOG.debug("<== ServiceDBStore.getPaginatedPolicies(" + filter + "): count=" + policyList.getListSize());
 		}
 
-		return policyList;
+
+		return new PList<RangerPolicy>(policyList.getPolicies(), policyList.getStartIndex(), policyList.getPageSize(), policyList.getTotalCount(),
+				policyList.getResultSize(), policyList.getSortType(), policyList.getSortBy());
+
 	}
 
 	@Override
@@ -1554,29 +1627,16 @@ public class ServiceDBStore implements ServiceStore {
 			throw new Exception("service does not exist - id='" + serviceId);
 		}
 
-		List<RangerPolicy> ret = getServicePolicies(service.getName(), filter);
-
-		return ret;
-	}
-
-	private List<RangerPolicy> getServicePolicies(XXService service) throws Exception {
-		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> ServiceDBStore.getServicePolicies(" + service.getName() + ")");
-		}
-
-		RangerPolicyRetriever policyRetriever = new RangerPolicyRetriever(daoMgr);
-
-		List<RangerPolicy> ret = policyRetriever.getServicePolicies(service);
+		List<RangerPolicy> ret = getServicePolicies(service, filter);
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== ServiceDBStore.getServicePolicies(" + service.getName() + "): count=" + ((ret == null) ? 0 : ret.size()));
+			LOG.debug("<== ServiceDBStore.getServicePolicies(" + serviceId + ") : policy-count=" + (ret == null ? 0 : ret.size()));
 		}
-
 		return ret;
+
 	}
 
-
-	public RangerPolicyList getPaginatedServicePolicies(Long serviceId, SearchFilter filter) throws Exception {
+	public PList<RangerPolicy> getPaginatedServicePolicies(Long serviceId, SearchFilter filter) throws Exception {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getPaginatedServicePolicies(" + serviceId + ")");
 		}
@@ -1587,7 +1647,7 @@ public class ServiceDBStore implements ServiceStore {
 			throw new Exception("service does not exist - id='" + serviceId);
 		}
 
-		RangerPolicyList ret = getPaginatedServicePolicies(service.getName(), filter);
+		PList<RangerPolicy> ret = getPaginatedServicePolicies(service.getName(), filter);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDBStore.getPaginatedServicePolicies(" + serviceId + ")");
@@ -1601,13 +1661,15 @@ public class ServiceDBStore implements ServiceStore {
 			LOG.debug("==> ServiceDBStore.getServicePolicies(" + serviceName + ")");
 		}
 
-		if(filter == null) {
-			filter = new SearchFilter();
+		List<RangerPolicy> ret = null;
+
+		XXService service = daoMgr.getXXService().findByName(serviceName);
+
+		if (service == null) {
+			throw new Exception("service does not exist - name='" + serviceName);
 		}
 
-		filter.setParam(SearchFilter.SERVICE_NAME, serviceName);
-
-		List<RangerPolicy> ret = getPolicies(filter);
+		ret = getServicePolicies(service, filter);
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDBStore.getServicePolicies(" + serviceName + "): count=" + ((ret == null) ? 0 : ret.size()));
@@ -1616,7 +1678,51 @@ public class ServiceDBStore implements ServiceStore {
 		return ret;
 	}
 
-	public RangerPolicyList getPaginatedServicePolicies(String serviceName, SearchFilter filter) throws Exception {
+	private List<RangerPolicy> getServicePolicies(XXService service, SearchFilter filter) throws Exception {
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> ServiceDBStore.getServicePolicies()");
+		}
+
+		if (service == null) {
+			throw new Exception("service does not exist");
+		}
+
+		List<RangerPolicy> ret = null;
+
+		ServicePolicies servicePolicies = RangerServicePoliciesCache.getInstance().getServicePolicies(service.getName(), this);
+		List<RangerPolicy> policies = servicePolicies != null ? servicePolicies.getPolicies() : null;
+
+		if(policies != null && filter != null) {
+			ret = new ArrayList<RangerPolicy>(policies);
+			predicateUtil.applyFilter(ret, filter);
+		} else {
+			ret = policies;
+		}
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== ServiceDBStore.getServicePolicies(): count=" + ((ret == null) ? 0 : ret.size()));
+		}
+
+		return ret;
+	}
+
+	private List<RangerPolicy> getServicePoliciesFromDb(XXService service) throws Exception {
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> ServiceDBStore.getServicePoliciesFromDb(" + service.getName() + ")");
+		}
+
+		RangerPolicyRetriever policyRetriever = new RangerPolicyRetriever(daoMgr);
+
+		List<RangerPolicy> ret = policyRetriever.getServicePolicies(service);
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== ServiceDBStore.getServicePoliciesFromDb(" + service.getName() + "): count=" + ((ret == null) ? 0 : ret.size()));
+		}
+
+		return ret;
+	}
+
+	public PList<RangerPolicy> getPaginatedServicePolicies(String serviceName, SearchFilter filter) throws Exception {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getPaginatedServicePolicies(" + serviceName + ")");
 		}
@@ -1627,7 +1733,7 @@ public class ServiceDBStore implements ServiceStore {
 
 		filter.setParam(SearchFilter.SERVICE_NAME, serviceName);
 
-		RangerPolicyList ret = getPaginatedPolicies(filter);
+		PList<RangerPolicy> ret = getPaginatedPolicies(filter);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDBStore.getPaginatedServicePolicies(" + serviceName + "): count="
@@ -1639,7 +1745,7 @@ public class ServiceDBStore implements ServiceStore {
 
 	@Override
 	public ServicePolicies getServicePoliciesIfUpdated(String serviceName, Long lastKnownVersion) throws Exception {
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> ServiceDBStore.getServicePoliciesIfUpdated(" + serviceName + ", " + lastKnownVersion + ")");
 		}
 
@@ -1647,44 +1753,217 @@ public class ServiceDBStore implements ServiceStore {
 
 		XXService serviceDbObj = daoMgr.getXXService().findByName(serviceName);
 
-		if(serviceDbObj == null) {
+		if (serviceDbObj == null) {
 			throw new Exception("service does not exist. name=" + serviceName);
 		}
 
-		if(lastKnownVersion == null || serviceDbObj.getPolicyVersion() == null || !lastKnownVersion.equals(serviceDbObj.getPolicyVersion())) {
-			RangerServiceDef serviceDef = getServiceDef(serviceDbObj.getType());
-
-			if(serviceDef == null) {
-				throw new Exception("service-def does not exist. id=" + serviceDbObj.getType());
-			}
-
-			List<RangerPolicy> policies = getServicePolicies(serviceDbObj);
-
-			ret = new ServicePolicies();
-
-			ret.setServiceId(serviceDbObj.getId());
-			ret.setServiceName(serviceDbObj.getName());
-			ret.setPolicyVersion(serviceDbObj.getPolicyVersion());
-			ret.setPolicyUpdateTime(serviceDbObj.getPolicyUpdateTime());
-			ret.setPolicies(policies);
-			ret.setServiceDef(serviceDef);
+		if (lastKnownVersion == null || serviceDbObj.getPolicyVersion() == null || !lastKnownVersion.equals(serviceDbObj.getPolicyVersion())) {
+			ret = RangerServicePoliciesCache.getInstance().getServicePolicies(serviceName, this);
 		}
 
-		if(LOG.isDebugEnabled()) {
+		if (ret != null && lastKnownVersion != null && lastKnownVersion.equals(ret.getPolicyVersion())) {
+			// ServicePolicies are not changed
+			ret = null;
+		}
+
+		if (LOG.isDebugEnabled()) {
+			RangerServicePoliciesCache.getInstance().dump();
+		}
+
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== ServiceDBStore.getServicePoliciesIfUpdated(" + serviceName + ", " + lastKnownVersion + "): count=" + ((ret == null || ret.getPolicies() == null) ? 0 : ret.getPolicies().size()));
 		}
 
 		return ret;
 	}
 
-	private void createDefaultPolicies(XXService createdService, VXUser vXUser) throws Exception {
-		// we need to create one policy for each resource hierarchy
+	@Override
+	public Long getServicePolicyVersion(String serviceName) {
+
+		XXService serviceDbObj = daoMgr.getXXService().findByName(serviceName);
+
+		return serviceDbObj != null ? serviceDbObj.getPolicyVersion() : null;
+	}
+
+	@Override
+	public ServicePolicies getServicePolicies(String serviceName) throws Exception {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("==> ServiceDBStore.getServicePolicies(" + serviceName  + ")");
+		}
+
+		ServicePolicies ret = null;
+
+		XXService serviceDbObj = daoMgr.getXXService().findByName(serviceName);
+
+		if (serviceDbObj == null) {
+			throw new Exception("service does not exist. name=" + serviceName);
+		}
+
+		RangerServiceDef serviceDef = getServiceDef(serviceDbObj.getType());
+
+		if (serviceDef == null) {
+			throw new Exception("service-def does not exist. id=" + serviceDbObj.getType());
+		}
+		List<RangerPolicy> policies = null;
+		ServicePolicies.TagPolicies tagPolicies = null;
+
+		if (serviceDbObj.getIsenabled()) {
+			if (serviceDbObj.getTagService() != null) {
+				XXService tagServiceDbObj = daoMgr.getXXService().getById(serviceDbObj.getTagService());
+
+				if (tagServiceDbObj != null && tagServiceDbObj.getIsenabled()) {
+					RangerServiceDef tagServiceDef = getServiceDef(tagServiceDbObj.getType());
+
+					if (tagServiceDef == null) {
+						throw new Exception("service-def does not exist. id=" + tagServiceDbObj.getType());
+					}
+
+					tagPolicies = new ServicePolicies.TagPolicies();
+
+					tagPolicies.setServiceId(tagServiceDbObj.getId());
+					tagPolicies.setServiceName(tagServiceDbObj.getName());
+					tagPolicies.setPolicyVersion(tagServiceDbObj.getPolicyVersion());
+					tagPolicies.setPolicyUpdateTime(tagServiceDbObj.getPolicyUpdateTime());
+					tagPolicies.setPolicies(getServicePoliciesFromDb(tagServiceDbObj));
+					tagPolicies.setServiceDef(tagServiceDef);
+				}
+			}
+
+			policies = getServicePoliciesFromDb(serviceDbObj);
+
+		} else {
+			policies = new ArrayList<RangerPolicy>();
+		}
+
+		ret = new ServicePolicies();
+
+		ret.setServiceId(serviceDbObj.getId());
+		ret.setServiceName(serviceDbObj.getName());
+		ret.setPolicyVersion(serviceDbObj.getPolicyVersion());
+		ret.setPolicyUpdateTime(serviceDbObj.getPolicyUpdateTime());
+		ret.setPolicies(policies);
+		ret.setServiceDef(serviceDef);
+		ret.setTagPolicies(tagPolicies);
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("<== ServiceDBStore.getServicePolicies(" + serviceName  + "): count=" + ((ret == null || ret.getPolicies() == null) ? 0 : ret.getPolicies().size()));
+		}
+
+		return ret;
+	}
+
+	void createDefaultPolicies(XXService createdService, VXUser vXUser) throws Exception {
 		RangerServiceDef serviceDef = getServiceDef(createdService.getType());
-		RangerServiceDefHelper serviceDefHelper = new RangerServiceDefHelper(serviceDef);
-		int i = 1;
-		for (List<RangerResourceDef> aHierarchy : serviceDefHelper.getResourceHierarchies()) {
-			createDefaultPolicy(createdService, vXUser, aHierarchy, i);
-			i++;
+
+		if (serviceDef.getName().equals(EmbeddedServiceDefsUtil.EMBEDDED_SERVICEDEF_TAG_NAME)) {
+			createDefaultTagPolicy(createdService);
+		} else {
+			// we need to create one policy for each resource hierarchy
+			RangerServiceDefHelper serviceDefHelper = new RangerServiceDefHelper(serviceDef);
+			int i = 1;
+			for (List<RangerResourceDef> aHierarchy : serviceDefHelper.getResourceHierarchies()) {
+				createDefaultPolicy(createdService, vXUser, aHierarchy, i);
+				i++;
+			}
+		}
+	}
+
+	private void createDefaultTagPolicy(XXService createdService) throws Exception {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("==> ServiceDBStore.createDefaultTagPolicy() ");
+		}
+
+		String tagResourceDefName = null;
+		boolean isConditionDefFound = false;
+
+		RangerServiceDef tagServiceDef = getServiceDef(createdService.getType());
+		List<RangerResourceDef> tagResourceDef = tagServiceDef.getResources();
+		if (tagResourceDef != null && tagResourceDef.size() > 0) {
+			// Assumption : First (and perhaps the only) resourceDef is the name of the tag resource
+			RangerResourceDef theTagResourceDef = tagResourceDef.get(0);
+			tagResourceDefName = theTagResourceDef.getName();
+		} else {
+			LOG.error("ServiceDBStore.createService() - Cannot create default TAG policy: Cannot get tagResourceDef Name.");
+		}
+
+		List<RangerPolicyConditionDef> policyConditionDefs = tagServiceDef.getPolicyConditions();
+
+		if (CollectionUtils.isNotEmpty(policyConditionDefs)) {
+			for (RangerPolicyConditionDef conditionDef : policyConditionDefs) {
+				if (conditionDef.getName().equals(RANGER_TAG_EXPIRY_CONDITION_NAME)) {
+					isConditionDefFound = true;
+					break;
+				}
+			}
+		}
+		if (!isConditionDefFound) {
+			LOG.error("ServiceDBStore.createService() - Cannot create default TAG policy: Cannot get tagPolicyConditionDef with name=" + RANGER_TAG_EXPIRY_CONDITION_NAME);
+		}
+
+		if (tagResourceDefName != null && isConditionDefFound) {
+
+			String tagType = "EXPIRES_ON";
+
+			String policyName = createdService.getName() + "-" + tagType;
+
+			RangerPolicy policy = new RangerPolicy();
+
+			policy.setIsEnabled(true);
+			policy.setVersion(1L);
+			policy.setName(policyName);
+			policy.setService(createdService.getName());
+			policy.setDescription(tagType + " Policy for TAG Service: " + createdService.getName());
+			policy.setIsAuditEnabled(true);
+
+			Map<String, RangerPolicyResource> resourceMap = new HashMap<String, RangerPolicyResource>();
+
+			RangerPolicyResource polRes = new RangerPolicyResource();
+			polRes.setIsExcludes(false);
+			polRes.setIsRecursive(false);
+			polRes.setValue(tagType);
+			resourceMap.put(tagResourceDefName, polRes);
+
+			policy.setResources(resourceMap);
+
+			List<RangerPolicyItem> policyItems = new ArrayList<RangerPolicyItem>();
+
+			RangerPolicyItem policyItem = new RangerPolicyItem();
+
+			List<String> groups = new ArrayList<String>();
+			groups.add(RangerConstants.GROUP_PUBLIC);
+			policyItem.setGroups(groups);
+
+			List<XXAccessTypeDef> accessTypeDefs = daoMgr.getXXAccessTypeDef().findByServiceDefId(createdService.getType());
+			List<RangerPolicyItemAccess> accesses = new ArrayList<RangerPolicyItemAccess>();
+			for (XXAccessTypeDef accessTypeDef : accessTypeDefs) {
+				RangerPolicyItemAccess access = new RangerPolicyItemAccess();
+				access.setType(accessTypeDef.getName());
+				access.setIsAllowed(true);
+				accesses.add(access);
+			}
+			policyItem.setAccesses(accesses);
+
+			List<RangerPolicyItemCondition> policyItemConditions = new ArrayList<RangerPolicyItemCondition>();
+			List<String> values = new ArrayList<String>();
+			values.add("yes");
+			RangerPolicyItemCondition policyItemCondition = new RangerPolicyItemCondition(RANGER_TAG_EXPIRY_CONDITION_NAME, values);
+			policyItemConditions.add(policyItemCondition);
+
+			policyItem.setConditions(policyItemConditions);
+			policyItem.setDelegateAdmin(Boolean.FALSE);
+
+			policyItems.add(policyItem);
+
+			policy.setDenyPolicyItems(policyItems);
+
+			policy = createPolicy(policy);
+		} else {
+			LOG.error("ServiceDBStore.createService() - Cannot create default TAG policy, tagResourceDefName=" + tagResourceDefName +
+					", tagPolicyConditionName=" + RANGER_TAG_EXPIRY_CONDITION_NAME);
+		}
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("<== ServiceDBStore.createDefaultTagPolicy()");
 		}
 	}
 
@@ -1796,24 +2075,32 @@ public class ServiceDBStore implements ServiceStore {
 			return;
 		}
 
-		Long policyVersion = service.getPolicyVersion();
-
-		if(policyVersion == null) {
-			policyVersion = new Long(1);
-		} else {
-			policyVersion = new Long(policyVersion.longValue() + 1);
-		}
-
-		service.setPolicyVersion(policyVersion);
+		service.setPolicyVersion(getNextVersion(service.getPolicyVersion()));
 		service.setPolicyUpdateTime(new Date());
 
 		serviceDbObj.setPolicyVersion(service.getPolicyVersion());
 		serviceDbObj.setPolicyUpdateTime(service.getPolicyUpdateTime());
 
 		serviceDao.update(serviceDbObj);
+
+		// if this is a tag service, update all services that refer to this tag service
+		// so that next policy-download from plugins will get updated tag policies
+		boolean isTagService = serviceDbObj.getType() == EmbeddedServiceDefsUtil.instance().getTagServiceDefId();
+		if(isTagService) {
+			List<XXService> referringServices = serviceDao.findByTagServiceId(serviceDbObj.getId());
+
+			if(CollectionUtils.isNotEmpty(referringServices)) {
+				for(XXService referringService : referringServices) {
+					referringService.setPolicyVersion(getNextVersion(referringService.getPolicyVersion()));
+					referringService.setPolicyUpdateTime(service.getPolicyUpdateTime());
+
+					serviceDao.update(referringService);
+				}
+			}
+		}
 	}
 
-	private void createNewPolicyItemsForPolicy(RangerPolicy policy, XXPolicy xPolicy, List<RangerPolicyItem> policyItems, XXServiceDef xServiceDef) throws Exception {
+	private void createNewPolicyItemsForPolicy(RangerPolicy policy, XXPolicy xPolicy, List<RangerPolicyItem> policyItems, XXServiceDef xServiceDef, int policyItemType) throws Exception {
 		
 		for (int itemOrder = 0; itemOrder < policyItems.size(); itemOrder++) {
 			RangerPolicyItem policyItem = policyItems.get(itemOrder);
@@ -1821,6 +2108,9 @@ public class ServiceDBStore implements ServiceStore {
 			xPolicyItem = (XXPolicyItem) rangerAuditFields.populateAuditFields(
 					xPolicyItem, xPolicy);
 			xPolicyItem.setDelegateAdmin(policyItem.getDelegateAdmin());
+			xPolicyItem.setItemType(policyItemType);
+			xPolicyItem.setIsEnabled(Boolean.TRUE);
+			xPolicyItem.setComments(null);
 			xPolicyItem.setPolicyId(policy.getId());
 			xPolicyItem.setOrder(itemOrder);
 			xPolicyItem = daoMgr.getXXPolicyItem().create(xPolicyItem);
@@ -2054,4 +2344,56 @@ public class ServiceDBStore implements ServiceStore {
 			LOG.debug(message);
 		}
 	}
+
+	// when a service-def is updated, the updated service-def should be made available to plugins
+	//   this is achieved by incrementing policyVersion of all services of this service-def
+	protected void updateServicesForServiceDefUpdate(RangerServiceDef serviceDef) throws Exception {
+		if(serviceDef == null) {
+			return;
+		}
+
+		boolean isTagServiceDef = StringUtils.equals(serviceDef.getName(), EmbeddedServiceDefsUtil.EMBEDDED_SERVICEDEF_TAG_NAME);
+
+		XXServiceDao serviceDao = daoMgr.getXXService();
+
+		List<XXService> services = serviceDao.findByServiceDefId(serviceDef.getId());
+
+		if(CollectionUtils.isNotEmpty(services)) {
+			for(XXService service : services) {
+				service.setPolicyVersion(getNextVersion(service.getPolicyVersion()));
+				service.setPolicyUpdateTime(serviceDef.getUpdateTime());
+
+				serviceDao.update(service);
+
+				if(isTagServiceDef) {
+					List<XXService> referrringServices = serviceDao.findByTagServiceId(service.getId());
+
+					if(CollectionUtils.isNotEmpty(referrringServices)) {
+						for(XXService referringService : referrringServices) {
+							referringService.setPolicyVersion(getNextVersion(referringService.getPolicyVersion()));
+							referringService.setPolicyUpdateTime(serviceDef.getUpdateTime());
+
+							serviceDao.update(referringService);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	private String getServiceName(Long serviceId) {
+		String ret = null;
+
+		if(serviceId != null) {
+			XXService service = daoMgr.getXXService().getById(serviceId);
+
+			if(service != null) {
+				ret = service.getName();
+			}
+		}
+
+		return ret;
+	}
+
 }

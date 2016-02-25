@@ -19,6 +19,7 @@
 
 package org.apache.ranger.authorization.hive.authorizer;
 
+import java.util.Date;
 import java.util.Set;
 
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzContext;
@@ -27,6 +28,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType
 import org.apache.ranger.authorization.utils.StringUtil;
 import org.apache.ranger.plugin.policyengine.RangerAccessRequestImpl;
 import org.apache.ranger.plugin.policyengine.RangerPolicyEngine;
+import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
 
 
 public class RangerHiveAccessRequest extends RangerAccessRequestImpl {
@@ -46,7 +48,7 @@ public class RangerHiveAccessRequest extends RangerAccessRequestImpl {
 		this.setResource(resource);
 		this.setUser(user);
 		this.setUserGroups(userGroups);
-		this.setAccessTime(StringUtil.getUTCDate());
+		this.setAccessTime(new Date());
 		this.setAction(hiveOpTypeName);
 		
 		if(context != null) {
@@ -101,6 +103,7 @@ public class RangerHiveAccessRequest extends RangerAccessRequestImpl {
 		ret.setRequestData(getRequestData());
 		ret.setClientType(getClientType());
 		ret.setSessionId(getSessionId());
+		ret.setContext(RangerAccessRequestUtil.copyContext(getContext()));
 		ret.accessType = accessType;
 
 		return ret;

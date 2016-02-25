@@ -650,6 +650,8 @@ public class AssetREST {
 				"startDate", "MM/dd/yyyy");
 		searchUtil.extractDate(request, searchCriteria, "endDate", "endDate",
 				"MM/dd/yyyy");
+
+		searchUtil.extractString(request, searchCriteria, "tags", "tags", null);
 		
 		boolean isKeyAdmin = msBizUtil.isKeyAdmin();
 		XXServiceDef xxServiceDef = daoManager.getXXServiceDef().findByName(EmbeddedServiceDefsUtil.EMBEDDED_SERVICEDEF_KMS_NAME); 

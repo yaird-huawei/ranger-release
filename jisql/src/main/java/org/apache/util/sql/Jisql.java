@@ -365,7 +365,7 @@ public class Jisql {
         Statement statement = null;
         ResultSet resultSet = null;
         ResultSetMetaData resultSetMetaData = null;
-        StringBuffer query = null;
+        StringBuilder query = null;
 
         if (inputFileName != null) {
             try {
@@ -390,7 +390,7 @@ public class Jisql {
         
         while (true) {
             int linecount = 1;
-            query = new StringBuffer();
+            query = new StringBuilder();
 
             try {
                 if ((inputFileName == null) && (inputQuery == null))
@@ -417,7 +417,7 @@ public class Jisql {
                     }
 
                     if (line.equals("reset")) {
-                        query = new StringBuffer();
+                        query = new StringBuilder();
                         break;
                     }
                     trimmedLine=line.trim();
@@ -427,6 +427,15 @@ public class Jisql {
                     if(connectString.toLowerCase().startsWith("jdbc:oracle") && inputFileName!=null){
 	                    if (trimmedLine.startsWith("/") ||trimmedLine.length()<2) {
 	                        commandTerminator=";";
+	                        continue;
+	                    }
+	                    if (trimmedLine.toUpperCase().startsWith("DECLARE")) {
+	                        commandTerminator="/";
+	                    }
+                    }
+                    if(connectString.toLowerCase().startsWith("jdbc:postgresql") && inputFileName!=null){
+	                    if (trimmedLine.toLowerCase().startsWith("select 'delimiter start';")) {
+	                        commandTerminator="select 'delimiter end';";
 	                        continue;
 	                    }
                     }

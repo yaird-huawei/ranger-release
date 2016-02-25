@@ -305,7 +305,6 @@
 		<directory>embeddedwebserver/conf</directory>
 		<fileMode>700</fileMode>
 	</fileSet>
-
 	<fileSet>
 		<outputDirectory>/db</outputDirectory>
 		<directory>security-admin/db</directory>
