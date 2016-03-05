@@ -20,6 +20,7 @@
 
 package org.apache.ranger.authorization.yarn.authorizer;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -28,6 +29,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.yarn.security.AccessType;
+import org.apache.hadoop.yarn.security.AccessRequest;
+import org.apache.hadoop.yarn.security.Permission;
 import org.apache.hadoop.yarn.security.PrivilegedEntity;
 import org.apache.hadoop.yarn.security.YarnAuthorizationProvider;
 import org.apache.ranger.plugin.classloader.RangerPluginClassLoader;
@@ -103,7 +106,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 	}
 
 	@Override
-	public boolean checkPermission(AccessType accessType, PrivilegedEntity target, UserGroupInformation user) {
+	public boolean checkPermission(AccessRequest accessRequest) {
 		
 		boolean ret = false;
 		
@@ -114,7 +117,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 		try {
 			activatePluginClassLoader();
 
-			ret = yarnAuthorizationProviderImpl.checkPermission(accessType, target, user);
+			ret = yarnAuthorizationProviderImpl.checkPermission(accessRequest);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -127,7 +130,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 	}
 
 	@Override
-	public void setPermission(PrivilegedEntity target,	Map<AccessType, AccessControlList> acls, UserGroupInformation ugi) {
+	public void setPermission(List<Permission> permissions, UserGroupInformation ugi) {
 		
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerYarnAuthorizer.setPermission()");
@@ -136,7 +139,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 		try {
 			activatePluginClassLoader();
 
-			yarnAuthorizationProviderImpl.setPermission(target, acls, ugi);
+			yarnAuthorizationProviderImpl.setPermission(permissions, ugi);
 		} finally {
 			deactivatePluginClassLoader();
 		}
