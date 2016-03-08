@@ -45,6 +45,7 @@ import org.apache.ranger.plugin.policyengine.RangerPolicyEngineOptions;
 import org.apache.ranger.plugin.policyresourcematcher.RangerDefaultPolicyResourceMatcher;
 import org.apache.ranger.plugin.policyresourcematcher.RangerPolicyResourceMatcher;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
+import org.apache.ranger.plugin.util.ServiceDefUtil;
 
 
 public class RangerDefaultPolicyEvaluator extends RangerAbstractPolicyEvaluator {
@@ -283,19 +284,38 @@ public class RangerDefaultPolicyEvaluator extends RangerAbstractPolicyEvaluator 
 	}
 
 	@Override
-	public boolean isSingleAndExactMatch(RangerAccessResource resource) {
+	public boolean isCompleteMatch(RangerAccessResource resource) {
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> RangerDefaultPolicyEvaluator.isSingleAndExactMatch(" + resource + ")");
+			LOG.debug("==> RangerDefaultPolicyEvaluator.isCompleteMatch(" + resource + ")");
 		}
 
 		boolean ret = false;
 
 		if(resourceMatcher != null) {
-			ret = resourceMatcher.isSingleAndExactMatch(resource);
+			ret = resourceMatcher.isCompleteMatch(resource);
 		}
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerDefaultPolicyEvaluator.isSingleAndExactMatch(" + resource + "): " + ret);
+			LOG.debug("<== RangerDefaultPolicyEvaluator.isCompleteMatch(" + resource + "): " + ret);
+		}
+
+		return ret;
+	}
+
+	@Override
+	public boolean isCompleteMatch(Map<String, RangerPolicyResource> resources) {
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerDefaultPolicyEvaluator.isCompleteMatch(" + resources + ")");
+		}
+
+		boolean ret = false;
+
+		if(resourceMatcher != null) {
+			ret = resourceMatcher.isCompleteMatch(resources);
+		}
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerDefaultPolicyEvaluator.isCompleteMatch(" + resources + "): " + ret);
 		}
 
 		return ret;
@@ -511,7 +531,7 @@ public class RangerDefaultPolicyEvaluator extends RangerAbstractPolicyEvaluator 
 	private List<RangerPolicyItemEvaluator> createPolicyItemEvaluators(RangerPolicy policy, RangerServiceDef serviceDef, RangerPolicyEngineOptions options, List<RangerPolicyItem> policyItems, int policyItemType) {
 		List<RangerPolicyItemEvaluator> ret = null;
 
-		if(CollectionUtils.isNotEmpty(policyItems)) {
+		if(CollectionUtils.isNotEmpty(policyItems) && isPolicyItemTypeEnabled(serviceDef, policyItemType)) {
 			ret = new ArrayList<RangerPolicyItemEvaluator>();
 
 			int policyItemCounter = 1;
@@ -529,6 +549,18 @@ public class RangerDefaultPolicyEvaluator extends RangerAbstractPolicyEvaluator 
 			}
 		} else {
 			ret = Collections.<RangerPolicyItemEvaluator>emptyList();
+		}
+
+		return ret;
+	}
+
+	private boolean isPolicyItemTypeEnabled(RangerServiceDef serviceDef, int policyItemType) {
+		boolean ret = true;
+
+		if(policyItemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY ||
+		   policyItemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW_EXCEPTIONS ||
+		   policyItemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY_EXCEPTIONS) {
+			ret = ServiceDefUtil.getOption_enableDenyAndExceptionsInPolicies(serviceDef);
 		}
 
 		return ret;
