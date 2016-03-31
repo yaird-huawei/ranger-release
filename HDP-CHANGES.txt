@@ -1,5 +1,6 @@
 Changes only in Hortonworks github and not in ranger 0.5.0 Apache Release and hence not covered by CHANGES.txt.
 
+BUG-54970:  ranger knox test cases are failing getting class not found exception (affected by: changes done for HDFS-9724)
 BUG-54895:  changes to HDP-CHANGES.txt file for HDP-2.4-m10 release
 RANGER-894: Fixing few issues in the ldap tool when user search base or group search base is configured as part of input
 RANGER-746: Addressing suggestions from Review - Add wildcard, multiple CN & SAN support when validating plugins' SSL certs
