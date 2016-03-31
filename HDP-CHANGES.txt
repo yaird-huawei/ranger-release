@@ -1,5 +1,30 @@
 Changes only in Hortonworks github and not in ranger 0.5.0 Apache Release and hence not covered by CHANGES.txt.
 
+BUG-54895:  changes to HDP-CHANGES.txt file for HDP-2.4-m10 release
+RANGER-894: Fixing few issues in the ldap tool when user search base or group search base is configured as part of input
+RANGER-746: Addressing suggestions from Review - Add wildcard, multiple CN & SAN support when validating plugins' SSL certs
+RANGER-882: Scrub received policies before policy engine uses it to guard against inadvertant data corruption: remove null policy resource values
+RANGER-863: Make parameters like maxHttpHeaderSize configurable for EmbeddedServer
+RANGER-799: Ranger UI fixes - partial search not working on Policy listing page
+RANGER-218: LDAP Groups incorrectly labelled internal
+RANGER-831: policy version incremented twice when resources are updated
+RANGER-771: Fix 4+ Log entries upon login in in X_AUTH_SESS
+RANGER-798: Handle different timezone issue while saving audit logs to Solr
+RANGER-857: Unify (and update) Tomcat versions
+RANGER-889: Policy engine API to find list of users/groups having access to a resource
+RANGER-833: RMP-5758-CLONE - [Derg-M10] In Ranger UI add support for usernames containing a plus + symbol
+RANGER-836: Optimize policy retrieval 
+RANGER-848: Policy Listing page fix: users column is empty for non-admin users
+RANGER-844: Optimize policy retrieval for non-admin users
+RANGER-789: Fix incorrect policy list paging for non-admin users
+RANGER-794: Ranger policy engine performance measurement
+RANGER-809: Audit framework need to cache the getHostName() values to reuse for successive calls
+RANGER-834: Correct the excludes flag's treatment when resource value denotes everything
+RANGER-821: Ranger shutdown hook should not only do its processing asynchronously but also terminate itself if it runs more than a configurable amount of time.
+RANGER-777: Remove the mavn profile that was added for building kafka plugin
+RANGER-825: groupId in ranger's child poms should be consistent and follow convention.
+RANGER-804: Delete groups associated with User causes Exception in UserSync
+
 SUB-TASK
 
      [RANGER-422] - Add additional database columns to support aggregation
