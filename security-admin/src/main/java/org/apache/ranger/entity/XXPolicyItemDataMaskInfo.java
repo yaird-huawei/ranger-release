@@ -41,16 +41,6 @@ public class XXPolicyItemDataMaskInfo extends XXDBBase implements
 	protected Long id;
 
 	/**
-	 * Global Id for the object
-	 * <ul>
-	 * <li>The maximum length for this attribute is <b>512</b>.
-	 * </ul>
-	 *
-	 */
-	@Column(name = "guid", unique = true, nullable = false, length = 512)
-	protected String GUID;
-	
-	/**
 	 * policyItemId of the XXPolicyItemDataMaskInfo
 	 * <ul>
 	 * </ul>
@@ -107,28 +97,13 @@ public class XXPolicyItemDataMaskInfo extends XXDBBase implements
 	}
 
 	/**
-	 * @return the gUID
-	 */
-	public String getGUID() {
-		return GUID;
-	}
-
-	/**
-	 * @param gUID
-	 *            the gUID to set
-	 */
-	public void setGUID(String gUID) {
-		GUID = gUID;
-	}
-
-	/**
 	 * This method sets the value to the member attribute <b> policyItemId</b> .
 	 * You cannot set null to the attribute.
 	 * 
 	 * @param policyItemId
 	 *            Value to set member attribute <b> policyItemId</b>
 	 */
-	public void setPolicyitemid(Long policyItemId) {
+	public void setPolicyItemId(Long policyItemId) {
 		this.policyItemId = policyItemId;
 	}
 
@@ -137,7 +112,7 @@ public class XXPolicyItemDataMaskInfo extends XXDBBase implements
 	 * 
 	 * @return Date - value of member attribute <b>policyItemId</b> .
 	 */
-	public Long getPolicyitemid() {
+	public Long getPolicyItemId() {
 		return this.policyItemId;
 	}
 
@@ -256,13 +231,6 @@ public class XXPolicyItemDataMaskInfo extends XXDBBase implements
 		} else if (!type.equals(other.type)) {
 			return false;
 		}
-		if (GUID == null) {
-			if (other.GUID != null) {
-				return false;
-			}
-		} else if (!GUID.equals(other.GUID)) {
-			return false;
-		}
 		return true;
 	}
 
@@ -274,9 +242,8 @@ public class XXPolicyItemDataMaskInfo extends XXDBBase implements
 	@Override
 	public String toString() {
 		return "XXPolicyItemDataMaskInfo [" + super.toString() + " id=" + id
-				+ ", guid=" + GUID + ", policyItemId="
-				+ policyItemId + ", type=" + type + ", conditionExpr=" + conditionExpr
-				+ ", valueExpr=" + valueExpr + "]";
+				+ ", policyItemId=" + policyItemId + ", type=" + type
+				+ ", conditionExpr=" + conditionExpr + ", valueExpr=" + valueExpr + "]";
 	}
 
 }

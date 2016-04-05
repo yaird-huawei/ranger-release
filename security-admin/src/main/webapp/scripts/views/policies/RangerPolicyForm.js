@@ -53,7 +53,10 @@ define(function(require){
 		* @constructs
 		*/
 		templateData : function(){
-			return { 'id' : this.model.id };
+			var obj = XAUtil.enumElementByValue(XAEnums.RangerPolicyType, this.model.get('policyType')) 
+			return { 'id' : this.model.id,
+					'policyType' : obj.label
+				};
 		},
 		initialize: function(options) {
 			console.log("initialized a RangerPolicyForm Form View");
@@ -66,7 +69,13 @@ define(function(require){
 			this.defaultValidator={}
 		},
 		initializeCollection: function(){
-			this.formInputList 		= XAUtil.makeCollForGroupPermission(this.model, 'policyItems');
+			if(XAUtil.isMaskingPolicy(this.model.get('policyType'))){
+				this.formInputList 		= XAUtil.makeCollForGroupPermission(this.model, 'dataMaskPolicyItems');
+			}else if(XAUtil.isRowFilterPolicy(this.model.get('policyType'))){
+				this.formInputList 		= XAUtil.makeCollForGroupPermission(this.model, 'rowFilterPolicyItems');
+			}else{
+				this.formInputList 		= XAUtil.makeCollForGroupPermission(this.model, 'policyItems');
+			}
 			this.formInputAllowExceptionList= XAUtil.makeCollForGroupPermission(this.model, 'allowExceptions');
 			this.formInputDenyList 		= XAUtil.makeCollForGroupPermission(this.model, 'denyPolicyItems');
 			this.formInputDenyExceptionList = XAUtil.makeCollForGroupPermission(this.model, 'denyExceptions');
@@ -81,7 +90,10 @@ define(function(require){
 			});
 			this.on('policyForm:parentChildHideShow',this.renderParentChildHideShow);
 		},
-
+		ui : {
+			'denyConditionItems' : '[data-js="denyConditionItems"]',
+			'allowExcludePerm' : '[data-js="allowExcludePerm"]',
+		},
 		/** fields for the form
 		*/
 		fields: ['name', 'description', 'isEnabled', 'isAuditEnabled'],
@@ -94,7 +106,7 @@ define(function(require){
 			var schemaNames = this.getPolicyBaseFieldNames();
 			
 			var formDataType = new BackboneFormDataType();
-			attrs = formDataType.getFormElements(this.rangerServiceDefModel.get('resources'),this.rangerServiceDefModel.get('enums'), attrs, this);
+			attrs = formDataType.getFormElements(this.rangerServiceDefModel.get('resources'),this.rangerServiceDefModel.get('enums'), attrs, this, true);
 			
 			var attr1 = _.pick(_.result(this.model,'schemaBase'),basicSchema);
 			var attr2 = _.pick(_.result(this.model,'schemaBase'),schemaNames);
@@ -173,9 +185,16 @@ define(function(require){
 		setupForm : function() {
 			if(!this.model.isNew()){
 				this.selectedResourceTypes = {};
+				var resourceDefList = this.rangerServiceDefModel.get('resources');
+				if(XAUtil.isMaskingPolicy(this.model.get('policyType')) && XAUtil.isRenderMasking(this.rangerServiceDefModel.get('dataMaskDef'))){
+					resourceDefList = this.rangerServiceDefModel.get('dataMaskDef').resources;
+				}
 				_.each(this.model.get('resources'),function(obj,key){
-					var resourceDef = _.findWhere(this.rangerServiceDefModel.get('resources'),{'name':key})
-					var sameLevelResourceDef = _.where(this.rangerServiceDefModel.get('resources'), {'level': resourceDef.level});
+					var resourceDef = _.findWhere(resourceDefList,{'name':key}),
+					sameLevelResourceDef = [];
+					if(this.model.get('policyType') == XAEnums.RangerPolicyType.RANGER_ACCESS_POLICY_TYPE.value){
+						sameLevelResourceDef = _.where(resourceDefList, {'level': resourceDef.level});
+					}
 					if(sameLevelResourceDef.length > 1){
 						obj['resourceType'] = key;
 						this.model.set('sameLevel'+resourceDef.level, obj)
@@ -183,12 +202,13 @@ define(function(require){
 						this.selectedResourceTypes['sameLevel'+resourceDef.level]=key;
 					}else{
 						//single value support
-						if(! XAUtil.isSinglevValueInput(resourceDef) ){
+						/*if(! XAUtil.isSinglevValueInput(resourceDef) ){
 							this.model.set(resourceDef.name, obj)
 						}else{
 							//single value resource
 							this.model.set(resourceDef.name, obj.values)
-						}
+						}*/
+						this.model.set(resourceDef.name, obj)
 					}
 				},this)
 			}
@@ -200,8 +220,24 @@ define(function(require){
 		},
 		/** all custom field rendering */
 		renderCustomFields: function(){
-			var that = this;
-			var accessType = this.rangerServiceDefModel.get('accessTypes').filter(function(val) { return val !== null; });
+			var that = this,
+				accessType = this.rangerServiceDefModel.get('accessTypes').filter(function(val) { return val !== null; }),
+				serviceDefOptions = this.rangerServiceDefModel.get('options'),
+				enableDenyAndExceptionsInPolicies = false;
+			//By default hide the PolicyItems for all component except tag component
+			if((!_.isUndefined(serviceDefOptions) && !_.isUndefined(serviceDefOptions.enableDenyAndExceptionsInPolicies))){
+				if( !XAUtil.isAccessPolicy(this.model.get('policyType')) )	return;
+				enableDenyAndExceptionsInPolicies = $.parseJSON(serviceDefOptions.enableDenyAndExceptionsInPolicies);
+			} else {
+				if(this.rangerServiceDefModel.get('name') == XAEnums.ServiceType.SERVICE_TAG.label){
+					enableDenyAndExceptionsInPolicies = true;
+				}		
+			}
+			if( !enableDenyAndExceptionsInPolicies ){
+				this.$el.find(this.ui.allowExcludePerm).hide();
+				this.$el.find(this.ui.denyConditionItems).remove();
+			} 
+	
 			this.userList = new VXUserList();
 			var params = {sortBy : 'name', isVisible : XAEnums.VisibilityStatus.STATUS_VISIBLE.value};
 			this.userList.setPageSize(100,{fetch:false});
@@ -216,42 +252,47 @@ define(function(require){
 					cache :true,
 					data : params
 				}).done(function(){
-					that.$('[data-customfields="groupPerms"]').html(new PermissionList({
-						collection : that.formInputList,
-						groupList  : that.groupList,
-						userList   : that.userList,
-						model 	   : that.model,
-						accessTypes: accessType,
-						headerTitle: "",
-						rangerServiceDefModel : that.rangerServiceDefModel
+						that.$('[data-customfields="groupPerms"]').html(new PermissionList({
+							collection : that.formInputList,
+							groupList  : that.groupList,
+							userList   : that.userList,
+							model 	   : that.model,
+							accessTypes: accessType,
+							headerTitle: "",
+							rangerServiceDefModel : that.rangerServiceDefModel,
+							rangerPolicyType : that.model.get('policyType')
 						}).render().el);
-						that.$('[data-customfields="groupPermsAllowExclude"]').html(new PermissionList({
-						collection : that.formInputAllowExceptionList,
-						groupList  : that.groupList,
-						userList   : that.userList,
-						model 	   : that.model,
-						accessTypes: accessType,
-						headerTitle: "",
-						rangerServiceDefModel : that.rangerServiceDefModel
-						}).render().el);
-						that.$('[data-customfields="groupPermsDeny"]').html(new PermissionList({
-						collection : that.formInputDenyList,
-						groupList  : that.groupList,
-						userList   : that.userList,
-						model 	   : that.model,
-						accessTypes: accessType,
-						headerTitle: "Deny",
-						rangerServiceDefModel : that.rangerServiceDefModel
-						}).render().el);
-						that.$('[data-customfields="groupPermsDenyExclude"]').html(new PermissionList({
-						collection : that.formInputDenyExceptionList,
-						groupList  : that.groupList,
-						userList   : that.userList,
-						model 	   : that.model,
-						accessTypes: accessType,
-						headerTitle: "Deny",
-						rangerServiceDefModel : that.rangerServiceDefModel
-					}).render().el);
+						
+						if( enableDenyAndExceptionsInPolicies ){
+							that.$('[data-customfields="groupPermsAllowExclude"]').html(new PermissionList({
+								collection : that.formInputAllowExceptionList,
+								groupList  : that.groupList,
+								userList   : that.userList,
+								model 	   : that.model,
+								accessTypes: accessType,
+								headerTitle: "",
+								rangerServiceDefModel : that.rangerServiceDefModel
+							}).render().el);
+						
+							that.$('[data-customfields="groupPermsDeny"]').html(new PermissionList({
+								collection : that.formInputDenyList,
+								groupList  : that.groupList,
+								userList   : that.userList,
+								model 	   : that.model,
+								accessTypes: accessType,
+								headerTitle: "Deny",
+								rangerServiceDefModel : that.rangerServiceDefModel
+							}).render().el);
+							that.$('[data-customfields="groupPermsDenyExclude"]').html(new PermissionList({
+								collection : that.formInputDenyExceptionList,
+								groupList  : that.groupList,
+								userList   : that.userList,
+								model 	   : that.model,
+								accessTypes: accessType,
+								headerTitle: "Deny",
+								rangerServiceDefModel : that.rangerServiceDefModel
+							}).render().el);
+					}
 			});
 
 		},
@@ -308,29 +349,38 @@ define(function(require){
                 	that.model.unset(key);
                 }
 			},this);
-			_.each(this.rangerServiceDefModel.get('resources'),function(obj){
+			//To set resource values
+			//Check for masking policies
+			var resourceDef = this.rangerServiceDefModel.get('resources');
+			if(XAUtil.isMaskingPolicy(this.model.get('policyType')) && XAUtil.isRenderMasking(this.rangerServiceDefModel.get('dataMaskDef'))){
+				resourceDef = this.rangerServiceDefModel.get('dataMaskDef').resources;
+			}
+			if(XAUtil.isRowFilterPolicy(this.model.get('policyType')) && XAUtil.isRenderRowFilter(this.rangerServiceDefModel.get('rowFilterDef'))){
+				resourceDef = this.rangerServiceDefModel.get('rowFilterDef').resources;
+			}
+			_.each(resourceDef,function(obj){
 				if(!_.isNull(obj)){
 					var tmpObj =  that.model.get(obj.name);
 					var rPolicyResource = new RangerPolicyResource();
 					//single value support
-					if(! XAUtil.isSinglevValueInput(obj) ){
-						if(!_.isUndefined(tmpObj) && _.isObject(tmpObj)){
-							rPolicyResource.set('values',tmpObj.resource.split(','));
-							if(!_.isUndefined(tmpObj.isRecursive)){
-								rPolicyResource.set('isRecursive', tmpObj.isRecursive)
-							}
-							if(!_.isUndefined(tmpObj.isExcludes)){
-								rPolicyResource.set('isExcludes', tmpObj.isExcludes)
-							}
-							resources[obj.name] = rPolicyResource;
-							that.model.unset(obj.name);
+//					if(! XAUtil.isSinglevValueInput(obj) ){
+					if(!_.isUndefined(tmpObj) && _.isObject(tmpObj)){
+						rPolicyResource.set('values',tmpObj.resource.split(','));
+						if(!_.isUndefined(tmpObj.isRecursive)){
+							rPolicyResource.set('isRecursive', tmpObj.isRecursive)
 						}
-					}else{
-						//For single value resource
-						rPolicyResource.set('values',tmpObj.split(','));
+						if(!_.isUndefined(tmpObj.isExcludes)){
+							rPolicyResource.set('isExcludes', tmpObj.isExcludes)
+						}
 						resources[obj.name] = rPolicyResource;
 						that.model.unset(obj.name);
 					}
+//					}else{
+//						//For single value resource
+//						rPolicyResource.set('values',tmpObj.split(','));
+//						resources[obj.name] = rPolicyResource;
+//						that.model.unset(obj.name);
+//					}
 				}
 			});
 			
@@ -338,18 +388,18 @@ define(function(require){
 			this.model.unset('path');
 			
 			//Set UserGroups Permission
-			
 			var RangerPolicyItem = Backbone.Collection.extend();
-			
-			this.model.set('policyItems', this.setPermissionsToColl(this.formInputList, new RangerPolicyItem()));
-			this.model.set('denyPolicyItems', this.setPermissionsToColl(this.formInputDenyList, new RangerPolicyItem()));
-			this.model.set('allowExceptions', this.setPermissionsToColl(this.formInputAllowExceptionList, new RangerPolicyItem()));
-			this.model.set('denyExceptions', this.setPermissionsToColl(this.formInputDenyExceptionList, new RangerPolicyItem()));
+			if( XAUtil.isMaskingPolicy(this.model.get('policyType')) ){
+				this.model.set('dataMaskPolicyItems', this.setPermissionsToColl(this.formInputList, new RangerPolicyItem()));
+			}else if( XAUtil.isRowFilterPolicy(this.model.get('policyType')) ){
+				this.model.set('rowFilterPolicyItems', this.setPermissionsToColl(this.formInputList, new RangerPolicyItem()));
+			}else{
+				this.model.set('policyItems', this.setPermissionsToColl(this.formInputList, new RangerPolicyItem()));
+				this.model.set('denyPolicyItems', this.setPermissionsToColl(this.formInputDenyList, new RangerPolicyItem()));
+				this.model.set('allowExceptions', this.setPermissionsToColl(this.formInputAllowExceptionList, new RangerPolicyItem()));
+				this.model.set('denyExceptions', this.setPermissionsToColl(this.formInputDenyExceptionList, new RangerPolicyItem()));
+			}
 			this.model.set('service',this.rangerService.get('name'));
-			/*//Unset attrs which are not needed 
-			_.each(this.model.attributes.resources,function(obj,key){
-				this.model.unset(key, obj.values.toString())
-			},this)*/
 		},
 		setPermissionsToColl : function(list, policyItemList) {
 			list.each(function(m){
@@ -367,7 +417,7 @@ define(function(require){
 						var rPolicyItemCondList = new RangerPolicyItemConditionList(m.get('conditions'))
 						policyItem.set('conditions', rPolicyItemCondList)
 					}
-					if(!_.isUndefined(m.get('accesses')) && !_.isUndefined(m.get('delegateAdmin'))){
+					if(!_.isUndefined(m.get('delegateAdmin'))){
 						policyItem.set("delegateAdmin",m.get("delegateAdmin"));
 					}
 					if(!_.isUndefined(m.get('accesses'))){
@@ -376,6 +426,13 @@ define(function(require){
 						policyItem.set('accesses', rangerPlcItemAccessList)
 						policyItemList.add(policyItem)
 					}
+					if(!_.isUndefined(m.get('dataMaskInfo'))){
+						policyItem.set("dataMaskInfo",m.get("dataMaskInfo"));
+					}
+					if(!_.isUndefined(m.get('rowFilterInfo'))){
+						policyItem.set("rowFilterInfo",m.get("rowFilterInfo"));
+					}
+					
 					
 				}
 			}, this);
@@ -481,14 +538,11 @@ define(function(require){
 			
 		},
 		getPlugginAttr :function(autocomplete, options){
-			var that =this;
-			var type = options.containerCssClass, validRegExpString = true;
+			var that =this, type = options.containerCssClass, validRegExpString = true, select2Opts=[];
 			if(!autocomplete)
 				return{tags : true,width :'220px',multiple: true,minimumInputLength: 1, 'containerCssClass' : type};
 			else {
-				
-				
-				return {
+				select2Opts = {
 					containerCssClass : options.type,
 					closeOnSelect : true,
 					tags:true,
@@ -498,6 +552,12 @@ define(function(require){
 					tokenSeparators: [",", " "],
 					initSelection : function (element, callback) {
 						var data = [];
+						//to set single select value
+						if(!_.isUndefined(options.singleValueInput) && options.singleValueInput){
+							callback({ id : element.val(), text : element.val() });
+							return;
+						}
+						//this is form multi-select value
 						$(element.val().split(",")).each(function () {
 							data.push({id: this, text: this});
 						});
@@ -568,6 +628,11 @@ define(function(require){
 						return "No Matches found";
 					}
 				};	
+				//To support single value input
+				if(!_.isUndefined(options.singleValueInput) && options.singleValueInput){
+					select2Opts['maximumSelectionSize'] = 1;
+				}
+				return select2Opts;
 			}
 		},
 		getDataParams : function(term, options) {

@@ -28,34 +28,16 @@ import org.apache.ranger.plugin.policyengine.RangerPolicyEngineOptions;
 
 
 public class RangerDefaultDataMaskPolicyItemEvaluator extends RangerDefaultPolicyItemEvaluator implements RangerDataMaskPolicyItemEvaluator {
+	final private RangerDataMaskPolicyItem dataMaskPolicyItem;
 
 	public RangerDefaultDataMaskPolicyItemEvaluator(RangerServiceDef serviceDef, RangerPolicy policy, RangerDataMaskPolicyItem policyItem, int policyItemIndex, RangerPolicyEngineOptions options) {
-		super(serviceDef, policy, policyItem, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DATA_MASKING, policyItemIndex, options);
+		super(serviceDef, policy, policyItem, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DATAMASK, policyItemIndex, options);
+
+		dataMaskPolicyItem = policyItem;
 	}
 
 	@Override
-	public RangerDataMaskPolicyItem getPolicyItem() {
-		return (RangerDataMaskPolicyItem)policyItem;
-	}
-
-	@Override
-	public String getMaskType() {
-		RangerPolicyItemDataMaskInfo dataMaskInfo = getPolicyItem().getDataMaskInfo();
-
-		return dataMaskInfo != null ? dataMaskInfo.getDataMaskType() : null;
-	}
-
-	@Override
-	public String getMaskCondition() {
-		RangerPolicyItemDataMaskInfo dataMaskInfo = getPolicyItem().getDataMaskInfo();
-
-		return dataMaskInfo != null ? dataMaskInfo.getConditionExpr() : null;
-	}
-
-	@Override
-	public String getMaskedValue() {
-		RangerPolicyItemDataMaskInfo dataMaskInfo = getPolicyItem().getDataMaskInfo();
-
-		return dataMaskInfo != null ? dataMaskInfo.getValueExpr() : null;
+	public RangerPolicyItemDataMaskInfo getDataMaskInfo() {
+		return dataMaskPolicyItem == null ? null : dataMaskPolicyItem.getDataMaskInfo();
 	}
 }

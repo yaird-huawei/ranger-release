@@ -18,17 +18,11 @@
  */
 package org.apache.ranger.plugin.policyevaluator;
 
-import org.apache.ranger.plugin.model.RangerPolicy.RangerDataMaskPolicyItem;
+import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemDataMaskInfo;
 
 
 public interface RangerDataMaskPolicyItemEvaluator extends RangerPolicyItemEvaluator {
 	void init();
 
-	RangerDataMaskPolicyItem getPolicyItem();
-
-	String getMaskType();
-
-	String getMaskCondition();
-
-	String getMaskedValue();
+	RangerPolicyItemDataMaskInfo getDataMaskInfo();
 }

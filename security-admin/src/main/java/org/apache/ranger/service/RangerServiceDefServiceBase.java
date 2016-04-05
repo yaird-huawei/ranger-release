@@ -17,6 +17,7 @@
 
 package org.apache.ranger.service;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,8 +44,10 @@ import org.apache.ranger.plugin.model.RangerServiceDef.RangerEnumDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerEnumElementDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerPolicyConditionDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerResourceDef;
+import org.apache.ranger.plugin.model.RangerServiceDef.RangerRowFilterDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerServiceConfigDef;
 import org.apache.ranger.plugin.util.SearchFilter;
+import org.apache.ranger.plugin.util.ServiceDefUtil;
 import org.apache.ranger.view.RangerServiceDefList;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -142,7 +145,9 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 			serviceDef.setEnums(enums);
 		}
 
-		RangerDataMaskDef dataMaskDef = new RangerDataMaskDef();
+		RangerDataMaskDef  dataMaskDef  = new RangerDataMaskDef();
+		RangerRowFilterDef rowFilterDef = new RangerRowFilterDef();
+
 		List<XXDataMaskTypeDef> xDataMaskTypes = daoMgr.getXXDataMaskTypeDef().findByServiceDefId(serviceDefId);
 		if (!stringUtil.isEmpty(xDataMaskTypes)) {
 			List<RangerDataMaskTypeDef> dataMaskTypes = new ArrayList<RangerDataMaskTypeDef>();
@@ -156,24 +161,43 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 
 		if (!stringUtil.isEmpty(xResources)) {
 			for (XXResourceDef xResource : xResources) {
-				if (xResource.isDatamaskingSupported()) {
-					dataMaskDef.getSupportedResources().add(xResource.getName());
+				if (StringUtils.isNotEmpty(xResource.getDataMaskOptions())) {
+					RangerResourceDef dataMaskResource = jsonToObject(xResource.getDataMaskOptions(), RangerResourceDef.class);
+
+					dataMaskDef.getResources().add(dataMaskResource);
+				}
+
+				if (StringUtils.isNotEmpty(xResource.getRowFilterOptions())) {
+					RangerResourceDef resource = jsonToObject(xResource.getRowFilterOptions(), RangerResourceDef.class);
+
+					rowFilterDef.getResources().add(resource);
 				}
 			}
 		}
 
 		if (!stringUtil.isEmpty(xAccessTypes)) {
 			for (XXAccessTypeDef xAtd : xAccessTypes) {
-				if(xAtd.isDatamaskingSupported()) {
-					dataMaskDef.getSupportedAccessTypes().add(xAtd.getName());
+				if(StringUtils.isNotEmpty(xAtd.getDataMaskOptions())) {
+					RangerAccessTypeDef dataMaskAccessType = jsonToObject(xAtd.getDataMaskOptions(), RangerAccessTypeDef.class);
+
+					dataMaskDef.getAccessTypes().add(dataMaskAccessType);
+				}
+
+				if(StringUtils.isNotEmpty(xAtd.getRowFilterOptions())) {
+					RangerAccessTypeDef accessType = jsonToObject(xAtd.getRowFilterOptions(), RangerAccessTypeDef.class);
+
+					rowFilterDef.getAccessTypes().add(accessType);
 				}
 			}
 		}
 		serviceDef.setDataMaskDef(dataMaskDef);
+		serviceDef.setRowFilterDef(rowFilterDef);
+
+		ServiceDefUtil.normalize(serviceDef);
 
 		return serviceDef;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected XXServiceDefBase mapViewToEntityBean(RangerServiceDef vObj, XXServiceDefBase xObj, int operationContext) {
@@ -482,6 +506,7 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 		xObj.setName(vObj.getName());
 		xObj.setLabel(vObj.getLabel());
 		xObj.setDescription(vObj.getDescription());
+		xObj.setTransformer(vObj.getTransformer());
 		xObj.setDataMaskOptions(mapToJsonString(vObj.getDataMaskOptions()));
 		xObj.setRbkeylabel(vObj.getRbKeyLabel());
 		xObj.setRbKeyDescription(vObj.getRbKeyDescription());
@@ -495,6 +520,7 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 		vObj.setName(xObj.getName());
 		vObj.setLabel(xObj.getLabel());
 		vObj.setDescription(xObj.getDescription());
+		vObj.setTransformer(xObj.getTransformer());
 		vObj.setDataMaskOptions(jsonStringToMap(xObj.getDataMaskOptions()));
 		vObj.setRbKeyLabel(xObj.getRbkeylabel());
 		vObj.setRbKeyDescription(xObj.getRbKeyDescription());
@@ -537,7 +563,7 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 		retList.setResultSize(onePageList.size());
 		retList.setTotalCount(xxObjList.size());
 	}
-	
+
 	private String mapToJsonString(Map<String, String> map) {
 		String ret = null;
 
@@ -580,6 +606,34 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 
 					ret.put(name, value);
 				}
+			}
+		}
+
+		return ret;
+	}
+
+	public String objectToJson(Serializable obj) {
+		String ret = null;
+
+		if(obj != null) {
+			try {
+				ret = jsonUtil.writeObjectAsString(obj);
+			} catch(Exception excp) {
+				LOG.warn("objectToJson() failed to convert object to json: " + obj, excp);
+			}
+		}
+
+		return ret;
+	}
+
+	public <T> T jsonToObject(String jsonStr, Class<T> clz) {
+		T ret = null;
+
+		if(StringUtils.isNotEmpty(jsonStr)) {
+			try {
+				ret = jsonUtil.writeJsonToJavaObject(jsonStr, clz);
+			} catch(Exception excp) {
+				LOG.warn("jsonToObject() failed to convert json to object: " + jsonStr, excp);
 			}
 		}
 

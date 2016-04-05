@@ -64,6 +64,16 @@
     </property>
     
     <property>
+      <name>ranger.usersync.group.search.first.enabled</name>
+      <value>false</value>
+    </property>
+    
+    <property>
+      <name>ranger.usersync.user.searchenabled</name>
+      <value>true</value>
+    </property>
+    
+    <property>
       <name>ranger.usersync.keystore.file</name>
       <value>/usr/hdp/current/ranger-usersync/conf/unixauthservice.jks</value>
     </property>
@@ -90,7 +100,7 @@
     
     <property>
       <name>ranger.usersync.ldap.groupname.caseconversion</name>
-      <value>lower</value>
+      <value>none</value>
     </property>
     
     <property>
@@ -105,7 +115,7 @@
     
     <property>
       <name>ranger.usersync.ldap.url</name>
-      <value>ldap://127.0.0.1:10389</value>
+      <value>ldap://127.0.0.1:${ldap.port}</value>
     </property>
     
     <property>
@@ -140,7 +150,7 @@
     
     <property>
       <name>ranger.usersync.ldap.username.caseconversion</name>
-      <value>lower</value>
+      <value>none</value>
     </property>
     
     <property>

@@ -22,8 +22,6 @@ package org.apache.ranger.usergroupsync;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.directory.server.annotations.CreateLdapConnectionPool;
-import org.apache.directory.server.annotations.CreateLdapServer;
-import org.apache.directory.server.annotations.CreateTransport;
 import org.apache.directory.server.core.annotations.ApplyLdifFiles;
 import org.apache.directory.server.core.annotations.ContextEntry;
 import org.apache.directory.server.core.annotations.CreateDS;
@@ -35,8 +33,8 @@ import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder;
 import org.apache.ranger.unixusersync.config.UserGroupSyncConfig;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -82,7 +80,9 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
 		LdapServer ldapServer = new LdapServer(); 
 	    ldapServer.setSaslHost("127.0.0.1");
 	    ldapServer.setSearchBaseDn("DC=ranger,DC=qe,DC=hortonworks,DC=com"); 
-	    ldapServer.setTransports(new TcpTransport("127.0.0.1", 10389)); 
+            String ldapPort = System.getProperty("ldap.port");
+            Assert.assertNotNull("Property 'ldap.port' null", ldapPort);
+	    ldapServer.setTransports(new TcpTransport("127.0.0.1", Integer.parseInt(ldapPort))); 
 	    ldapServer.setDirectoryService(getService());
 	    ldapServer.setMaxSizeLimit( LdapServer.NO_SIZE_LIMIT );
 	    setLdapServer(ldapServer);
@@ -90,7 +90,6 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
 	    getLdapServer().start();
 		config = UserGroupSyncConfig.getInstance();	
 		ldapBuilder = new LdapUserGroupBuilder();
-        ldapBuilder.init();
 	}
 	
 	@Test
@@ -100,6 +99,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
 		config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
         config.setGroupSearchEnabled(false);
         config.setPagedResultsEnabled(true);
+        config.setGroupSearchFirstEnabled(false);
+        ldapBuilder.init();
 		PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
 		sink.init();
 		ldapBuilder.updateSink(sink);
@@ -113,6 +114,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
 		config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
         config.setGroupSearchEnabled(false);
         config.setPagedResultsEnabled(false);
+        config.setGroupSearchFirstEnabled(false);
+        ldapBuilder.init();
 		PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
 		sink.init();
 		ldapBuilder.updateSink(sink);
@@ -126,6 +129,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setUserSearchFilter("(|(memberof=CN=Group10,OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com)(memberof=CN=Group11,OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com))");
             config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchEnabled(false);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
@@ -139,6 +144,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchFilter("");
             config.setGroupSearchEnabled(true);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
@@ -152,6 +159,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchFilter("cn=Group19");
             config.setGroupSearchEnabled(true);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
@@ -165,6 +174,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchFilter("cn=Group19");
             config.setGroupSearchEnabled(false);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
@@ -178,6 +189,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchFilter("cn=*Group10");
             config.setGroupSearchEnabled(true);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
@@ -192,6 +205,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchFilter("cn=*Group10");
             config.setGroupSearchEnabled(false);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
@@ -206,6 +221,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchFilter("cn=*Group10");
             config.setGroupSearchEnabled(false);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
@@ -220,6 +237,8 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchFilter("cn=*");
             config.setGroupSearchEnabled(true);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
@@ -234,10 +253,138 @@ public class LdapUserGroupTest extends AbstractLdapTestUnit{
             config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
             config.setGroupSearchFilter("cn=*Group10");
             config.setGroupSearchEnabled(true);
+            config.setGroupSearchFirstEnabled(false);
+            ldapBuilder.init();
             PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
             sink.init();
             ldapBuilder.updateSink(sink);
             assertEquals(111, sink.getTotalUsers());
+            assertEquals(2, sink.getTotalGroups());
+    }
+    
+    @Test
+    public void testGroupBasedAllUsers() throws Throwable {
+    		config.setUserSearchBase("DC=ranger,DC=qe,DC=hortonworks,DC=com;");
+            config.setUserSearchFilter("cn=*");
+            config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
+            config.setGroupSearchFilter("cn=*Group10");
+            config.setGroupSearchFirstEnabled(true);
+            ldapBuilder.init();
+            PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
+            sink.init();
+            ldapBuilder.updateSink(sink);
+            assertEquals(2, sink.getTotalUsers());
+            assertEquals(2, sink.getTotalGroups());
+    }
+    
+    @Test
+    public void testGroupBasedWithUserFilter() throws Throwable {
+    		config.setUserSearchBase("DC=ranger,DC=qe,DC=hortonworks,DC=com;");
+            config.setUserSearchFilter("cn=User*");
+            config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
+            config.setGroupSearchFilter("cn=*Group10");
+            config.setGroupSearchFirstEnabled(true);
+            config.setUserSearchEnabled(true);
+            ldapBuilder.init();
+            PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
+            sink.init();
+            ldapBuilder.updateSink(sink);
+            assertEquals(1, sink.getTotalUsers());
+            assertEquals(2, sink.getTotalGroups());
+    }
+    
+    @Test
+    public void testGroupBasedWithNoUsers() throws Throwable {
+    		config.setUserSearchBase("DC=ranger,DC=qe,DC=hortonworks,DC=com;");
+            config.setUserSearchFilter("cn=*");
+            config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
+            config.setGroupSearchFilter("cn=Group2*");
+            config.setGroupSearchFirstEnabled(true);
+            config.setUserSearchEnabled(true);
+            ldapBuilder.init();
+            PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
+            sink.init();
+            ldapBuilder.updateSink(sink);
+            assertEquals(0, sink.getTotalUsers());
+            assertEquals(2, sink.getTotalGroups());
+    }
+    
+    @Test
+    public void testGroupBasedWithAllUsersAndGroups() throws Throwable {
+		config.setUserSearchBase("DC=ranger,DC=qe,DC=hortonworks,DC=com;");
+        config.setUserSearchFilter("cn=*");
+        config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
+        config.setGroupSearchFilter("cn=*");
+        config.setGroupSearchFirstEnabled(true);
+        config.setUserSearchEnabled(true);
+        ldapBuilder.init();
+        PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
+        sink.init();
+        ldapBuilder.updateSink(sink);
+        assertEquals(100, sink.getTotalUsers());
+        assertEquals(13, sink.getTotalGroups());
+    }
+    
+    @Test
+    public void testGroupBasedWithSingleOU() throws Throwable {
+		config.setUserSearchBase("DC=ranger,DC=qe,DC=hortonworks,DC=com;");
+        config.setUserSearchFilter("cn=*");
+        config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
+        config.setGroupSearchFilter("cn=*");
+        config.setGroupSearchFirstEnabled(true);
+        config.setUserSearchEnabled(true);
+        ldapBuilder.init();
+        PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
+        sink.init();
+        ldapBuilder.updateSink(sink);
+        assertEquals(99, sink.getTotalUsers());
+        assertEquals(12, sink.getTotalGroups());
+    }
+    
+    @Test
+    public void testUpdateSinkWithEmptyUserSearchBase() throws Throwable {
+		config.setUserSearchBase("");
+		config.setUserSearchFilter("");
+		config.setGroupSearchBase("OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
+        config.setGroupSearchEnabled(false);
+        config.setPagedResultsEnabled(true);
+        config.setGroupSearchFirstEnabled(false);
+        ldapBuilder.init();
+		PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
+		sink.init();
+		ldapBuilder.updateSink(sink);
+		assertEquals(111, sink.getTotalUsers());
+    }
+    
+    @Test
+    public void testGBWithUserSearchDisabled() throws Throwable {
+    		config.setUserSearchBase("DC=ranger,DC=qe,DC=hortonworks,DC=com;");
+            config.setUserSearchFilter("cn=User*");
+            config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
+            config.setGroupSearchFilter("cn=*Group10");
+            config.setGroupSearchFirstEnabled(true);
+            config.setUserSearchEnabled(false);
+            ldapBuilder.init();
+            PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
+            sink.init();
+            ldapBuilder.updateSink(sink);
+            assertEquals(2, sink.getTotalUsers());
+            assertEquals(2, sink.getTotalGroups());
+    }
+    
+    @Test
+    public void testGBWithNoUsersAndUserSearchDisabled() throws Throwable {
+    		config.setUserSearchBase("DC=ranger,DC=qe,DC=hortonworks,DC=com;");
+            config.setUserSearchFilter("cn=*");
+            config.setGroupSearchBase("OU=HdpGroups,OU=HadoopUsers,DC=ranger,DC=qe,DC=hortonworks,DC=com;OU=Groups,DC=ranger,DC=qe,DC=hortonworks,DC=com");
+            config.setGroupSearchFilter("cn=Group2*");
+            config.setGroupSearchFirstEnabled(true);
+            config.setUserSearchEnabled(false);
+            ldapBuilder.init();
+            PolicyMgrUserGroupBuilderTest sink = new PolicyMgrUserGroupBuilderTest();
+            sink.init();
+            ldapBuilder.updateSink(sink);
+            assertEquals(0, sink.getTotalUsers());
             assertEquals(2, sink.getTotalGroups());
     }
     

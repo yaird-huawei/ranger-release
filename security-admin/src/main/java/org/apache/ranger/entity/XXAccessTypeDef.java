@@ -94,13 +94,22 @@ public class XXAccessTypeDef extends XXDBBase implements java.io.Serializable {
 	protected Integer order;
 
 	/**
-	 * datamaskingSupported of the XXAccessTypeDef
+	 * dataMaskOptions of the XXAccessTypeDef
 	 * <ul>
 	 * </ul>
 	 *
 	 */
-	@Column(name = "datamasking_supported")
-	protected boolean datamaskingSupported;
+	@Column(name = "datamask_options")
+	protected String dataMaskOptions;
+
+	/**
+	 * rowFilterOptions of the XXAccessTypeDef
+	 * <ul>
+	 * </ul>
+	 *
+	 */
+	@Column(name = "rowfilter_options")
+	protected String rowFilterOptions;
 
 	/**
 	 * This method sets the value to the member attribute <b> id</b> . You
@@ -242,13 +251,17 @@ public class XXAccessTypeDef extends XXDBBase implements java.io.Serializable {
 		return this.order;
 	}
 
-	public boolean isDatamaskingSupported() {
-		return datamaskingSupported;
+	public String getDataMaskOptions() {
+		return dataMaskOptions;
 	}
 
-	public void setDatamaskingSupported(boolean datamaskingSupported) {
-		this.datamaskingSupported = datamaskingSupported;
+	public void setDataMaskOptions(String dataMaskOptions) {
+		this.dataMaskOptions = dataMaskOptions;
 	}
+
+	public String getRowFilterOptions() { return rowFilterOptions; }
+
+	public void setRowFilterOptions(String rowFilterOptions) { this.rowFilterOptions = rowFilterOptions; }
 
 	/*
 	 * (non-Javadoc)
@@ -319,7 +332,18 @@ public class XXAccessTypeDef extends XXDBBase implements java.io.Serializable {
 		} else if (!rbKeyLabel.equals(other.rbKeyLabel)) {
 			return false;
 		}
-		if (datamaskingSupported != other.datamaskingSupported) {
+		if (dataMaskOptions == null) {
+			if (other.dataMaskOptions != null) {
+				return false;
+			}
+		} else if (!dataMaskOptions.equals(other.dataMaskOptions)) {
+			return false;
+		}
+		if (rowFilterOptions == null) {
+			if (other.rowFilterOptions != null) {
+				return false;
+			}
+		} else if (!rowFilterOptions.equals(other.rowFilterOptions)) {
 			return false;
 		}
 		return true;
@@ -334,7 +358,8 @@ public class XXAccessTypeDef extends XXDBBase implements java.io.Serializable {
 	public String toString() {
 		return "XXAccessTypeDef [" + super.toString() + " id=" + id
 				+ ", defId=" + defId + ", itemId=" + itemId + ", name=" + name + ", label=" + label
-				+ ", rbKeyLabel=" + rbKeyLabel + ", datamaskingSupported=" + datamaskingSupported + ", order=" + order + "]";
+				+ ", rbKeyLabel=" + rbKeyLabel + ", dataMaskOptions=" + dataMaskOptions
+				+ ", rowFilterOptions=" + rowFilterOptions + ", order=" + order + "]";
 	}
 
 }

@@ -181,6 +181,13 @@ public class TestPolicyEngine {
 	}
 
 	@Test
+	public void testPolicyEngine_resourceAccessInfo() {
+		String[] conditionsTestResourceFiles = { "/policyengine/test_policyengine_resource_access_info.json" };
+
+		runTestsFromResourceFiles(conditionsTestResourceFiles);
+	}
+
+	@Test
 	public void testPolicyEngine_geo() {
 		String[] conditionsTestResourceFiles = { "/policyengine/test_policyengine_geo.json" };
 
@@ -196,7 +203,7 @@ public class TestPolicyEngine {
 
 	@Test
 	public void testPolicyEngine_hiveMasking() {
-		String[] resourceFiles = { "/policyengine/test_policyengine_hive_masking.json" };
+		String[] resourceFiles = {"/policyengine/test_policyengine_hive_mask_filter.json"};
 
 		runTestsFromResourceFiles(resourceFiles);
 	}
@@ -238,7 +245,6 @@ public class TestPolicyEngine {
 		RangerAccessRequest request = null;
 
 		for(TestData test : testCase.tests) {
-
 			if (test.request.getContext().containsKey(RangerAccessRequestUtil.KEY_CONTEXT_TAGS) ||
 					test.request.getContext().containsKey(RangerAccessRequestUtil.KEY_CONTEXT_REQUESTED_RESOURCES)) {
 				// Create a new AccessRequest
@@ -332,6 +338,26 @@ public class TestPolicyEngine {
 				assertEquals("maskedValue mismatched! - " + test.name, expected.getMaskedValue(), result.getMaskedValue());
 				assertEquals("policyId mismatched! - " + test.name, expected.getPolicyId(), result.getPolicyId());
 			}
+
+			if(test.rowFilterResult != null) {
+				RangerRowFilterResult expected = test.rowFilterResult;
+				RangerRowFilterResult result   = policyEngine.evalRowFilterPolicies(request, auditHandler);
+
+				assertNotNull("result was null! - " + test.name, result);
+				assertEquals("filterExpr mismatched! - " + test.name, expected.getFilterExpr(), result.getFilterExpr());
+				assertEquals("policyId mismatched! - " + test.name, expected.getPolicyId(), result.getPolicyId());
+			}
+
+			if(test.resourceAccessInfo != null) {
+				RangerResourceAccessInfo expected = new RangerResourceAccessInfo(test.resourceAccessInfo);
+				RangerResourceAccessInfo result   = policyEngine.getResourceAccessInfo(test.request);
+
+				assertNotNull("result was null! - " + test.name, result);
+				assertEquals("allowedUsers mismatched! - " + test.name, expected.getAllowedUsers(), result.getAllowedUsers());
+				assertEquals("allowedGroups mismatched! - " + test.name, expected.getAllowedGroups(), result.getAllowedGroups());
+				assertEquals("deniedUsers mismatched! - " + test.name, expected.getDeniedUsers(), result.getDeniedUsers());
+				assertEquals("deniedGroups mismatched! - " + test.name, expected.getDeniedGroups(), result.getDeniedGroups());
+			}
 		}
 	}
 
@@ -339,14 +365,16 @@ public class TestPolicyEngine {
 		public String             serviceName;
 		public RangerServiceDef   serviceDef;
 		public List<RangerPolicy> policies;
-		public TagPolicyInfo	tagPolicyInfo;
+		public TagPolicyInfo	  tagPolicyInfo;
 		public List<TestData>     tests;
 		
 		class TestData {
 			public String              name;
 			public RangerAccessRequest request;
 			public RangerAccessResult  result;
-			public RangerDataMaskResult dataMaskResult;
+			public RangerDataMaskResult  dataMaskResult;
+			public RangerRowFilterResult rowFilterResult;
+			public RangerResourceAccessInfo resourceAccessInfo;
 		}
 
 		class TagPolicyInfo {
