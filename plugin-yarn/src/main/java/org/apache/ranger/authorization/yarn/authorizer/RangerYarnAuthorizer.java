@@ -23,6 +23,7 @@ package org.apache.ranger.authorization.yarn.authorizer;
 import java.net.InetAddress;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -268,6 +269,7 @@ class RangerYarnResource extends RangerAccessResourceImpl {
 class RangerYarnAccessRequest extends RangerAccessRequestImpl {
 	public RangerYarnAccessRequest(AccessRequest accessRequest) {
 		String               accessType = getRangerAccessType(accessRequest.getAccessType());
+		String               action     = accessRequest.getAccessType().name();
 		PrivilegedEntity     entity     = accessRequest.getEntity();
 		UserGroupInformation ugi        = accessRequest.getUser();
 
