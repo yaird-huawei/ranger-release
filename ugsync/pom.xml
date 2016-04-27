@@ -100,7 +100,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>commons-httpclient</groupId>
@@ -146,6 +145,10 @@
             <artifactId>ranger-plugins-common</artifactId>
             <version>${project.version}</version>
     </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
