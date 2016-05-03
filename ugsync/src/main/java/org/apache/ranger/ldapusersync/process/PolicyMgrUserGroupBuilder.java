@@ -714,5 +714,9 @@ public class PolicyMgrUserGroupBuilder implements UserGroupSink {
 		return ret;
 	}
 
+	@Override
+	public void addOrUpdateGroup(String groupName) {
+		// do nothing as this is not the actual implementation class to be used.
+	}
 	
 }

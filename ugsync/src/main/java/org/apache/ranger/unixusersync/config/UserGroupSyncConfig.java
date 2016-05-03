@@ -24,7 +24,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -56,7 +58,7 @@ public class UserGroupSyncConfig  {
 	public static final String  UGSYNC_PM_URL_PROP = 	"ranger.usersync.policymanager.baseURL" ;
 	
 	public static final String  UGSYNC_MIN_USERID_PROP  = 	"ranger.usersync.unix.minUserId" ;
-	
+
 	public static final String  UGSYNC_MAX_RECORDS_PER_API_CALL_PROP  = 	"ranger.usersync.policymanager.maxrecordsperapicall" ;
 
 	public static final String  UGSYNC_MOCK_RUN_PROP  = 	"ranger.usersync.policymanager.mockrun" ;
@@ -92,7 +94,7 @@ public class UserGroupSyncConfig  {
 	private static final String LGSYNC_SOURCE_CLASS = "org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder";
 	
 	private static final String LGSYNC_LDAP_URL = "ranger.usersync.ldap.url";
-	
+
 	private static final String LGSYNC_LDAP_BIND_DN = "ranger.usersync.ldap.binddn";
 	
 	private static final String LGSYNC_LDAP_BIND_KEYSTORE = "ranger.usersync.credstore.filename";
@@ -126,10 +128,10 @@ public class UserGroupSyncConfig  {
 	public static final String UGSYNC_UPPER_CASE_CONVERSION_VALUE = "upper" ;
 	 
 	private static final String UGSYNC_USERNAME_CASE_CONVERSION_PARAM = "ranger.usersync.ldap.username.caseconversion" ;
-  private static final String DEFAULT_UGSYNC_USERNAME_CASE_CONVERSION_VALUE = UGSYNC_LOWER_CASE_CONVERSION_VALUE  ;
+  private static final String DEFAULT_UGSYNC_USERNAME_CASE_CONVERSION_VALUE = UGSYNC_NONE_CASE_CONVERSION_VALUE ;
 
 	private static final String UGSYNC_GROUPNAME_CASE_CONVERSION_PARAM = "ranger.usersync.ldap.groupname.caseconversion" ;
-	private static final String DEFAULT_UGSYNC_GROUPNAME_CASE_CONVERSION_VALUE = UGSYNC_LOWER_CASE_CONVERSION_VALUE ;
+	private static final String DEFAULT_UGSYNC_GROUPNAME_CASE_CONVERSION_VALUE = UGSYNC_NONE_CASE_CONVERSION_VALUE ;
 	
 	private static final String DEFAULT_USER_GROUP_TEXTFILE_DELIMITER = ",";
 
@@ -141,6 +143,16 @@ public class UserGroupSyncConfig  {
 
   private static final String LGSYNC_GROUP_SEARCH_ENABLED = "ranger.usersync.group.searchenabled";
   private static final boolean DEFAULT_LGSYNC_GROUP_SEARCH_ENABLED = false;
+  
+  private static final String LGSYNC_GROUP_SEARCH_FIRST_ENABLED = "ranger.usersync.group.search.first.enabled";
+  private static final boolean DEFAULT_LGSYNC_GROUP_SEARCH_FIRST_ENABLED = false;
+  
+/*This flag (ranger.usersync.user.searchenabled) is used only when group search first is enabled to get username either -
+  	* from the group member attribute of the group or 
+  	* from the additional user search based on the user attribute configuration
+  */
+ private static final String LGSYNC_USER_SEARCH_ENABLED = "ranger.usersync.user.searchenabled";
+ private static final boolean DEFAULT_LGSYNC_USER_SEARCH_ENABLED = false;
 
   private static final String LGSYNC_GROUP_USER_MAP_SYNC_ENABLED = "ranger.usersync.group.usermapsyncenabled";
   private static final boolean DEFAULT_LGSYNC_GROUP_USER_MAP_SYNC_ENABLED = false;
@@ -174,12 +186,13 @@ public class UserGroupSyncConfig  {
 	private static final String SYNC_SOURCE = "ranger.usersync.sync.source";
 	private static final String LGSYNC_REFERRAL = "ranger.usersync.ldap.referral";
 	private static final String DEFAULT_LGSYNC_REFERRAL = "ignore";
+	
 	private Properties prop = new Properties() ;
 	
 	private static volatile UserGroupSyncConfig me = null ;
 	
 	public static UserGroupSyncConfig getInstance() {
-        UserGroupSyncConfig result = me;
+		UserGroupSyncConfig result = me;
 		if (result == null) {
 			synchronized(UserGroupSyncConfig.class) {
 				result = me ;
@@ -191,14 +204,13 @@ public class UserGroupSyncConfig  {
 		return result ;
 	}
 	
-	
 	private UserGroupSyncConfig() {
-		init() ;
+		init();
 	}
-	
+
 	private void init() {
 		readConfigFile(CONFIG_FILE);
-		readConfigFile(DEFAULT_CONFIG_FILE);
+		readConfigFile(DEFAULT_CONFIG_FILE);		
 	}
 
 	private void readConfigFile(String fileName) {
@@ -308,19 +320,17 @@ public class UserGroupSyncConfig  {
 		}
 		return val;
 	}
-	
+
 	public boolean isUserSyncEnabled() {
 		String val = prop.getProperty(UGSYNC_ENABLED_PROP) ;
 		return (val != null && val.trim().equalsIgnoreCase("true")) ;
 	}
 
-	
 	public boolean isMockRunEnabled() {
 		String val = prop.getProperty(UGSYNC_MOCK_RUN_PROP) ;
 		return (val != null && val.trim().equalsIgnoreCase("true")) ;
 	}
-	
-	
+
 	public String getPolicyManagerBaseURL() {
 		return prop.getProperty(UGSYNC_PM_URL_PROP) ;
 	}
@@ -329,7 +339,7 @@ public class UserGroupSyncConfig  {
 	public String getMinUserId() {
 		return prop.getProperty(UGSYNC_MIN_USERID_PROP) ;
 	}
-	
+
 	public String getMaxRecordsPerAPICall() {
 		return prop.getProperty(UGSYNC_MAX_RECORDS_PER_API_CALL_PROP) ;
 	}
@@ -353,7 +363,6 @@ public class UserGroupSyncConfig  {
 		return  prop.getProperty(SSL_TRUSTSTORE_PATH_PASSWORD_PARAM) ;
 	}
 	
-	
 	public long getSleepTimeInMillisBetweenCycle() throws Throwable {
 		String val =  prop.getProperty(UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_PARAM) ;
 		if (val == null) {
@@ -365,7 +374,7 @@ public class UserGroupSyncConfig  {
 		}
 		else {
 			long ret = Long.parseLong(val) ;
-			if (ret < UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE) { 
+			if (ret < UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE) {
 				LOG.info("Sleep Time Between Cycle can not be lower than [" + UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE  + "] millisec. resetting to min value.") ;
 				ret = UGSYNC_SLEEP_TIME_IN_MILLIS_BETWEEN_CYCLE_MIN_VALUE ;
 			}
@@ -583,6 +592,28 @@ public class UserGroupSyncConfig  {
     }
     return groupSearchEnabled;
   }
+  
+  public boolean isGroupSearchFirstEnabled() {
+	boolean groupSearchFirstEnabled;
+	String val = prop.getProperty(LGSYNC_GROUP_SEARCH_FIRST_ENABLED);
+	if(val == null || val.trim().isEmpty()) {
+	   groupSearchFirstEnabled = DEFAULT_LGSYNC_GROUP_SEARCH_FIRST_ENABLED;
+	} else {
+	   groupSearchFirstEnabled  = Boolean.valueOf(val);
+	}
+	return groupSearchFirstEnabled;
+  }
+  
+  public boolean isUserSearchEnabled() {
+	    boolean userSearchEnabled;
+	    String val = prop.getProperty(LGSYNC_USER_SEARCH_ENABLED);
+	    if(val == null || val.trim().isEmpty()) {
+	       userSearchEnabled = DEFAULT_LGSYNC_USER_SEARCH_ENABLED;
+	    } else {
+	       userSearchEnabled  = Boolean.valueOf(val);
+	    }
+	    return userSearchEnabled;
+	  }
 
   public boolean isGroupUserMapSyncEnabled() {
     boolean groupUserMapSyncEnabled;
