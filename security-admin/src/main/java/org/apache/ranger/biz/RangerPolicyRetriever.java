@@ -50,7 +50,6 @@ import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItem;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemAccess;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemCondition;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
-import org.apache.ranger.plugin.policyevaluator.RangerPolicyItemEvaluator;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 
 
