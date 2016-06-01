@@ -17,31 +17,17 @@
  * under the License.
  */
 
- require([
-	'backbone',
-	'App',
-	'RegionManager',
-	'routers/Router',
-	'controllers/Controller',
-	'modules/XAOverrides',
-	'modules/RestCsrf',
-	'utils/XAUtils',
-	'hbs!tmpl/common/loading_tmpl'
-],
-function ( Backbone, App, RegionManager, AppRouter, AppController, XAOverrides,RestCSRF, XAUtils, loadingHTML ) {
-    'use strict';
+package org.apache.ranger.security.web.authentication;
 
-    var controller = new AppController();
-    //deny some routes access for normal users
-    controller = XAUtils.filterAllowedActions(controller);
-	App.appRouter = new AppRouter({
-		controller: controller
-	});
-	App.appRouter.on('beforeroute', function(event) {
-		if(!window._preventNavigation)
-			$(App.rContent.$el).html(loadingHTML);
-	});
-	// Start Marionette Application in desktop mode (default)
-	Backbone.fetchCache._cache = {};
-	App.start();
-});
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
+
+public class RangerSessionFixationProtectionStrategy extends SessionFixationProtectionStrategy {
+
+    @Override
+    public void onAuthentication(Authentication authentication, HttpServletRequest request, HttpServletResponse response){
+    	super.onAuthentication(authentication, request, response);
+    }
+}
