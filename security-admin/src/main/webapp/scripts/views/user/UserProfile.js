@@ -161,14 +161,14 @@ define(function(require){
 				wait: true,
 				success: function () {
 					XAUtil.notifySuccess('Success', "User profile updated successfully !!");
-					App.appRouter.navigate("#!/policymanager",{trigger: true});
+					App.appRouter.navigate("#!/policymanager/resource",{trigger: true});
 					that.clearPasswordFields();
 					console.log("success");
 					
 				},
 				error: function (msResponse, options) {
 					console.log("error occured during updated user profile: ",msResponse.response);
-					XAUtil.notifyInfo('',localization.tt('msg.myProfileError'));
+					XAUtil.notifyError('Error', 'Error occured while updating user profile');
 					if(localization.tt(msResponse.responseJSON.msgDesc) == "Invalid new password"){
 						that.form.fields.newPassword.setError(localization.tt('validationMessages.newPasswordError'));
 						that.form.fields.reEnterPassword.setError(localization.tt('validationMessages.newPasswordError'));
