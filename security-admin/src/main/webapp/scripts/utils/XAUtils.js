@@ -467,7 +467,7 @@ define(function(require) {
 	};
 	XAUtils.showGroupsOrUsersForPolicy = function(rawValue, model, showGroups) {
 		var showMoreLess = false, groupArr = [], items = [];
-		var itemList = ['policyItems','allowExceptions','denyPolicyItems','denyExceptions','dataMaskPolicyItems']
+		var itemList = ['policyItems','allowExceptions','denyPolicyItems','denyExceptions','dataMaskPolicyItems','rowFilterPolicyItems']
 		var type = _.isUndefined(showGroups) ? 'groups' : 'users';
 		_.each(itemList, function(item){
 		    if(!_.isUndefined(model.get(item)) && !_.isEmpty(model.get(item))) {
@@ -699,7 +699,7 @@ define(function(require) {
 	};
 	XAUtils.addVisualSearch = function(searchOpt, serverAttrName, collection,
 			pluginAttr) {
-		var visualSearch;
+		var visualSearch, that = this;
 		var search = function(searchCollection, serverAttrName, searchOpt,
 				collection) {
 			var params = {};
@@ -726,7 +726,10 @@ define(function(require) {
 			collection.state.currentPage = collection.state.firstPage;
 			collection.fetch({
 				reset : true,
-				cache : false
+				cache : false,
+				error : function(coll, response, options) {
+					that.notifyError('Error', localization.tt('msg.errorLoadingAuditLogs'));
+				}
 			// data : params,
 			});
 		};
