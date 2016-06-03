@@ -1,5 +1,13 @@
 Changes only in Hortonworks github and not in ranger 0.5.0 Apache Release and hence not covered by CHANGES.txt.
 
+RANGER-934: Ranger should use released version of EclipseLink
+RANGER-888: Provide support to delete Users and Groups from Ranger Admin UI
+RANGER-893: Ranger ugsync with LDAP is not able to fetch group information when member attribute contains user's short name instead of full DN.
+RANGER-921: Improve implementation of internal SQL calls and make it more generic
+RANGER-875: Restrict Grantor privileges of Ranger db user for Oracle DB Flavour
+RANGER-204: Not able to delete user or group if user/group has any policy defined.
+RANGER-205: Delete rest api of User not deleting user completely from system
+RANGER-617: Handle Search by status on policy search filter
 BUG-54970:  ranger knox test cases are failing getting class not found exception (affected by: changes done for HDFS-9724)
 BUG-54895:  changes to HDP-CHANGES.txt file for HDP-2.4-m10 release
 RANGER-894: Fixing few issues in the ldap tool when user search base or group search base is configured as part of input
@@ -8,7 +16,7 @@ RANGER-882: Scrub received policies before policy engine uses it to guard agains
 RANGER-863: Make parameters like maxHttpHeaderSize configurable for EmbeddedServer
 RANGER-799: Ranger UI fixes - partial search not working on Policy listing page
 RANGER-218: LDAP Groups incorrectly labelled internal
-RANGER-831: policy version incremented twice when resources are updated
+RANGER-: 31: policy version incremented twice when resources are updated
 RANGER-771: Fix 4+ Log entries upon login in in X_AUTH_SESS
 RANGER-798: Handle different timezone issue while saving audit logs to Solr
 RANGER-857: Unify (and update) Tomcat versions
