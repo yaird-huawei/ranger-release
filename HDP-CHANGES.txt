@@ -27,7 +27,8 @@ RANGER-825: groupId in ranger's child poms should be consistent and follow conve
 RANGER-804: Delete groups associated with User causes Exception in UserSync
 
 SUB-TASK
-
+     
+     [RANGER-843] - Add indexes to improve Postgres query performance
      [RANGER-422] - Add additional database columns to support aggregation
      [RANGER-423] - Support audit log aggregation in Ranger Admin UI
      [RANGER-513] - Policy validation: resource hierarchies check does not work with single-node hierarchies as in HDFS
@@ -38,6 +39,8 @@ SUB-TASK
 
 BUG
 
+     [RANGER-891] - Audit shutdown hook to be registered with Hadoop ShutdownHookManager, instead of directly with Java Runtime
+     [RANGER-926] - Ranger UI validation changes to allow . [dot] in firstname and lastname fields
      [RANGER-219] - Autocomplete behavior of hive tables/columns
      [RANGER-524] - Hbase plugin: list command should prune the tables returned on user permissions
      [RANGER-529] - Policy Validation: resources of a policy must match one of the resource hierarchies of the service def.
