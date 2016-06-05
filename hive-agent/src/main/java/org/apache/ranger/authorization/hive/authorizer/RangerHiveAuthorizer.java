@@ -1144,7 +1144,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 							List<HivePrivilegeObject> outputHObjs,
 							HiveAuthzContext          context,
 							HiveAuthzSessionContext   sessionContext,
-							HiveAuthenticationProvider authenticator) {
+							HiveAuthenticationProvider authenticator) { // NOPMD
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append("'checkPrivileges':{");

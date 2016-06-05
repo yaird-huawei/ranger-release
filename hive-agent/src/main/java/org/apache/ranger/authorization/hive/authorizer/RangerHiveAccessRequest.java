@@ -45,7 +45,7 @@ public class RangerHiveAccessRequest extends RangerAccessRequestImpl {
 								   HiveAccessType          accessType,
 								   HiveAuthzContext        context,
 								   HiveAuthzSessionContext sessionContext,
-								   HiveAuthenticationProvider hiveAuthenticator) {
+								   HiveAuthenticationProvider hiveAuthenticator) { // NOPMD
 		this.setResource(resource);
 		this.setUser(user);
 		this.setUserGroups(userGroups);
