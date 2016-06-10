@@ -1160,9 +1160,10 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 		sb.append(", 'context':{");
 		sb.append("'clientType':").append(sessionContext == null ? null : sessionContext.getClientType());
-		sb.append(", 'commandString':").append(context == null ? null : context.getCommandString());
-		sb.append(", 'ipAddress':").append(context == null ? null : context.getIpAddress());
-		sb.append(", 'sessionString':").append(sessionContext == null ? null : sessionContext.getSessionString());
+		sb.append(", 'commandString':").append(context == null ? "null" : context.getCommandString());
+		sb.append(", 'ipAddress':").append(context == null ? "null" : context.getIpAddress());
+		sb.append(", 'forwardedAddresses':").append(context == null ? "null" : StringUtils.join(context.getForwardedAddresses(), ", "));
+		sb.append(", 'sessionString':").append(sessionContext == null ? "null" : sessionContext.getSessionString());
 		sb.append("}");
 
 		sb.append(", 'user':").append(this.getCurrentUserGroupInfo().getUserName());

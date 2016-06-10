@@ -30,7 +30,6 @@ import org.apache.ranger.plugin.policyengine.RangerAccessRequestImpl;
 import org.apache.ranger.plugin.policyengine.RangerPolicyEngine;
 import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
 
-
 public class RangerHiveAccessRequest extends RangerAccessRequestImpl {
 	private HiveAccessType accessType = HiveAccessType.NONE;
 
@@ -51,10 +50,11 @@ public class RangerHiveAccessRequest extends RangerAccessRequestImpl {
 		this.setUserGroups(userGroups);
 		this.setAccessTime(new Date());
 		this.setAction(hiveOpTypeName);
-		
+
 		if(context != null) {
 			this.setRequestData(context.getCommandString());
-			this.setClientIPAddress(context.getIpAddress());
+			this.setForwardedAddresses(context.getForwardedAddresses());
+			this.setRemoteIPAddress(context.getIpAddress());
 		}
 
 		if(sessionContext != null) {
@@ -102,6 +102,8 @@ public class RangerHiveAccessRequest extends RangerAccessRequestImpl {
 		ret.setAccessTime(getAccessTime());
 		ret.setAction(getAction());
 		ret.setClientIPAddress(getClientIPAddress());
+		ret.setRemoteIPAddress(getRemoteIPAddress());
+		ret.setForwardedAddresses(getForwardedAddresses());
 		ret.setRequestData(getRequestData());
 		ret.setClientType(getClientType());
 		ret.setSessionId(getSessionId());
