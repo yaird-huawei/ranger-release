@@ -66,10 +66,10 @@
       <artifactId>kafka_2.10</artifactId>
       <version>${kafka.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.ranger</groupId>
-      <artifactId>ranger_solrj</artifactId>
-      <version>${project.version}</version>
+	<dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+      <version>${solr.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

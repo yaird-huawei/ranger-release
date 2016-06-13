@@ -17,9 +17,9 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>ranger-hbase-plugin</artifactId>
-  <name>HBase Security Plugin</name>
-  <description>HBase Security Plugins</description>
+  <artifactId>ranger-kms-plugin-shim</artifactId>
+  <name>KMS Security Plugin shim</name>
+  <description>KMS Security Plugin shim</description>
   <packaging>jar</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -32,51 +32,24 @@
   </parent>
   <dependencies>
     <dependency>
-	<groupId>org.apache.hbase</groupId>
-	<artifactId>hbase-server</artifactId>
-	<version>${hbase.version}</version>
-    </dependency>
-    <dependency>
-	<groupId>org.apache.hadoop</groupId>
-	<artifactId>hadoop-hdfs</artifactId>
-	<version>${hadoop.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.ranger</groupId>
       <artifactId>ranger-plugins-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.ranger</groupId>
-      <artifactId>ranger-hbase-plugin-shim</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ranger</groupId>
       <artifactId>ranger-plugins-audit</artifactId>
       <version>${project.version}</version>
-    </dependency>
+    </dependency>  
     <dependency>
-      <groupId>org.apache.solr</groupId>
-      <artifactId>solr-solrj</artifactId>
-      <version>${solr.version}</version>
-    </dependency>
-     <dependency>
-   		<groupId>org.apache.httpcomponents</groupId>
-   		<artifactId>httpcore</artifactId>
-   		<version>${httpcomponents.httpcore.version}</version>
+	  <groupId>org.apache.ranger</groupId>
+	  <artifactId>ranger-kms</artifactId>
+	  <version>${project.version}</version>
 	</dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-integration</artifactId>
+	<dependency>
+       <groupId>org.apache.ranger</groupId>
+       <artifactId>ranger-plugin-classloader</artifactId>
+       <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>

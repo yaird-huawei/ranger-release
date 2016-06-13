@@ -35,6 +35,7 @@ import org.apache.ranger.plugin.service.ResourceLookupContext;
 import org.apache.ranger.plugin.util.TimedEventUtil;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
 import org.apache.solr.client.solrj.response.CollectionAdminResponse;
@@ -99,11 +100,11 @@ public class ServiceSolrClient {
 			return getCoresList(ignoreCollectionList);
 		}
 
-		CollectionAdminRequest request = new CollectionAdminRequest.List();
-		CollectionAdminResponse response = request.process(solrClient);
+		CollectionAdminRequest<?> request = new CollectionAdminRequest.List();
+		SolrResponse response = request.process(solrClient);
 
 		List<String> list = new ArrayList<String>();
-		for (int i = 0; i < response.getCollectionStatus().size(); i++) {
+		for (int i = 0; i < response.getResponse().size(); i++) {
 			if (ignoreCollectionList == null
 					|| !ignoreCollectionList.contains(list.get(i))) {
 				list.add(list.get(i));

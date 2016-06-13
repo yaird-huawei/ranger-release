@@ -236,4 +236,11 @@ public class PropertiesUtil extends PropertyPlaceholderConfigurer {
 	public static Map<String, String> getPropertiesMap() {
 		return propertiesMap;
 	}
+	public static Properties getProps() {
+		Properties ret = new Properties();
+		if (propertiesMap != null) {
+			ret.putAll(propertiesMap);
+		}
+		return ret;
+	}
 }

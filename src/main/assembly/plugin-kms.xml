@@ -24,6 +24,20 @@
   <baseDirectory>${project.name}-${project.version}-kms-plugin</baseDirectory>
   <includeBaseDirectory>true</includeBaseDirectory>
   <moduleSets>
+    <moduleSets>
+	<moduleSet>
+     <binaries>
+        <includeDependencies>false</includeDependencies>
+        <unpack>false</unpack>
+	    <directoryMode>755</directoryMode>
+	    <fileMode>644</fileMode>
+  	    <outputDirectory>/lib</outputDirectory>
+     </binaries>
+     <includes>
+	  <include>org.apache.ranger:ranger-kms-plugin-shim</include>
+	  <include>org.apache.ranger:ranger-plugin-classloader</include>
+      </includes>
+  	</moduleSet>
     <moduleSet>
      <binaries>
         <includeDependencies>false</includeDependencies>
@@ -32,7 +46,7 @@
 	    <fileMode>644</fileMode>
         <dependencySets>
             <dependencySet>
-                <outputDirectory>/lib</outputDirectory>
+                <outputDirectory>/lib/ranger-kms-plugin-impl</outputDirectory>
                 <unpack>false</unpack>
                 <includes>
                     <include>commons-configuration:commons-configuration:jar:${commons.pool.version}</include>
@@ -43,11 +57,12 @@
                     <include>commons-collections:commons-collections</include>
 		    <include>commons-logging:commons-logging:jar:${commons.logging.version}</include>
                     <include>com.google.guava:guava:jar:${guava.version}</include>
-		    <include>org.apache.httpcomponents:httpclient:jar:${httpcomponent.httpclient.version}</include>
-		    <include>org.apache.httpcomponents:httpcore:jar:${httpcomponent.httpcore.version}</include>
+		    <include>org.apache.httpcomponents:httpclient:jar:${httpcomponents.httpclient.version}</include>
+		    <include>org.apache.httpcomponents:httpcore:jar:${httpcomponents.httpcore.version}</include>
 		    <include>org.apache.httpcomponents:httpmime:jar:${httpcomponent.httpmime.version}</include>
 		    <include>org.noggit:noggit:jar:${noggit.version}</include>
 		    <include>org.apache.zookeeper:zookeeper:jar:${zookeeper.version}</include>
+		    <include>org.apache.solr:solr-solrj</include>
                 </includes>
             </dependencySet>
             <dependencySet>
@@ -73,10 +88,9 @@
                     </includes>
             </dependencySet>
         </dependencySets>
-        <outputDirectory>/lib</outputDirectory>
+        <outputDirectory>/lib/ranger-kms-plugin-impl</outputDirectory>
      </binaries>
      <includes>
-		<include>org.apache.ranger:ranger_solrj</include>
 		<include>org.apache.ranger:ranger-plugins-audit</include>
 		<include>org.apache.ranger:ranger-plugins-cred</include>
 		<include>org.apache.ranger:ranger-plugins-common</include>

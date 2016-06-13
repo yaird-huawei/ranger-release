@@ -121,5 +121,15 @@
       <artifactId>ranger-plugins-audit</artifactId>
       <version>${project.version}</version>
     </dependency>
+	<dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+      <version>${solr.version}</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.httpcomponents</groupId>
+    	<artifactId>httpcore</artifactId>
+    	<version>${httpcomponents.httpcore.version}</version>
+	</dependency>
   </dependencies>
 </project>

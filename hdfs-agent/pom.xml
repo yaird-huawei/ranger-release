@@ -104,6 +104,16 @@
         <artifactId>hive-service</artifactId>
         <version>${hive.version}</version>
     </dependency>
+	<dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+      <version>${solr.version}</version>
+    </dependency>
+        <dependency>
+    	<groupId>org.apache.httpcomponents</groupId>
+    	<artifactId>httpcore</artifactId>
+    	<version>${httpcomponents.httpcore.version}</version>
+	</dependency>
     <dependency>
 	    <groupId>javassist</groupId>
 	    <artifactId>javassist</artifactId>
