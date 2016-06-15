@@ -19,8 +19,6 @@
 
 package org.apache.ranger.authorization.kms.authorizer;
 
-import kafka.security.auth.Authorizer;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.crypto.key.kms.server.KMS.KMSOp;
@@ -67,7 +65,7 @@ public class RangerKmsAuthorizer implements Runnable, KeyACLs {
 			rangerPluginClassLoader = RangerPluginClassLoader.getInstance(RANGER_PLUGIN_TYPE, this.getClass());
 			
 			@SuppressWarnings("unchecked")
-			Class<Authorizer> cls = (Class<Authorizer>) Class.forName(RANGER_KMS_AUTHORIZER_IMPL_CLASSNAME, true, rangerPluginClassLoader);
+			Class<?> cls = Class.forName(RANGER_KMS_AUTHORIZER_IMPL_CLASSNAME, true, rangerPluginClassLoader);
 
 			activatePluginClassLoader();
 
