@@ -176,7 +176,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		if(! RangerHivePlugin.UpdateXaPoliciesOnGrantRevoke) {
 			throw new HiveAuthzPluginException("GRANT/REVOKE not supported in Ranger HiveAuthorizer. Please use Ranger Security Admin to setup access control.");
 		}
-		grantOption=grantOption ? Boolean.FALSE : grantOption;
+
 		RangerHiveAuditHandler auditHandler = new RangerHiveAuditHandler();
 
 		try {
