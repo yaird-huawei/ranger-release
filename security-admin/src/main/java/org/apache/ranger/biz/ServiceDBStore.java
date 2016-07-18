@@ -21,6 +21,9 @@ package org.apache.ranger.biz;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import javax.annotation.PostConstruct;
 
@@ -1990,16 +1993,24 @@ public class ServiceDBStore implements ServiceStore {
 			xPolRes.setResDefId(xResDef.getId());
 			xPolRes = daoMgr.getXXPolicyResource().create(xPolRes);
 
-			List<String> values = policyRes.getValues();
-			if(CollectionUtils.isNotEmpty(values)){
-				for(int i = 0; i < values.size(); i++) {
-					if(values.get(i)!=null){
-						XXPolicyResourceMap xPolResMap = new XXPolicyResourceMap();
-						xPolResMap = (XXPolicyResourceMap) rangerAuditFields.populateAuditFields(xPolResMap, xPolRes);
-						xPolResMap.setResourceId(xPolRes.getId());
-						xPolResMap.setValue(values.get(i));
-						xPolResMap.setOrder(i);
-						xPolResMap = daoMgr.getXXPolicyResourceMap().create(xPolResMap);
+			List<String> valueList = policyRes.getValues();
+			if(CollectionUtils.isNotEmpty(valueList)){
+				Set<String> uniqueValues = new LinkedHashSet<String>();
+				for (String value:valueList){
+					uniqueValues.add(value.trim());
+				}
+				int i=0;
+				if (CollectionUtils.isNotEmpty(uniqueValues)){
+					for(String uniqValue:uniqueValues){
+						if(!StringUtils.isEmpty(uniqValue)){
+							XXPolicyResourceMap xPolResMap = new XXPolicyResourceMap();
+							xPolResMap = (XXPolicyResourceMap) rangerAuditFields.populateAuditFields(xPolResMap, xPolRes);
+							xPolResMap.setResourceId(xPolRes.getId());
+							xPolResMap.setValue(uniqValue);
+							xPolResMap.setOrder(i);
+							xPolResMap = daoMgr.getXXPolicyResourceMap().create(xPolResMap);
+							i++;
+						}
 					}
 				}
 			}
