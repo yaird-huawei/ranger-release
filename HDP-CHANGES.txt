@@ -175,7 +175,8 @@ TASK
      [RANGER-173] - Utility scripts to create HDFS audit folders and policies
 
 HDP CHANGES:
-
+     
+     BUG-61292:fix knox topology resource is getting double copied while editing the repo
      BUG-38634:[TestIssue]-XaAgents on Windows - 321 tests failing due to
      BUG-37728:Ranger-Windows-should-still-use-v2-properties
      BUG-36989-As-per-2.3-hdp-plugins-properties-needs-to-change
