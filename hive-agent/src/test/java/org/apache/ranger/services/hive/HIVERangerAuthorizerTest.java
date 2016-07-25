@@ -75,7 +75,7 @@ public class HIVERangerAuthorizerTest {
         conf.set(HiveConf.ConfVars.METASTORECONNECTURLKEY.varname,
                  String.format("jdbc:derby:;databaseName=%s;create=true",  metastoreDir.getPath()));
         
-        conf.set(HiveConf.ConfVars.METASTORE_AUTO_CREATE_ALL.varname, "true");
+        conf.set(HiveConf.ConfVars.METASTORE_AUTO_CREATE_SCHEMA.varname, "true");
         conf.set(HiveConf.ConfVars.HIVE_SERVER2_THRIFT_PORT.varname, "" + port);
         
         // Enable authorization
