@@ -278,20 +278,13 @@ class RangerYarnAccessRequest extends RangerAccessRequestImpl {
 		super.setUser(ugi.getShortUserName());
 		super.setUserGroups(Sets.newHashSet(ugi.getGroupNames()));
 		super.setAccessTime(new Date());
-		super.setClientIPAddress(getRemoteIp());
+		super.setClientIPAddress(accessRequest.getRemoteAddress());
 		super.setAction(action);
 		super.setRequestData(accessRequest.getAppName());
+		super.setRemoteIPAddress(accessRequest.getRemoteAddress());
+		super.setForwardedAddresses(accessRequest.getForwardedAddresses());
 	}
 	
-	private static String getRemoteIp() {
-		String ret = null ;
-		InetAddress ip = Server.getRemoteIp() ;
-		if (ip != null) {
-			ret = ip.getHostAddress();
-		}
-		return ret ;
-	}
-
 	private static String getRangerAccessType(AccessType accessType) {
 		String ret = null;
 
