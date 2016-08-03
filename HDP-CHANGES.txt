@@ -1,7 +1,31 @@
 Changes only in Hortonworks github and not in ranger 0.6.0 Apache Release and hence not covered by CHANGES.txt.
 
 BUG
-
+	[RANGER-1132] - Ranger Storm Plugin should include commons-codec jar as a dependency
+	[RANGER-1134] - Audit to Secure solr fails in case of Ranger Knox Plugin due to MDC context issue
+	  [BUG-63483] - fix for PMD violations - unused class import
+	  [BUG-63444] - Ranger YARN Plugin should support now Forwarded and remoteIPAddress based on the YARN access request changes
+	[RANGER-1124] - Good coding practices in Ranger recommended by static code analysis-High Impact
+	[RANGER-1129] - Ability to specify 'audit all accesses' via Ranger admin configuration
+	[RANGER-1128] - Data Masking label changes for ranger policies
+	[RANGER-1126] - Authorization checks for non existent file/directory should not be recursive in Ranger Hive authorizer
+	[RANGER-1123] - keyadmin user is not able to make getservice call using rest v2 public api
+	[RANGER-1127] - Ranger HA: Handle scenarios for request with X-Forwarded-Server
+	[RANGER-1119] - Exclude test jars from ranger-admin plugin folders as dependency
+	[RANGER-1121] - Resolving circular dependency of spring beans by enabling lazy initialization of the beans.
+	[RANGER-1120] - Need a java patch to handle upgrade of hive servicedef
+	  [BUG-63121] - Ranger HivePluginUnitTest fails with change in the Hive Global constants changes
+	  [BUG-63083] - Ranger compilation failure-due to hive lib changes
+	[RANGER-1116] - Ranger HivePluginUnitTest fails due to Hive Metastore version check
+	[RANGER-1114] - Nimbus, Storm UI server stopped after disabling ranger plugins
+	[RANGER-1113] - Ranger Hive authorizer updated to get query string from HiveConf
+	[RANGER-1111] - Enhancements to the db admin setup scripts.
+	[RANGER-1090] - Revoke command with grant option does not disable delegated admin permission for users/groups in the corresponding policy
+	[RANGER-1106] - issue after upgrade on ranger hive policy page
+	[RANGER-1104] - Catching and Logging DB transaction exceptions during Ranger startup
+	[RANGER-1101] - jceks keystore is not created successfully after enabling ssl for atlas ranger plugin
+	[RANGER-1090] - Revoke command with grant option does not disable delegated admin permission for users/groups in the corresponding policy
+	  [BUG-59678] - update to HDP-CHANGES.txt with changes not covered by RANGER 0.6.0 release version
 	[RANGER-1100] - Hive authorizer does not block update when row-filter/column-mask is specified on the table for the user
 	[RANGER-1099] - keyadmin user is not able to create service/repo using public apis
 	[RANGER-1096] - Revert to jceks scheme for credential store related operations
