@@ -1,7 +1,12 @@
 Changes only in Hortonworks github and not in ranger 0.6.0 Apache Release and hence not covered by CHANGES.txt.
 
 BUG
-
+	[RANGER-1156] - Audit migration script from DB to Solr cloud failing
+	[RANGER-1152] - Improver performance of ranger audit login while audit event-id creation
+	[RANGER-1149] - Label spelling correction
+	[RANGER-1147] - Knox repository test connection is failing
+	[RANGER-1148] - Ranger needs to map Storm ACL- debug, setLogConfig , getLogConfig to getTopologyInfo
+	[RANGER-1139] -  Ranger Kafka Plugin should include commons-codec jar as a dependency
 	[RANGER-1143] - added ranger-plugins-cred lib for tagsync deployment
 	[RANGER-1103] - added maven version enforcer and moved the plugin to be run as part of maven compile
 	[RANGER-1141] - Null pointer exception while retrieving the key during copy file
