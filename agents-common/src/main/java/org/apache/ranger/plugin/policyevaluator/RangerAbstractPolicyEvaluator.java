@@ -28,15 +28,17 @@ import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.policyengine.RangerPolicyEngineOptions;
 import org.apache.ranger.plugin.policyengine.RangerAccessRequest;
 import org.apache.ranger.plugin.policyresourcematcher.RangerPolicyResourceEvaluator;
+import org.apache.ranger.plugin.util.ServiceDefUtil;
 import java.util.Map;
 
 
 public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvaluator {
 	private static final Log LOG = LogFactory.getLog(RangerAbstractPolicyEvaluator.class);
 
-	private RangerPolicy     policy     = null;
-	private RangerServiceDef serviceDef = null;
-	private int              evalOrder  = 0;
+	private RangerPolicy     policy            = null;
+	private RangerServiceDef serviceDef        = null;
+	private Integer          leafResourceLevel = null;
+	private int              evalOrder         = 0;
 
 
 	@Override
@@ -45,8 +47,9 @@ public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvalu
 			LOG.debug("==> RangerAbstractPolicyEvaluator.init(" + policy + ", " + serviceDef + ")");
 		}
 
-		this.policy     = policy;
-		this.serviceDef = serviceDef;
+		this.policy            = policy;
+		this.serviceDef        = serviceDef;
+		this.leafResourceLevel = ServiceDefUtil.getLeafResourceLevel(serviceDef, getPolicyResource());
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAbstractPolicyEvaluator.init(" + policy + ", " + serviceDef + ")");
@@ -72,6 +75,12 @@ public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvalu
 	public RangerServiceDef getServiceDef() {
 		return serviceDef;
 	}
+
+	@Override
+	public Integer getLeafResourceLevel() {
+		return leafResourceLevel;
+	}
+
 
 	@Override
 	public int getEvalOrder() {
