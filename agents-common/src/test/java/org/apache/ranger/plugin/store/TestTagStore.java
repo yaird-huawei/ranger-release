@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -66,18 +66,18 @@ public class TestTagStore {
 				"        </property>\n" +
 				"</configuration>\n";
 
-		File file = File.createTempFile("ranger-admin-test-site", ".xml") ;
+		File file = File.createTempFile("ranger-admin-test-site", ".xml");
 		file.deleteOnExit();
 
-		tagStoreDir = File.createTempFile("tagStore", "dir") ;
+		tagStoreDir = File.createTempFile("tagStore", "dir");
 
 		if (tagStoreDir.exists()) {
-			tagStoreDir.delete() ;
+			tagStoreDir.delete();
 		}
 
-		tagStoreDir.mkdirs() ;
+		tagStoreDir.mkdirs();
 
-		String tagStoreDirName =  tagStoreDir.getAbsolutePath() ;
+		String tagStoreDirName =  tagStoreDir.getAbsolutePath();
 
 		String text = String.format(textTemplate, tagStoreDirName, tagStoreDirName);
 

@@ -77,7 +77,7 @@ public class MiscUtil {
 	private static String sApplicationType = null;
 	private static UserGroupInformation ugiLoginUser = null;
 	private static Subject subjectLoginUser = null;
-	private static String local_hostname = null ;
+	private static String local_hostname = null;
 
 	private static Map<String, LogHistory> logHistoryList = new Hashtable<String, LogHistory>();
 	private static int logInterval = 30000; // 30 seconds
@@ -518,7 +518,7 @@ public class MiscUtil {
 		return KerberosName.getRules();
 	}
 	/**
-	 * 
+	 *
 	 * @param principal
 	 *            This could be in the format abc/host@domain.com
 	 * @return

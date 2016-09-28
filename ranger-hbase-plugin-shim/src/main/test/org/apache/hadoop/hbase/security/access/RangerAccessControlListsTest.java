@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -48,14 +48,14 @@ public class RangerAccessControlListsTest {
 
 	@Test
 	public void testInit() {
-		IOException exceptionFound = null ;
+		IOException exceptionFound = null;
 		try {
-			MasterServices service = null ;
-			RangerAccessControlLists.init(service) ;
+			MasterServices service = null;
+			RangerAccessControlLists.init(service);
 		} catch (IOException e) {
-			exceptionFound = e ;
+			exceptionFound = e;
 		}
-		Assert.assertFalse("Expected to get a NullPointerExecution after init method Execution - Found [" + exceptionFound + "]",  (!(exceptionFound != null && exceptionFound.getCause() instanceof NullPointerException))) ;
+		Assert.assertFalse("Expected to get a NullPointerExecution after init method Execution - Found [" + exceptionFound + "]",  (!(exceptionFound != null && exceptionFound.getCause() instanceof NullPointerException)));
 	}
 
 }

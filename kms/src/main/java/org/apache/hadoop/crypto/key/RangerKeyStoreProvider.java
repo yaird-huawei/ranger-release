@@ -117,7 +117,7 @@ public class RangerKeyStoreProvider extends KeyProvider{
 	    Configuration newConfig =  getConfiguration(true, DBKS_SITE_XML);
 		getFromJceks(newConfig,CREDENTIAL_PATH, MK_CREDENTIAL_ALIAS, ENCRYPTION_KEY);
 		getFromJceks(newConfig,CREDENTIAL_PATH, DB_CREDENTIAL_ALIAS, DB_PASSWORD);
-		return newConfig ;
+		return newConfig;
 		
 	}
 	
@@ -154,7 +154,7 @@ public class RangerKeyStoreProvider extends KeyProvider{
 	@Override
 	public KeyVersion createKey(String name, byte[] material, Options options)
 			throws IOException {
-		  reloadKeys() ;
+		  reloadKeys();
 		  if (dbStore.engineContainsAlias(name) || cache.containsKey(name)) {
 			  throw new IOException("Key " + name + " already exists");
 		  }
@@ -233,13 +233,13 @@ public class RangerKeyStoreProvider extends KeyProvider{
 	          throw new IOException("No such algorithm storing key", e);
 	        } catch (CertificateException e) {
 	          throw new IOException("Certificate exception storing key", e);
-	        }	      
+	        }	
 	      changed = false;
 		 }catch (IOException ioe) {
 			  cache.clear();
 			  reloadKeys();
 	          throw ioe;
-	     }		 
+	     }		
 	}
 
 	@Override
@@ -296,7 +296,7 @@ public class RangerKeyStoreProvider extends KeyProvider{
 	public List<String> getKeys() throws IOException {
 		ArrayList<String> list = new ArrayList<String>();
 		String alias = null;
-		reloadKeys() ;
+		reloadKeys();
 	    Enumeration<String> e = dbStore.engineAliases();
 		while (e.hasMoreElements()) {
 		   alias = e.nextElement();
@@ -366,7 +366,7 @@ public class RangerKeyStoreProvider extends KeyProvider{
 			String aliasValue=conf.get(alias);
 			if(pathValue!=null && aliasValue!=null){
 				String xaDBPassword=CredentialReader.getDecryptedString(pathValue.trim(),aliasValue.trim());		
-				if(xaDBPassword!=null&& !xaDBPassword.trim().isEmpty() && 
+				if(xaDBPassword!=null&& !xaDBPassword.trim().isEmpty() &&
 						!xaDBPassword.trim().equalsIgnoreCase("none")){
 					conf.set(key, xaDBPassword);
 				}else{
@@ -375,16 +375,16 @@ public class RangerKeyStoreProvider extends KeyProvider{
 			}
 		}
 	}
-    
+
     private void reloadKeys() throws IOException {
         try {
         	cache.clear();
-            loadKeys(masterKey);           
+            loadKeys(masterKey);
         } catch (NoSuchAlgorithmException e) {
             throw new IOException("Can't load Keys");
         }catch(CertificateException e){
             throw new IOException("Can't load Keys");
-        } 
+        }
     }
 	
 	/**

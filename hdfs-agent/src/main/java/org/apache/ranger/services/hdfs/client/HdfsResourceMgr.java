@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -40,18 +40,18 @@ public class HdfsResourceMgr {
 		HashMap<String, Object> ret = null;
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HdfsResourceMgr.connectionTest ServiceName: "+ serviceName + "Configs" + configs ) ;
+			LOG.debug("<== HdfsResourceMgr.connectionTest ServiceName: "+ serviceName + "Configs" + configs );
 		}	
 		
 		try {
 			ret = HdfsClient.connectionTest(serviceName, configs);
 		} catch (HadoopException e) {
-			LOG.error("<== HdfsResourceMgr.testConnection Error: " + e.getMessage(),  e) ;
+			LOG.error("<== HdfsResourceMgr.testConnection Error: " + e.getMessage(),  e);
 			throw e;
 		}
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HdfsResourceMgr.connectionTest Result : "+ ret  ) ;
+			LOG.debug("<== HdfsResourceMgr.connectionTest Result : "+ ret  );
 		}	
 		return ret;
 	}
@@ -73,7 +73,7 @@ public class HdfsResourceMgr {
 		if (serviceName != null && userInput != null) {
 			try {
 				if(LOG.isDebugEnabled()) {
-					LOG.debug("<== HdfsResourceMgr.getHdfsResources() UserInput: "+ userInput  + "configs: " + configs + "context: "  + context) ;
+					LOG.debug("<== HdfsResourceMgr.getHdfsResources() UserInput: "+ userInput  + "configs: " + configs + "context: "  + context);
 				}
 				
 				String wildCardToMatch;
@@ -108,7 +108,7 @@ public class HdfsResourceMgr {
 					};
 					if ( callableObj != null) {
 						synchronized(hdfsClient) {
-							resultList = TimedEventUtil.timedTask(callableObj, 5,TimeUnit.SECONDS); 
+							resultList = TimedEventUtil.timedTask(callableObj, 5,TimeUnit.SECONDS);
 						}
 					}
 					if(LOG.isDebugEnabled()) {
@@ -124,7 +124,7 @@ public class HdfsResourceMgr {
 
 		}
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HdfsResourceMgr.getHdfsResources() Result : "+ resultList  ) ;
+			LOG.debug("<== HdfsResourceMgr.getHdfsResources() Result : "+ resultList  );
 		}	
 		return resultList;
     }

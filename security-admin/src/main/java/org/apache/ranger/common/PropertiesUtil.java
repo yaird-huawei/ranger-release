@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -155,7 +155,7 @@ public class PropertiesUtil extends PropertyPlaceholderConfigurer {
 						propertiesMap.put("ranger.solr.audit.user.password", solrAuditPassword);
 						props.put("ranger.solr.audit.user.password", solrAuditPassword);
 					}else{
-						logger.info("Credential keystore password not applied for Solr ; clear text password shall be applicable");
+						logger.info("Credential keystore password not applied for Solr; clear text password shall be applicable");
 					}
 				}
 			}

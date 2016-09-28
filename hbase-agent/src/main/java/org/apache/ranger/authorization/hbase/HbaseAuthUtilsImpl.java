@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -57,7 +57,7 @@ public class HbaseAuthUtilsImpl implements HbaseAuthUtils {
 	@Override
 	public String getTable(RegionCoprocessorEnvironment regionServerEnv) {
 		HRegionInfo hri = regionServerEnv.getRegion().getRegionInfo();
-		byte[] tableName = hri.getTable().getName() ;
+		byte[] tableName = hri.getTable().getName();
 		String tableNameStr = Bytes.toString(tableName);
 		if (LOG.isDebugEnabled()) {
 			String message = String.format("getTable: Returning tablename[%s]", tableNameStr);

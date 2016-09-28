@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -91,15 +91,15 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 	private LdapContext ldapContext;
 	StartTlsResponse tls;
 
-	private boolean userNameCaseConversionFlag = false ;
-	private boolean groupNameCaseConversionFlag = false ;
-	private boolean userNameLowerCaseFlag = false ;
-	private boolean groupNameLowerCaseFlag = false ;
+	private boolean userNameCaseConversionFlag = false;
+	private boolean groupNameCaseConversionFlag = false;
+	private boolean userNameLowerCaseFlag = false;
+	private boolean groupNameLowerCaseFlag = false;
 
   private boolean  groupUserMapSyncEnabled = false;
 
   private Map<String, UserInfo> userGroupMap;
-  
+
 	public static void main(String[] args) throws Throwable {
 		LdapUserGroupBuilder  ugBuilder = new LdapUserGroupBuilder();
 		ugBuilder.init();
@@ -107,26 +107,26 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 	
 	public LdapUserGroupBuilder() {
 		super();
-		LOG.info("LdapUserGroupBuilder created") ;
+		LOG.info("LdapUserGroupBuilder created");
 		
-		String userNameCaseConversion = config.getUserNameCaseConversion() ;
+		String userNameCaseConversion = config.getUserNameCaseConversion();
 		
 		if (UserGroupSyncConfig.UGSYNC_NONE_CASE_CONVERSION_VALUE.equalsIgnoreCase(userNameCaseConversion)) {
-		    userNameCaseConversionFlag = false ;
+		    userNameCaseConversionFlag = false;
 		}
 		else {
-		    userNameCaseConversionFlag = true ;
-		    userNameLowerCaseFlag = UserGroupSyncConfig.UGSYNC_LOWER_CASE_CONVERSION_VALUE.equalsIgnoreCase(userNameCaseConversion) ;
+		    userNameCaseConversionFlag = true;
+		    userNameLowerCaseFlag = UserGroupSyncConfig.UGSYNC_LOWER_CASE_CONVERSION_VALUE.equalsIgnoreCase(userNameCaseConversion);
 		}
 		
-		String groupNameCaseConversion = config.getGroupNameCaseConversion() ;
+		String groupNameCaseConversion = config.getGroupNameCaseConversion();
 		
 		if (UserGroupSyncConfig.UGSYNC_NONE_CASE_CONVERSION_VALUE.equalsIgnoreCase(groupNameCaseConversion)) {
-		    groupNameCaseConversionFlag = false ;
+		    groupNameCaseConversionFlag = false;
 		}
 		else {
-		    groupNameCaseConversionFlag = true ;
-		    groupNameLowerCaseFlag = UserGroupSyncConfig.UGSYNC_LOWER_CASE_CONVERSION_VALUE.equalsIgnoreCase(groupNameCaseConversion) ;
+		    groupNameCaseConversionFlag = true;
+		    groupNameLowerCaseFlag = UserGroupSyncConfig.UGSYNC_LOWER_CASE_CONVERSION_VALUE.equalsIgnoreCase(groupNameCaseConversion);
 		}
 	}
 
@@ -137,7 +137,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 	
 	private void createLdapContext() throws Throwable {
 		Properties env = new Properties();
-		env.put(Context.INITIAL_CONTEXT_FACTORY, 
+		env.put(Context.INITIAL_CONTEXT_FACTORY,
 				"com.sun.jndi.ldap.LdapCtxFactory");
 		env.put(Context.PROVIDER_URL, ldapUrl);
 		if (ldapUrl.startsWith("ldaps") && (config.getSSLTrustStorePath() != null && !config.getSSLTrustStorePath().trim().isEmpty())) {
@@ -160,7 +160,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 		ldapContext.addToEnvironment(Context.SECURITY_PRINCIPAL, ldapBindDn);
 		ldapContext.addToEnvironment(Context.SECURITY_CREDENTIALS, ldapBindPassword);
 		ldapContext.addToEnvironment(Context.SECURITY_AUTHENTICATION, ldapAuthenticationMechanism);
-		ldapContext.addToEnvironment(Context.REFERRAL, ldapReferral) ;
+		ldapContext.addToEnvironment(Context.REFERRAL, ldapReferral);
 	}
 	
 	private void setConfig() throws Throwable {
@@ -196,7 +196,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 		Set<String> userSearchAttributes = new HashSet<String>();
 		userSearchAttributes.add(userNameAttribute);
 		// For Group based search, user's group name attribute should not be added to the user search attributes
-		if (!groupSearchFirstEnabled && !groupSearchEnabled) { 
+		if (!groupSearchFirstEnabled && !groupSearchEnabled) {
 			userGroupNameAttributeSet = config.getUserGroupNameAttributeSet();
 			for (String useGroupNameAttribute : userGroupNameAttributeSet) {
 				userSearchAttributes.add(useGroupNameAttribute);
@@ -234,7 +234,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 
     groupSearchControls = new SearchControls();
     groupSearchControls.setSearchScope(groupSearchScope);
-    
+
     Set<String> groupSearchAttributes = new HashSet<String>();
     groupSearchAttributes.add(groupNameAttribute);
     groupSearchAttributes.add(groupMemberAttributeName);
@@ -244,9 +244,9 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 
 		if (LOG.isInfoEnabled()) {
 			LOG.info("LdapUserGroupBuilder initialization completed with --  "
-					+ "ldapUrl: " + ldapUrl 
+					+ "ldapUrl: " + ldapUrl
 					+ ",  ldapBindDn: " + ldapBindDn
-					+ ",  ldapBindPassword: ***** " 
+					+ ",  ldapBindPassword: ***** "
 					+ ",  ldapAuthenticationMechanism: " + ldapAuthenticationMechanism
           + ",  searchBase: " + searchBase
           + ",  userSearchBase: " + Arrays.toString(userSearchBase)
@@ -313,10 +313,10 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 				List<String> groupList = userInfo.getGroups();
 				if (userNameCaseConversionFlag) {
 					if (userNameLowerCaseFlag) {
-						userName = userName.toLowerCase() ;
+						userName = userName.toLowerCase();
 					}
 					else {
-						userName = userName.toUpperCase() ;
+						userName = userName.toUpperCase();
 					}
 				}
 
@@ -346,10 +346,10 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 					List<String> groupList = userInfo.getGroups();
 					if (userNameCaseConversionFlag) {
 						if (userNameLowerCaseFlag) {
-							userName = userName.toLowerCase() ;
+							userName = userName.toLowerCase();
 						}
 						else {
-							userName = userName.toUpperCase() ;
+							userName = userName.toUpperCase();
 						}
 					}
 
@@ -462,7 +462,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 
 							userInfo.addGroups(groups);
 							
-							//populate the userGroupMap with username, userInfo. 
+							//populate the userGroupMap with username, userInfo.
 							//userInfo contains details of user that will be later used for
 							//group search to compute group membership as well as to call sink.addOrUpdateUser()
 							if (userGroupMap.containsKey(userName)) {
@@ -473,7 +473,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 							//List<String> groupList = new ArrayList<String>(groups);
 							List<String> groupList = userInfo.getGroups();
 							counter++;
-							if (counter <= 2000) { 
+							if (counter <= 2000) {
 								if (LOG.isInfoEnabled()) {
 									LOG.info("Updating user count: " + counter
 											+ ", userName: " + userName + ", groupList: "
@@ -494,7 +494,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 								}
 							}
 						} else {
-							// If the user from the search result is present in the usersList, 
+							// If the user from the search result is present in the usersList,
 							// then update user name in the userInfo map with the value from the search result
 							// and update ranger admin.
 							String userFullName = (userEntry.getNameInNamespace()).toLowerCase();
@@ -511,10 +511,10 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 								List<String> groupList = userInfo.getGroups();
 								if (userNameCaseConversionFlag) {
 									if (userNameLowerCaseFlag) {
-										userName = userName.toLowerCase() ;
+										userName = userName.toLowerCase();
 									}
 									else {
-										userName = userName.toUpperCase() ;
+										userName = userName.toUpperCase();
 									}
 								}
 
@@ -529,7 +529,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 									+ ", for user: " + userName
 									+ ", groups: " + groupList);
 								}
-							} 
+							}
 						}
 
 					}
@@ -605,7 +605,7 @@ public class LdapUserGroupBuilder extends AbstractUserGroupSource {
 											new Object[]{userInfo.getUserFullName(), userInfo.getUserName()},
 											groupSearchControls);
 						} else {
-							// If group based search is enabled, then first retrieve all the groups based on the group configuration. 
+							// If group based search is enabled, then first retrieve all the groups based on the group configuration.
 							groupSearchResultEnum = ldapContext
 									.search(groupSearchBase[ou], extendedAllGroupsSearchFilter,
 											groupSearchControls);

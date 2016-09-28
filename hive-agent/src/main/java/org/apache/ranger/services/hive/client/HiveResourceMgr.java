@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -43,18 +43,18 @@ public class HiveResourceMgr {
 		HashMap<String, Object> ret = null;
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> HiveResourceMgr.connectionTest ServiceName: "+ serviceName + "Configs" + configs ) ;
+			LOG.debug("==> HiveResourceMgr.connectionTest ServiceName: "+ serviceName + "Configs" + configs );
 		}	
 		
 		try {
 			ret = HiveClient.connectionTest(serviceName, configs);
 		} catch (HadoopException e) {
-			LOG.error("<== HiveResourceMgr.connectionTest Error: " + e) ;
+			LOG.error("<== HiveResourceMgr.connectionTest Error: " + e);
 		  throw e;
 		}
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HiveResourceMgr.connectionTest Result : "+ ret  ) ;
+			LOG.debug("<== HiveResourceMgr.connectionTest Result : "+ ret  );
 		}	
 		
 		return ret;
@@ -75,15 +75,15 @@ public class HiveResourceMgr {
 
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HiveResourceMgr.getHiveResources()  UserInput: \""+ userInput  + "\" resource : " + resource + " resourceMap: "  + resourceMap) ;
+			LOG.debug("<== HiveResourceMgr.getHiveResources()  UserInput: \""+ userInput  + "\" resource : " + resource + " resourceMap: "  + resourceMap);
 		}	
 		
 		if ( userInput != null && resource != null) {
-			if ( resourceMap != null  && !resourceMap.isEmpty() ) { 
-				databaseList = resourceMap.get(DATABASE); 
-				tableList = resourceMap.get(TABLE); 
-				columnList = resourceMap.get(COLUMN); 
-				} 
+			if ( resourceMap != null  && !resourceMap.isEmpty() ) {
+				databaseList = resourceMap.get(DATABASE);
+				tableList = resourceMap.get(TABLE);
+				columnList = resourceMap.get(COLUMN);
+				}
 				switch (resource.trim().toLowerCase()) {
 				case DATABASE:
 						databaseName = userInput;
@@ -103,8 +103,8 @@ public class HiveResourceMgr {
 			try {
 				
 				if(LOG.isDebugEnabled()) {
-					LOG.debug("==> HiveResourceMgr.getHiveResources() UserInput: "+ userInput  + " configs: " + configs + " databaseList: "  + databaseList + " tableList: " 
-																				  + tableList + " columnList: " + columnList ) ;
+					LOG.debug("==> HiveResourceMgr.getHiveResources() UserInput: "+ userInput  + " configs: " + configs + " databaseList: "  + databaseList + " tableList: "
+																				  + tableList + " columnList: " + columnList );
 				}
 				
 				final HiveClient hiveClient = new HiveConnectionMgr().getHiveConnection(serviceName, serviceType, configs);
@@ -180,8 +180,8 @@ public class HiveResourceMgr {
 		}
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HiveResourceMgr.getHiveResources() UserInput: "+ userInput  + " configs: " + configs + " databaseList: "  + databaseList + " tableList: " 
-																		  + tableList + " columnList: " + columnList + "Result :" + resultList ) ;
+			LOG.debug("<== HiveResourceMgr.getHiveResources() UserInput: "+ userInput  + " configs: " + configs + " databaseList: "  + databaseList + " tableList: "
+																		  + tableList + " columnList: " + columnList + "Result :" + resultList );
 
 		}
 		return resultList;

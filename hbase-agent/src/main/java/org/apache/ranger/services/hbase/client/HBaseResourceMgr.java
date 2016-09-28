@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -41,17 +41,17 @@ public class HBaseResourceMgr {
 	public static HashMap<String, Object> connectionTest(String serviceName, Map<String, String> configs) throws Exception {
 		HashMap<String, Object> ret = null;
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HBaseResourceMgr.connectionTest() ServiceName: "+ serviceName + "Configs" + configs ) ;
+			LOG.debug("<== HBaseResourceMgr.connectionTest() ServiceName: "+ serviceName + "Configs" + configs );
 		}	
 		
 		try {
 			ret = HBaseClient.connectionTest(serviceName, configs);
 		} catch (HadoopException e) {
-			LOG.error("<== HBaseResourceMgr.connectionTest() Error: " + e) ;
+			LOG.error("<== HBaseResourceMgr.connectionTest() Error: " + e);
 		  throw e;
 		}
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HBaseResourceMgr.connectionTest() Result: "+ ret  ) ;
+			LOG.debug("<== HBaseResourceMgr.connectionTest() Result: "+ ret  );
 		}	
 		return ret;
 	}
@@ -68,13 +68,13 @@ public class HBaseResourceMgr {
 		List<String> 		      columnFamilyList  = null;
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HBaseResourceMgr.getHBaseResource UserInput: \""+ userInput  + "\" resource : " + resource + " resourceMap: "  + resourceMap) ;
+			LOG.debug("<== HBaseResourceMgr.getHBaseResource UserInput: \""+ userInput  + "\" resource : " + resource + " resourceMap: "  + resourceMap);
 		}	
 		
 		if ( userInput != null && resource != null) {
 			if ( resourceMap != null && !resourceMap.isEmpty() ) {
-				tableList 		 = resourceMap.get(TABLE); 
-				columnFamilyList = resourceMap.get(COLUMNFAMILY); 
+				tableList 		 = resourceMap.get(TABLE);
+				columnFamilyList = resourceMap.get(COLUMNFAMILY);
 			 }
 		     switch (resource.trim().toLowerCase()) {
 			 case TABLE:
@@ -94,7 +94,7 @@ public class HBaseResourceMgr {
 			
 			try {
 				if(LOG.isDebugEnabled()) {
-					LOG.debug("<== HBaseResourceMgr.getHBaseResource UserInput: \""+ userInput  + "\" configs: " + configs + " context: "  + context) ;
+					LOG.debug("<== HBaseResourceMgr.getHBaseResource UserInput: \""+ userInput  + "\" configs: " + configs + " context: "  + context);
 				}
 				final HBaseClient hBaseClient = new HBaseConnectionMgr().getHBaseConnection(serviceName,serviceType,configs);
 				Callable<List<String>> callableObj = null;
@@ -151,7 +151,7 @@ public class HBaseResourceMgr {
 		}
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== HBaseResourceMgr.getHBaseResource() Result :" + resultList) ;
+			LOG.debug("<== HBaseResourceMgr.getHBaseResource() Result :" + resultList);
 		}
 		
 		return resultList;

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -84,7 +84,7 @@ public class buildks {
 	    			return returnCode;
 	    		}	    		
 	    		tempCredential=CredentialReader.getDecryptedString(providerPath, alias);
-	    	}else{  
+	    	}else{
 	    		return returnCode;
 	    	}
 	    	
@@ -134,7 +134,7 @@ public class buildks {
 	    			return returnCode;
 	    		}	    		
 		    	displayCommand(args);
-	    	}else{  
+	    	}else{
 	    		return returnCode;
 	    	}	    	
 	    	
@@ -147,10 +147,10 @@ public class buildks {
 	    	//get valid and remaining argument
 	    	String[] toolArgs = parser.getRemainingArgs();	    	
 	    	//execute command in CredentialShell
-			// int i = 0 ;
+			// int i = 0;
 			//  for(String s : toolArgs) {
-			//		System.out.println("TooArgs [" + i + "] = [" + s + "]") ;
-		    //		i++ ;
+			//		System.out.println("TooArgs [" + i + "] = [" + s + "]");
+		    //		i++;
 			// }
 	    	returnCode= cs.run(toolArgs);
 	    	//if response code is zero then success else failure	    	
@@ -159,7 +159,7 @@ public class buildks {
     		ex.printStackTrace();
     	} catch(Exception ex){
     		ex.printStackTrace();
-    	}  
+    	}
 		return returnCode;
 	}
 	public int createCredentialFromUserInput(){
@@ -217,7 +217,7 @@ public class buildks {
     		ex.printStackTrace();
     	} catch(Exception ex){
     		ex.printStackTrace();
-    	}  
+    	}
 		return returnCode;
 	}	
 	
@@ -237,7 +237,7 @@ public class buildks {
 				}
 	    		//display command which need to be executed or entered
 	    		displayCommand(args);
-	    	}else{  
+	    	}else{
 	    		return returnCode;
 	    	}	    	
 	    	CredentialShell cs = new CredentialShell();
@@ -256,7 +256,7 @@ public class buildks {
     		ex.printStackTrace();
     	} catch(Exception ex){
     		ex.printStackTrace();
-    	}  
+    	}
 		return returnCode;
 	}	
 	
@@ -279,7 +279,7 @@ public class buildks {
 
 	    		//display command which need to be executed or entered
 	    		displayCommand(args);
-	    	}else{  
+	    	}else{
 	    		return returnCode;
 	    	}	    	
 	    	CredentialShell cs = new CredentialShell();
@@ -298,7 +298,7 @@ public class buildks {
     		ex.printStackTrace();
     	} catch(Exception ex){
     		ex.printStackTrace();
-    	}  
+    	}
 		return returnCode;
 	}	
 	
@@ -401,7 +401,7 @@ public class buildks {
 	
 	public static void displayCommand(String args[])
     {
-		String debugOption = System.getProperty("debug") ;
+		String debugOption = System.getProperty("debug");
 		if (debugOption != null && "TRUE".equalsIgnoreCase(debugOption)) {
 			StringBuilder tempBuffer=new StringBuilder("");
 			if(args!=null && args.length>0){
@@ -495,29 +495,29 @@ public class buildks {
 		}
 		return isValid;
 	}
-  
+
 	private static boolean isCredentialShellInteractiveEnabled() {
-		boolean ret = false ;
+		boolean ret = false;
 		
-		String fieldName = "interactive" ;
+		String fieldName = "interactive";
 		
-		CredentialShell cs = new CredentialShell() ;
+		CredentialShell cs = new CredentialShell();
 		
 		try {
-			Field interactiveField = cs.getClass().getDeclaredField(fieldName) ;
+			Field interactiveField = cs.getClass().getDeclaredField(fieldName);
 			
 			if (interactiveField != null) {
 				interactiveField.setAccessible(true);
-				ret = interactiveField.getBoolean(cs) ;
-				System.out.println("FOUND value of [" + fieldName + "] field in the Class [" + cs.getClass().getName() + "] = [" + ret + "]") ;
+				ret = interactiveField.getBoolean(cs);
+				System.out.println("FOUND value of [" + fieldName + "] field in the Class [" + cs.getClass().getName() + "] = [" + ret + "]");
 			}
 		} catch (Throwable e) {
-			System.out.println("Unable to find the value of [" + fieldName + "] field in the Class [" + cs.getClass().getName() + "]. Skiping -f option") ;
+			System.out.println("Unable to find the value of [" + fieldName + "] field in the Class [" + cs.getClass().getName() + "]. Skiping -f option");
 			e.printStackTrace();
 			ret = false;
 		}
 		
-		return ret ;
+		return ret;
 		
 	}
 }

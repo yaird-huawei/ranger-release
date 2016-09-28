@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -41,15 +41,15 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 
 public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
-	private static final Logger LOG = Logger.getLogger(FileSourceUserGroupBuilder.class) ;
+	private static final Logger LOG = Logger.getLogger(FileSourceUserGroupBuilder.class);
 
 	private Map<String,List<String>> user2GroupListMap     = new HashMap<String,List<String>>();
 	private String                   userGroupFilename     = null;
-	private long                     usergroupFileModified = 0 ;
+	private long                     usergroupFileModified = 0;
 
 
 	public static void main(String[] args) throws Throwable {
-		FileSourceUserGroupBuilder filesourceUGBuilder = new FileSourceUserGroupBuilder() ;
+		FileSourceUserGroupBuilder filesourceUGBuilder = new FileSourceUserGroupBuilder();
 
 		if (args.length > 0) {
 			filesourceUGBuilder.setUserGroupFilename(args[0]);
@@ -64,7 +64,7 @@ public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
 		filesourceUGBuilder.updateSink(ugSink);
 		
 		if ( LOG.isDebugEnabled()) {
-			filesourceUGBuilder.print(); 
+			filesourceUGBuilder.print();
 		}
 	}
 
@@ -83,9 +83,9 @@ public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
 	
 	@Override
 	public boolean isChanged() {
-		long TempUserGroupFileModifedAt = new File(userGroupFilename).lastModified() ;
+		long TempUserGroupFileModifedAt = new File(userGroupFilename).lastModified();
 		if (usergroupFileModified != TempUserGroupFileModifedAt) {
-			return true ;
+			return true;
 		}
 		return false;
 	}
@@ -124,11 +124,11 @@ public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
 
 	private void print() {
 		for(String user : user2GroupListMap.keySet()) {
-			LOG.debug("USER:" + user) ;
-			List<String> groups = user2GroupListMap.get(user) ;
+			LOG.debug("USER:" + user);
+			List<String> groups = user2GroupListMap.get(user);
 			if (groups != null) {
 				for(String group : groups) {
-					LOG.debug("\tGROUP: " + group) ;
+					LOG.debug("\tGROUP: " + group);
 				}
 			}
 		}
@@ -137,7 +137,7 @@ public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
 	public void buildUserGroupInfo() throws Throwable {
 		buildUserGroupList();
 		if ( LOG.isDebugEnabled()) {
-			print(); 
+			print();
 		}
 	}
 	
@@ -160,7 +160,7 @@ public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
 			if(tmpUser2GroupListMap != null) {
 				user2GroupListMap     = tmpUser2GroupListMap;
 				
-				usergroupFileModified = f.lastModified() ;
+				usergroupFileModified = f.lastModified();
 			} else {
 				LOG.info("No new UserGroup to sync at this time");
 			}
@@ -184,7 +184,7 @@ public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
 
 		JsonReader jsonReader = new JsonReader(new BufferedReader(new FileReader(jsonFile)));
 		
-		Gson gson = new GsonBuilder().create() ;
+		Gson gson = new GsonBuilder().create();
 
 		ret = gson.fromJson(jsonReader, ret.getClass());
 		
@@ -197,7 +197,7 @@ public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
 		Map<String, List<String>> ret = new HashMap<String, List<String>>();
 		
 		String delimiter = config.getUserSyncFileSourceDelimiter();
-		 
+		
 		CSVFormat csvFormat = CSVFormat.newFormat(delimiter.charAt(0));
 		
 		CSVParser csvParser = new CSVParser(new BufferedReader(new FileReader(textFile)), csvFormat);
@@ -216,12 +216,12 @@ public class FileSourceUserGroupBuilder extends AbstractUserGroupSource {
 				for (int j = 1; j < i; j ++) {
 					String group = csvRecord.get(j);
 					if ( group != null && !group.isEmpty()) {
-						 group = group.replaceAll("^\"|\"$", ""); 
+						 group = group.replaceAll("^\"|\"$", "");
 						 groups.add(group);
 					}
 				}
 				ret.put(user,groups);
-			 } 
+			 }
 		}
 
 		csvParser.close();

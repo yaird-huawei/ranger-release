@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -38,13 +38,13 @@ import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
 
 public class RangerDefaultAuditHandler implements RangerAccessResultProcessor {
 
-	protected static final String RangerModuleName =  RangerConfiguration.getInstance().get(RangerHadoopConstants.AUDITLOG_RANGER_MODULE_ACL_NAME_PROP , RangerHadoopConstants.DEFAULT_RANGER_MODULE_ACL_NAME) ;
+	protected static final String RangerModuleName =  RangerConfiguration.getInstance().get(RangerHadoopConstants.AUDITLOG_RANGER_MODULE_ACL_NAME_PROP , RangerHadoopConstants.DEFAULT_RANGER_MODULE_ACL_NAME);
 
 	private static final Log LOG = LogFactory.getLog(RangerDefaultAuditHandler.class);
 	static long sequenceNumber = 0;
 
 	private static String UUID 	= MiscUtil.generateUniqueId();
-	private static AtomicInteger  counter =  new AtomicInteger(0); ;
+	private static AtomicInteger  counter =  new AtomicInteger(0);;
 
 	public RangerDefaultAuditHandler() {
 	}

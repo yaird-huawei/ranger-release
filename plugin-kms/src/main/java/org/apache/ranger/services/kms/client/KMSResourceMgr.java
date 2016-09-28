@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -34,18 +34,18 @@ public class KMSResourceMgr {
 		HashMap<String, Object> ret = null;
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> KMSResourceMgr.validateConfig ServiceName: "+ serviceName + "Configs" + configs ) ;
+			LOG.debug("==> KMSResourceMgr.validateConfig ServiceName: "+ serviceName + "Configs" + configs );
 		}	
 		
 		try {
 			ret = KMSClient.testConnection(serviceName, configs);
 		} catch (Exception e) {
-			LOG.error("<== KMSResourceMgr.validateConfig Error: " + e) ;
+			LOG.error("<== KMSResourceMgr.validateConfig Error: " + e);
 		  throw e;
 		}
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== KMSResourceMgr.validateConfig Result : "+ ret  ) ;
+			LOG.debug("<== KMSResourceMgr.validateConfig Result : "+ ret  );
 		}	
 		return ret;
 	}
@@ -59,7 +59,7 @@ public class KMSResourceMgr {
 		
 		if ( resourceMap != null && !resourceMap.isEmpty() && resourceMap.get(KMSKEY) != null ) {
 			kmsKeyName = userInput;
-			kmsKeyList = resourceMap.get(KMSKEY); 
+			kmsKeyList = resourceMap.get(KMSKEY);
 		} else {
 			kmsKeyName = userInput;
 		}
@@ -68,7 +68,7 @@ public class KMSResourceMgr {
         if (configs == null || configs.isEmpty()) {
                 LOG.error("Connection Config is empty");
         } else {
-                
+
                 String url 		= configs.get("provider");
                 String username = configs.get("username");
                 String password = configs.get("password");
@@ -76,9 +76,9 @@ public class KMSResourceMgr {
                 String rangerKeytab = configs.get("rangerkeytab");
                 String nameRules = configs.get("namerules");
                 String authType = configs.get("authtype");
-                resultList = getKMSResource(url, username, password, rangerPrincipal, rangerKeytab, nameRules, authType, kmsKeyName,kmsKeyList) ;
+                resultList = getKMSResource(url, username, password, rangerPrincipal, rangerKeytab, nameRules, authType, kmsKeyName,kmsKeyList);
         }
-        return resultList ;
+        return resultList;
     }
 
     public static List<String> getKMSResource(String url, String username, String password, String rangerPrincipal, String rangerKeytab, String nameRules, String authType, String kmsKeyName, List<String> kmsKeyList) {

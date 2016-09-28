@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -356,7 +356,7 @@ public class RangerHdfsAuthorizer extends INodeAttributeProvider {
 						}
 					}
 
-					throw new RangerAccessControlException("Permission denied: user=" + user + ", access=" + action + ", inode=\"" + path + "\"") ;
+					throw new RangerAccessControlException("Permission denied: user=" + user + ", access=" + action + ", inode=\"" + path + "\"");
 				}
 			} finally {
 				if(auditHandler != null) {
@@ -466,12 +466,12 @@ class RangerHdfsAccessRequest extends RangerAccessRequestImpl {
 	}
 	
 	private static String getRemoteIp() {
-		String ret = null ;
-		InetAddress ip = Server.getRemoteIp() ;
+		String ret = null;
+		InetAddress ip = Server.getRemoteIp();
 		if (ip != null) {
 			ret = ip.getHostAddress();
 		}
-		return ret ;
+		return ret;
 	}
 }
 
@@ -483,19 +483,19 @@ class RangerHdfsAuditHandler extends RangerDefaultAuditHandler {
 	private final String pathToBeValidated;
 	private final boolean auditOnlyIfDenied;
 
-	private static final String    HadoopModuleName = RangerConfiguration.getInstance().get(RangerHadoopConstants.AUDITLOG_HADOOP_MODULE_ACL_NAME_PROP , RangerHadoopConstants.DEFAULT_HADOOP_MODULE_ACL_NAME) ;
-	private static final String    excludeUserList  = RangerConfiguration.getInstance().get(RangerHadoopConstants.AUDITLOG_HDFS_EXCLUDE_LIST_PROP, RangerHadoopConstants.AUDITLOG_EMPTY_STRING) ;
-	private static HashSet<String> excludeUsers     = null ;
+	private static final String    HadoopModuleName = RangerConfiguration.getInstance().get(RangerHadoopConstants.AUDITLOG_HADOOP_MODULE_ACL_NAME_PROP , RangerHadoopConstants.DEFAULT_HADOOP_MODULE_ACL_NAME);
+	private static final String    excludeUserList  = RangerConfiguration.getInstance().get(RangerHadoopConstants.AUDITLOG_HDFS_EXCLUDE_LIST_PROP, RangerHadoopConstants.AUDITLOG_EMPTY_STRING);
+	private static HashSet<String> excludeUsers     = null;
 
 	static {
 		if (excludeUserList != null && excludeUserList.trim().length() > 0) {
-			excludeUsers = new HashSet<String>() ;
+			excludeUsers = new HashSet<String>();
 			for(String excludeUser : excludeUserList.trim().split(",")) {
-				excludeUser = excludeUser.trim() ;
+				excludeUser = excludeUser.trim();
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("Adding exclude user [" + excludeUser + "]");
 				}
-				excludeUsers.add(excludeUser) ;
+				excludeUsers.add(excludeUser);
 				}
 		}
 	}

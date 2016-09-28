@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -137,7 +137,7 @@ public class SolrAuditDestination extends AuditDestination {
 									+ zkHosts, t);
 						}
 						finally {
-							resetInitializerInSOLR() ;
+							resetInitializerInSOLR();
 						}
 					} else if (solrURLs != null && !solrURLs.isEmpty()) {
 						try {
@@ -171,7 +171,7 @@ public class SolrAuditDestination extends AuditDestination {
 									+ solrURLs, t);
 						}
 						finally {
-							resetInitializerInSOLR() ;
+							resetInitializerInSOLR();
 						}
 					}
 				}
@@ -182,8 +182,8 @@ public class SolrAuditDestination extends AuditDestination {
 
     private void resetInitializerInSOLR() {
 		javax.security.auth.login.Configuration solrConfig = javax.security.auth.login.Configuration.getConfiguration();
-		String solrConfigClassName = solrConfig.getClass().getName() ;
-		String solrJassConfigEnd = "SolrJaasConfiguration" ;
+		String solrConfigClassName = solrConfig.getClass().getName();
+		String solrJassConfigEnd = "SolrJaasConfiguration";
 		if (solrConfigClassName.endsWith(solrJassConfigEnd)) {
 			try {
 				Field f = solrConfig.getClass().getDeclaredField("initiateAppNames");
@@ -270,7 +270,7 @@ public class SolrAuditDestination extends AuditDestination {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.apache.ranger.audit.provider.AuditProvider#flush()
 	 */
 	@Override
@@ -316,11 +316,11 @@ public class SolrAuditDestination extends AuditDestination {
 			 // SolrJ requires "java.security.auth.login.config"  property to be set to identify itself that it is kerberized. So using a dummy property for it
 			 // Acutal solrclient JAAS configs are read from the ranger-<component>-audit.xml present in  components conf folder and set by InMemoryJAASConfiguration
 			 // Refer InMemoryJAASConfiguration doc for JAAS Configuration
-			 String confFileName = System.getProperty(PROP_JAVA_SECURITY_AUTH_LOGIN_CONFIG) ;
-			 LOG.info("In solrAuditDestination.init() : JAAS Configuration set as [" + confFileName + "]") ;
+			 String confFileName = System.getProperty(PROP_JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+			 LOG.info("In solrAuditDestination.init() : JAAS Configuration set as [" + confFileName + "]");
 			 if ( System.getProperty(PROP_JAVA_SECURITY_AUTH_LOGIN_CONFIG) == null ) {
 				 if ( MiscUtil.getBooleanProperty(props, propPrefix + "." + PROP_SOLR_FORCE_USE_INMEMORY_JAAS_CONFIG,false) ) {
-					 System.setProperty(PROP_JAVA_SECURITY_AUTH_LOGIN_CONFIG, "/dev/null") ;
+					 System.setProperty(PROP_JAVA_SECURITY_AUTH_LOGIN_CONFIG, "/dev/null");
 				 } else {
 					LOG.warn("No Client JAAS config present in solr audit config. Ranger Audit to Kerberized Solr will fail...");
 				}
@@ -331,8 +331,8 @@ public class SolrAuditDestination extends AuditDestination {
 				LOG.error("ERROR: Unable to load SolrClient JAAS config from Audit config file. Audit to Kerberized Solr will fail...", e);
 		}
         finally {
-			 String confFileName = System.getProperty(PROP_JAVA_SECURITY_AUTH_LOGIN_CONFIG) ;
-			 LOG.info("In solrAuditDestination.init() (finally) : JAAS Configuration set as [" + confFileName + "]") ;
+			 String confFileName = System.getProperty(PROP_JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+			 LOG.info("In solrAuditDestination.init() (finally) : JAAS Configuration set as [" + confFileName + "]");
 		}
 		LOG.info("<==SolrAuditDestination.init()" );
 	}

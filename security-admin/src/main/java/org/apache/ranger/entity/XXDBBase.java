@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -21,7 +21,7 @@
 
 /**
  * Base JPA class with id, versionNumber and other common attributes
- * 
+ *
  */
 
 import java.util.Date;
@@ -111,7 +111,7 @@ public abstract class XXDBBase implements java.io.Serializable {
 	 * You cannot set null to the attribute.
 	 * @param id Value to set member attribute <b>id</b>
 	 */
-	public abstract void setId( Long id ) ;
+	public abstract void setId( Long id );
 
 	/**
 	 * Returns the value for the member attribute <b>id</b>

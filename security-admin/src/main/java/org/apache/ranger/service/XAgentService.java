@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -48,39 +48,39 @@ public class XAgentService {
 	
 	public XAgentService() {
 		defaultDBDateFormat = PropertiesUtil.getProperty("ranger.db.defaultDateformat", defaultDBDateFormat);
-		auditSupported = PropertiesUtil.getBooleanProperty("xa.audit.supported", 
+		auditSupported = PropertiesUtil.getBooleanProperty("xa.audit.supported",
 				false);
 	}
 	
 	private boolean isHDFSLog(String loggerName, int fieldCount) {
-		boolean ret = false ;
+		boolean ret = false;
 		if (loggerName != null) {
-			ret = loggerName.startsWith("org.") ;
+			ret = loggerName.startsWith("org.");
 		}
 		else {
-			ret = (fieldCount == 5) ;
+			ret = (fieldCount == 5);
 		}
 		return ret;
 	}
 	
 	private boolean isHiveLog(String loggerName, int fieldCount) {
-		boolean ret = false ;
+		boolean ret = false;
 		if (loggerName != null) {
-			ret = loggerName.startsWith("org.apache.ranger.authorization.hive")  || loggerName.startsWith("org.apache.ranger.pdp.hive.") ;
+			ret = loggerName.startsWith("org.apache.ranger.authorization.hive")  || loggerName.startsWith("org.apache.ranger.pdp.hive.");
 		}
 		else {
-			ret = (fieldCount == 11) ;
+			ret = (fieldCount == 11);
 		}
 		return ret;
 	}
 
 	private boolean isHBaseLog(String loggerName, int fieldCount) {
-		boolean ret = false ;
+		boolean ret = false;
 		if (loggerName != null) {
-			ret = loggerName.startsWith("org.apache.ranger.authorization.hbase") ;
+			ret = loggerName.startsWith("org.apache.ranger.authorization.hbase");
 		}
 		else {
-			ret = ((fieldCount != 5) && (fieldCount != 11)) ;
+			ret = ((fieldCount != 5) && (fieldCount != 11));
 		}
 		return ret;
 	}

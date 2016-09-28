@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -32,7 +32,7 @@ public class KrbPasswordSaverLoginModule implements LoginModule {
     public static final String PASSWORD_PARAM = "javax.security.auth.login.password";
 
 	@SuppressWarnings("rawtypes")
-	private Map sharedState = null ;
+	private Map sharedState = null;
 	
 	public KrbPasswordSaverLoginModule() {
 	}
@@ -51,16 +51,16 @@ public class KrbPasswordSaverLoginModule implements LoginModule {
 	@Override
 	public void initialize(Subject subject, CallbackHandler callbackhandler, Map<String, ?> sharedMap, Map<String, ?> options) {
 		
-		this.sharedState = sharedMap ;
+		this.sharedState = sharedMap;
 		
-		String userName = (options != null) ? (String)options.get(USERNAME_PARAM) : null ;
+		String userName = (options != null) ? (String)options.get(USERNAME_PARAM) : null;
 		if (userName != null) {
-			this.sharedState.put(USERNAME_PARAM,userName) ;
+			this.sharedState.put(USERNAME_PARAM,userName);
 		}
-		String password = (options != null) ? (String)options.get(PASSWORD_PARAM) : null ;
+		String password = (options != null) ? (String)options.get(PASSWORD_PARAM) : null;
 		
 		if (password != null) {
-			this.sharedState.put(PASSWORD_PARAM,password.toCharArray()) ;
+			this.sharedState.put(PASSWORD_PARAM,password.toCharArray());
 		}
 	}
 

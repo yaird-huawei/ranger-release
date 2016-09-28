@@ -19,7 +19,7 @@ package org.apache.ranger.entity;
 
 /**
  * Base JPA class with id, versionNumber and other common attributes
- * 
+ *
  */
 
 import java.util.Calendar;
@@ -99,7 +99,7 @@ public abstract class XXDBBase implements java.io.Serializable {
 	 * You cannot set null to the attribute.
 	 * @param id Value to set member attribute <b>id</b>
 	 */
-	public abstract void setId( Long id ) ;
+	public abstract void setId( Long id );
 
 	/**
 	 * Returns the value for the member attribute <b>id</b>

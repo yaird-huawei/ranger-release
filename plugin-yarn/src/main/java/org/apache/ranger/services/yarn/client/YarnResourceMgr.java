@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -34,18 +34,18 @@ public class YarnResourceMgr {
 		HashMap<String, Object> ret = null;
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> YarnResourceMgr.validateConfig ServiceName: "+ serviceName + "Configs" + configs ) ;
+			LOG.debug("==> YarnResourceMgr.validateConfig ServiceName: "+ serviceName + "Configs" + configs );
 		}	
 		
 		try {
 			ret = YarnClient.connectionTest(serviceName, configs);
 		} catch (Exception e) {
-			LOG.error("<== YarnResourceMgr.validateConfig Error: " + e) ;
+			LOG.error("<== YarnResourceMgr.validateConfig Error: " + e);
 		  throw e;
 		}
 		
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== YarnResourceMgr.validateConfig Result : "+ ret  ) ;
+			LOG.debug("<== YarnResourceMgr.validateConfig Result : "+ ret  );
 		}	
 		return ret;
 	}
@@ -60,7 +60,7 @@ public class YarnResourceMgr {
 		if ( resourceMap != null && !resourceMap.isEmpty() &&
 			resourceMap.get(YARNQUEUE) != null ) {
 			yarnQueueName = userInput;
-			yarnQueueList = resourceMap.get(YARNQUEUE); 
+			yarnQueueList = resourceMap.get(YARNQUEUE);
 		} else {
 			yarnQueueName = userInput;
 		}
@@ -68,9 +68,9 @@ public class YarnResourceMgr {
         if (configs == null || configs.isEmpty()) {
                 LOG.error("Connection Config is empty");
         } else {
-               resultList = getYarnResource(serviceName, configs, yarnQueueName,yarnQueueList) ;
+               resultList = getYarnResource(serviceName, configs, yarnQueueName,yarnQueueList);
         }
-        return resultList ;
+        return resultList;
     }
 
     public static List<String> getYarnResource(String serviceName, Map<String, String> configs, String yarnQueueName, List<String> yarnQueueList) {
@@ -83,5 +83,5 @@ public class YarnResourceMgr {
 	    }
         return topologyList;
     }
-    
+
 }

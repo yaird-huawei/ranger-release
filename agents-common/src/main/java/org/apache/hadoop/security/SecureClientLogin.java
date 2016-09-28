@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -108,7 +108,7 @@ public class SecureClientLogin {
 	}
 	
 	public static Principal createUserPrincipal(String aLoginName) {
-		return new User(aLoginName) ;
+		return new User(aLoginName);
 	}
 	
 	public static boolean isKerberosCredentialExists(String principal, String keytabPath){
@@ -123,7 +123,7 @@ public class SecureClientLogin {
 				isValid = true;
 			}
 		} else {
-			LOG.warn("Can't find keyTab Path : "+keytabPath); 
+			LOG.warn("Can't find keyTab Path : "+keytabPath);
 		}
 		if (!(principal != null && !principal.isEmpty() && isValid)) {
 			isValid = false;
@@ -143,13 +143,13 @@ public class SecureClientLogin {
 			return replacePattern(components, hostName);
 		}
 	}
-		  
+		
 	private static String[] getComponents(String principalConfig) {
 		if (principalConfig == null)
 			return null;
 		return principalConfig.split("[/@]");
 	}
-		  
+		
 	private static String replacePattern(String[] components, String hostname)
 			throws IOException {
 		String fqdn = hostname;
@@ -163,7 +163,7 @@ public class SecureClientLogin {
 class SecureClientLoginConfiguration extends javax.security.auth.login.Configuration {
 
 	private Map<String, String> kerberosOptions = new HashMap<String, String>();
-	private boolean usePassword = false ;
+	private boolean usePassword = false;
 
 	public SecureClientLoginConfiguration(boolean useKeyTab, String principal, String credential) {
 		kerberosOptions.put("principal", principal);
@@ -173,13 +173,13 @@ class SecureClientLoginConfiguration extends javax.security.auth.login.Configura
 			kerberosOptions.put("keyTab", credential);
 			kerberosOptions.put("doNotPrompt", "true");
 		} else {
-			usePassword = true ;
+			usePassword = true;
 			kerberosOptions.put("useKeyTab", "false");
 			kerberosOptions.put(KrbPasswordSaverLoginModule.USERNAME_PARAM, principal);
 			kerberosOptions.put(KrbPasswordSaverLoginModule.PASSWORD_PARAM, credential);
 			kerberosOptions.put("doNotPrompt", "false");
 			kerberosOptions.put("useFirstPass", "true");
-			kerberosOptions.put("tryFirstPass","false") ;
+			kerberosOptions.put("tryFirstPass","false");
 		}
 		kerberosOptions.put("storeKey", "true");
 		kerberosOptions.put("refreshKrb5Config", "true");

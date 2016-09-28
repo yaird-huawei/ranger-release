@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -295,7 +295,7 @@ public class AssetMgr extends AssetMgrBase {
 		long epochTime = epoch != null ? Long.parseLong(epoch) : 0;
 
 		if(epochTime == updatedTime) {
-			int resourceListSz = xResourceList.size() ;
+			int resourceListSz = xResourceList.size();
 			
 			if (policyCount == resourceListSz) {
 				policyExportAudit
@@ -401,8 +401,8 @@ public class AssetMgr extends AssetMgrBase {
 				HashMap<String, Object> resourceMap = new HashMap<String, Object>();
 
 				resourceMap.put("id", xResource.getId());
-				resourceMap.put("topology_name", xResource.getTopologies()) ;
-				resourceMap.put("service_name", xResource.getServices()) ;
+				resourceMap.put("topology_name", xResource.getTopologies());
+				resourceMap.put("service_name", xResource.getServices());
 				resourceMap.put("policyStatus", RangerCommonEnums
 						.getLabelFor_ActiveStatus(xResource
 								.getResourceStatus()));
@@ -429,7 +429,7 @@ public class AssetMgr extends AssetMgrBase {
                         HashMap<String, Object> resourceMap = new HashMap<String, Object>();
 
                         resourceMap.put("id", xResource.getId());
-                        resourceMap.put("topology_name", xResource.getTopologies()) ;
+                        resourceMap.put("topology_name", xResource.getTopologies());
                         resourceMap.put("policyStatus", RangerCommonEnums
                                         .getLabelFor_ActiveStatus(xResource
                                                         .getResourceStatus()));
@@ -699,7 +699,7 @@ public class AssetMgr extends AssetMgrBase {
 		Long count=xTrxLogService
 				.searchXTrxLogsCount(searchCriteria);
 		vXTrxLogList.setTotalCount(count);
-		 
+		
 		List<VXTrxLog> newList = validateXXTrxLogList(vXTrxLogList.getVXTrxLogs());
 		vXTrxLogList.setVXTrxLogs(newList);
 		return vXTrxLogList;
@@ -811,7 +811,7 @@ public class AssetMgr extends AssetMgrBase {
 	}
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.apache.ranger.biz.AssetMgrBase#searchXPolicyExportAudits(org.apache.ranger.
 	 * common.SearchCriteria)

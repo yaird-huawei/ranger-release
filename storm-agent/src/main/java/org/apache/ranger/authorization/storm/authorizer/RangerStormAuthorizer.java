@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -53,38 +53,38 @@ public class RangerStormAuthorizer implements IAuthorizer {
 
 	/**
      * permit() method is invoked for each incoming Thrift request.
-     * @param context request context includes info about 
+     * @param context request context includes info about
      * @param operation operation name
-     * @param topology_storm configuration of targeted topology 
+     * @param topology_storm configuration of targeted topology
      * @return true if the request is authorized, false if reject
      */
 	
 	@Override
 	public boolean permit(ReqContext aRequestContext, String aOperationName, Map aTopologyConfigMap) {
 		
-		boolean accessAllowed = false ;
+		boolean accessAllowed = false;
 		boolean isAuditEnabled = false;
 
-		String topologyName = null ;
+		String topologyName = null;
 		
 		try {
-			topologyName = (aTopologyConfigMap == null ? "" : (String)aTopologyConfigMap.get(Config.TOPOLOGY_NAME)) ;
+			topologyName = (aTopologyConfigMap == null ? "" : (String)aTopologyConfigMap.get(Config.TOPOLOGY_NAME));
 	
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("[req "+ aRequestContext.requestID()+ "] Access "
 		                + " from: [" + aRequestContext.remoteAddress() + "]"
-		                + " user: [" + aRequestContext.principal() + "],"  
+		                + " user: [" + aRequestContext.principal() + "],"
 		                + " op:   [" + aOperationName + "],"
-		                + "topology: [" + topologyName + "]") ;
+		                + "topology: [" + topologyName + "]");
 				
 				if (aTopologyConfigMap != null) {
 					for(Object keyObj : aTopologyConfigMap.keySet()) {
-						Object valObj = aTopologyConfigMap.get(keyObj) ;
+						Object valObj = aTopologyConfigMap.get(keyObj);
 						LOG.debug("TOPOLOGY CONFIG MAP [" + keyObj + "] => [" + valObj + "]");
 					}
 				}
 				else {
-					LOG.debug("TOPOLOGY CONFIG MAP is passed as null.") ;
+					LOG.debug("TOPOLOGY CONFIG MAP is passed as null.");
 				}
 			}
 
@@ -93,26 +93,26 @@ public class RangerStormAuthorizer implements IAuthorizer {
 			} else if(plugin == null) {
 				LOG.info("Ranger plugin not initialized yet! Skipping authorization;  allowedFlag => [" + accessAllowed + "], Audit Enabled:" + isAuditEnabled);
 			} else {
-				String userName = null ;
-				String[] groups = null ;
+				String userName = null;
+				String[] groups = null;
 	
-				Principal user = aRequestContext.principal() ;
+				Principal user = aRequestContext.principal();
 			
 				if (user != null) {
-					userName = user.getName() ;
+					userName = user.getName();
 					if (userName != null) {
-						UserGroupInformation ugi = UserGroupInformation.createRemoteUser(userName) ;
-						userName = ugi.getShortUserName() ;
-						groups = ugi.getGroupNames() ;
+						UserGroupInformation ugi = UserGroupInformation.createRemoteUser(userName);
+						userName = ugi.getShortUserName();
+						groups = ugi.getGroupNames();
 						if (LOG.isDebugEnabled()) {
-							LOG.debug("User found from principal [" + user.getName() + "] => user:[" + userName + "], groups:[" + StringUtil.toString(groups) + "]") ;
+							LOG.debug("User found from principal [" + user.getName() + "] => user:[" + userName + "], groups:[" + StringUtil.toString(groups) + "]");
 						}
 					}
 				}
 				
 				
 				if (userName != null) {
-					String clientIp =  (aRequestContext.remoteAddress() == null ? null : aRequestContext.remoteAddress().getHostAddress() ) ;
+					String clientIp =  (aRequestContext.remoteAddress() == null ? null : aRequestContext.remoteAddress().getHostAddress() );
 					RangerAccessRequest accessRequest = plugin.buildAccessRequest(userName, groups, clientIp, topologyName, aOperationName);
 					RangerAccessResult result = plugin.isAccessAllowed(accessRequest);
 					accessAllowed = result != null && result.getIsAllowed();
@@ -134,18 +134,18 @@ public class RangerStormAuthorizer implements IAuthorizer {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("[req "+ aRequestContext.requestID()+ "] Access "
 		                + " from: [" + aRequestContext.remoteAddress() + "]"
-		                + " user: [" + aRequestContext.principal() + "],"  
+		                + " user: [" + aRequestContext.principal() + "],"
 		                + " op:   [" + aOperationName + "],"
-		                + "topology: [" + topologyName + "] => returns [" + accessAllowed + "], Audit Enabled:" + isAuditEnabled) ;
+		                + "topology: [" + topologyName + "] => returns [" + accessAllowed + "], Audit Enabled:" + isAuditEnabled);
 			}
 		}
 		
-		return accessAllowed ;
+		return accessAllowed;
 	}
 	
 	/**
      * Invoked once immediately after construction
-     * @param conf Storm configuration 
+     * @param conf Storm configuration
      */
 
 	@Override

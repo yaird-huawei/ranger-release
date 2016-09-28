@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -49,7 +49,7 @@ public class TagAdminRESTSink implements TagSink, Runnable {
 	private static final String REST_PREFIX = "/service";
 	private static final String MODULE_PREFIX = "/tags";
 
-	private static final String REST_MIME_TYPE_JSON = "application/json" ;
+	private static final String REST_MIME_TYPE_JSON = "application/json";
 
 	private static final String REST_URL_IMPORT_SERVICETAGS_RESOURCE = REST_PREFIX + MODULE_PREFIX + "/importservicetags/";
 
@@ -136,7 +136,7 @@ public class TagAdminRESTSink implements TagSink, Runnable {
 	private ServiceTags doUpload(ServiceTags serviceTags) throws Exception {
 			if(!StringUtils.isEmpty(authenticationType) && authenticationType.trim().equalsIgnoreCase(AUTH_TYPE_KERBEROS) && SecureClientLogin.isKerberosCredentialExists(principal, keytab)){
 				try{
-					Subject sub = SecureClientLogin.loginUserFromKeytab(principal, keytab, nameRules) ;
+					Subject sub = SecureClientLogin.loginUserFromKeytab(principal, keytab, nameRules);
 					if(LOG.isDebugEnabled()) {
 						LOG.debug("Using Principal = "+ principal + ", keytab = "+keytab);
 					}
