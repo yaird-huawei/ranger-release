@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.security.PrivilegedExceptionAction;
 import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -32,6 +33,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.ranger.audit.model.AuditEventBase;
 import org.apache.ranger.audit.provider.MiscUtil;
 
@@ -115,15 +117,29 @@ public class HDFSAuditDestination extends AuditDestination {
 			return false;
 		}
 
-		PrintWriter out = null;
 		try {
 			if (logger.isDebugEnabled()) {
 				logger.debug("UGI=" + MiscUtil.getUGILoginUser()
 						+ ". Will write to HDFS file=" + currentFileName);
 			}
-			out = getLogFileStream();
-			for (String event : events) {
-				out.println(event);
+
+			PrivilegedExceptionAction<PrintWriter> action = new PrivilegedExceptionAction<PrintWriter>() {
+				@Override
+				public PrintWriter run()  throws Exception {
+					PrintWriter out = getLogFileStream();
+					for (String event : events) {
+						out.println(event);
+					}
+					return out;
+				};
+			};
+
+			PrintWriter out = null;
+			UserGroupInformation ugi =  MiscUtil.getUGILoginUser();
+			if ( ugi != null) {
+				out = ugi.doAs(action);
+			} else {
+				out = action.run();
 			}
 			// flush and check the stream for errors
 			if (out.checkError()) {
