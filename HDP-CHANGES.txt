@@ -191,3 +191,4 @@ HDP CHANGES:
      BUG-68468: Audit to Hdfs fails with GSS initiate error in Ranger Storm Plugin
      BUG-73878: RANGER-1338:Ranger Plugin failed to download policy when JaasConfig alone is used to set the UGI instead of Principal/Keytab
     [BUG-82313] - HOTFIX-494: RANGER-1135. Audit to Hdfs fails with GSS initiate error in Ranger Storm Plugin
+     BUG-83110: RANGER-1136: Ranger audit to HDFS fails with TGT errors in Ranger HiveServer2 plugin when UGI -TGT expires in audit thread

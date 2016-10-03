@@ -19,12 +19,14 @@
 
 package org.apache.ranger.audit.provider.solr;
 
+import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.ranger.audit.destination.AuditDestination;
 import org.apache.ranger.audit.model.AuditEventBase;
 import org.apache.ranger.audit.model.AuthzAuditEvent;
@@ -64,7 +66,7 @@ public class SolrAuditProvider extends AuditDestination {
 		if (solrClient == null) {
 			synchronized (lock) {
 				if (solrClient == null) {
-					String solrURL = MiscUtil.getStringProperty(props,
+					final String solrURL = MiscUtil.getStringProperty(props,
 							"xasecure.audit.solr.solr_url");
 
 					if (lastConnectTime != null) {
@@ -89,7 +91,20 @@ public class SolrAuditProvider extends AuditDestination {
 
 					try {
 						// TODO: Need to support SolrCloud also
-						solrClient = new HttpSolrClient(solrURL);
+						PrivilegedExceptionAction<SolrClient> action = new PrivilegedExceptionAction<SolrClient>() {
+							@Override
+							public SolrClient run()  throws Exception {
+								SolrClient solrClient = new HttpSolrClient(solrURL);
+								return solrClient;
+							};
+						};
+						UserGroupInformation ugi = MiscUtil.getUGILoginUser();
+						if (ugi != null) {
+							solrClient = ugi.doAs(action);
+						} else {
+							solrClient = action.run();
+						}
+
 						if (solrClient instanceof HttpSolrClient) {
 							HttpSolrClient httpSolrClient = (HttpSolrClient) solrClient;
 							httpSolrClient.setAllowCompression(true);
@@ -155,8 +170,21 @@ public class SolrAuditProvider extends AuditDestination {
 				}
 			}
 			// Convert AuditEventBase to Solr document
-			SolrInputDocument document = toSolrDoc(authzEvent);
-			UpdateResponse response = solrClient.add(document);
+			final SolrInputDocument document = toSolrDoc(authzEvent);
+			UpdateResponse response = null;
+			PrivilegedExceptionAction<UpdateResponse> action = new PrivilegedExceptionAction<UpdateResponse>() {
+				@Override
+				public UpdateResponse run()  throws Exception {
+					UpdateResponse response = solrClient.add(document);
+					return response;
+				};
+			};
+			UserGroupInformation ugi = MiscUtil.getUGILoginUser();
+			if (ugi != null) {
+				response = ugi.doAs(action);
+			} else {
+				response = action.run();
+			}
 			if (response.getStatus() != 0) {
 				lastFailTime = System.currentTimeMillis();
 
