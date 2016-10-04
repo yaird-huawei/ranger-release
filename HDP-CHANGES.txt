@@ -162,4 +162,5 @@ HDP CHANGES:
      BUG-44234: Update to HDP-CHANGES.txt file
      BUG-50517: remove test jar.
      BUG-50954: HBase plugin: Implement the new methods added to MasterObservers Interface and mimic their implementation in Hbase AccessController
-	[BUG-85940] - RANGER-1136: Ranger audit to HDFS fails with TGT errors in Ranger HiveServer2 plugin when UGI -TGT expires in audit thread
+     BUG-85940: [RANGER-1136] Ranger audit to HDFS fails with TGT errors in Ranger HiveServer2 plugin when UGI -TGT expires in audit thread
+     BUG-85940: [RANGER-1097] Ranger Plugin should not fail to download policy when UGI ticket expires
