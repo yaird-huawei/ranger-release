@@ -57,3 +57,5 @@ BUG
 	[BUG-73822] - RANGER-1314: updated HBase plugin to support authorization of namespace operations
 	[BUG-74024] - RANGER-1338: Ranger Plugin failed to download policy when JaasConfig alone is used to set the UGI instead of Principal/Keytab
 	[BUG-73964] - RANGER-1253: UI error when a special character is entered for a username in the admin webapp
+	[RANGER-1182] : Remove code duplication around the PrivilegedAction handling
+
