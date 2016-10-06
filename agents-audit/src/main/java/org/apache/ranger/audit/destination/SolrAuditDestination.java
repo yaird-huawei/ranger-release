@@ -37,6 +37,10 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 
+import org.apache.hadoop.security.UserGroupInformation;
+import java.security.PrivilegedExceptionAction;
+
+
 public class SolrAuditDestination extends AuditDestination {
 	private static final Log LOG = LogFactory
 			.getLog(SolrAuditDestination.class);
@@ -66,63 +70,93 @@ public class SolrAuditDestination extends AuditDestination {
 
 	synchronized void connect() {
 		if (solrClient == null) {
-			if (solrClient == null) {
-				String urls = MiscUtil.getStringProperty(props, propPrefix
-						+ "." + PROP_SOLR_URLS);
-				if (urls != null) {
-					urls = urls.trim();
-				}
-				if (urls != null && urls.equalsIgnoreCase("NONE")) {
-					urls = null;
-				}
+			String urls = MiscUtil.getStringProperty(props, propPrefix
+					+ "." + PROP_SOLR_URLS);
+			if (urls != null) {
+				urls = urls.trim();
+			}
+			if (urls != null && urls.equalsIgnoreCase("NONE")) {
+				urls = null;
+			}
 
-				List<String> solrURLs = new ArrayList<String>();
-				String zkHosts = null;
-				solrURLs = MiscUtil.toArray(urls, ",");
-				zkHosts = MiscUtil.getStringProperty(props, propPrefix + "."
-						+ PROP_SOLR_ZK);
-				if (zkHosts != null && zkHosts.equalsIgnoreCase("NONE")) {
-					zkHosts = null;
-				}
+			List<String> solrURLs = new ArrayList<String>();
+			String zkHosts = null;
+			solrURLs = MiscUtil.toArray(urls, ",");
+			zkHosts = MiscUtil.getStringProperty(props, propPrefix + "."
+					+ PROP_SOLR_ZK);
+			if (zkHosts != null && zkHosts.equalsIgnoreCase("NONE")) {
+				zkHosts = null;
+			}
 
-				String collectionName = MiscUtil.getStringProperty(props,
-						propPrefix + "." + PROP_SOLR_COLLECTION);
-				if (collectionName == null
-						|| collectionName.equalsIgnoreCase("none")) {
-					collectionName = DEFAULT_COLLECTION_NAME;
-				}
+			String collectionName = MiscUtil.getStringProperty(props,
+					propPrefix + "." + PROP_SOLR_COLLECTION);
+			if (collectionName == null
+					|| collectionName.equalsIgnoreCase("none")) {
+				collectionName = DEFAULT_COLLECTION_NAME;
+			}
 
-				LOG.info("Solr zkHosts=" + zkHosts + ", solrURLs=" + urls
-						+ ", collectionName=" + collectionName);
+			LOG.info("Solr zkHosts=" + zkHosts + ", solrURLs=" + urls
+					+ ", collectionName=" + collectionName);
 
-				if (zkHosts != null && !zkHosts.isEmpty()) {
-					LOG.info("Connecting to solr cloud using zkHosts="
-							+ zkHosts);
-					try {
-						// Instantiate
-						CloudSolrClient solrCloudClient = new CloudSolrClient(
-								zkHosts);
-						solrCloudClient.setDefaultCollection(collectionName);
-						solrClient = solrCloudClient;
-					} catch (Throwable t) {
-						LOG.fatal("Can't connect to Solr server. ZooKeepers="
-								+ zkHosts, t);
+			if (zkHosts != null && !zkHosts.isEmpty()) {
+				LOG.info("Connecting to solr cloud using zkHosts="
+						+ zkHosts);
+				try {
+					// Instantiate
+					final String zkhosts =zkHosts;
+					PrivilegedExceptionAction<CloudSolrClient> action = new PrivilegedExceptionAction<CloudSolrClient>() {
+						@Override
+						public CloudSolrClient run()  throws Exception {
+							CloudSolrClient solrCloudClient = new CloudSolrClient(
+									zkhosts);
+							return solrCloudClient;
+						};
+					};
+
+					CloudSolrClient solrCloudClient = null;
+					UserGroupInformation ugi = MiscUtil.getUGILoginUser();
+					if (ugi != null) {
+						solrCloudClient = ugi.doAs(action);
+					} else {
+						solrCloudClient = action.run();
 					}
-				} else if (solrURLs != null && !solrURLs.isEmpty()) {
-					try {
-						LOG.info("Connecting to Solr using URLs=" + solrURLs);
-						LBHttpSolrClient lbSolrClient = new LBHttpSolrClient(
-								solrURLs.get(0));
-						lbSolrClient.setConnectionTimeout(1000);
 
-						for (int i = 1; i < solrURLs.size(); i++) {
-							lbSolrClient.addSolrServer(solrURLs.get(i));
-						}
-						solrClient = lbSolrClient;
-					} catch (Throwable t) {
-						LOG.fatal("Can't connect to Solr server. URL="
-								+ solrURLs, t);
+					solrCloudClient.setDefaultCollection(collectionName);
+					solrClient = solrCloudClient;
+				} catch (Throwable t) {
+					LOG.fatal("Can't connect to Solr server. ZooKeepers="
+							+ zkHosts, t);
+				}
+			} else if (solrURLs != null && !solrURLs.isEmpty()) {
+				try {
+					LOG.info("Connecting to Solr using URLs=" + solrURLs);
+					final List<String> solrUrls = solrURLs;
+					PrivilegedExceptionAction<LBHttpSolrClient> action = new PrivilegedExceptionAction<LBHttpSolrClient>() {
+						@Override
+						public LBHttpSolrClient run()  throws Exception {
+							LBHttpSolrClient lbSolrClient = new LBHttpSolrClient(
+									solrUrls.get(0));
+							return lbSolrClient;
+						};
+					};
+
+					LBHttpSolrClient lbSolrClient = null;
+					UserGroupInformation ugi = MiscUtil.getUGILoginUser();
+					if (ugi != null) {
+						lbSolrClient = ugi.doAs(action);
+					} else {
+						lbSolrClient = action.run();
 					}
+
+					lbSolrClient.setConnectionTimeout(1000);
+
+					for (int i = 1; i < solrURLs.size(); i++) {
+						lbSolrClient.addSolrServer(solrURLs.get(i));
+					}
+					solrClient = lbSolrClient;
+				} catch (Throwable t) {
+					LOG.fatal("Can't connect to Solr server. URL="
+							+ solrURLs, t);
 				}
 			}
 		}
@@ -143,7 +177,7 @@ public class SolrAuditDestination extends AuditDestination {
 				}
 			}
 
-			Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
+			final Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
 			for (AuditEventBase event : events) {
 				AuthzAuditEvent authzEvent = (AuthzAuditEvent) event;
 				// Convert AuditEventBase to Solr document
@@ -151,7 +185,21 @@ public class SolrAuditDestination extends AuditDestination {
 				docs.add(document);
 			}
 			try {
-				UpdateResponse response = solrClient.add(docs);
+				PrivilegedExceptionAction<UpdateResponse> action = new PrivilegedExceptionAction<UpdateResponse>() {
+					@Override
+					public UpdateResponse run()  throws Exception {
+						UpdateResponse response = solrClient.add(docs);
+						return response;
+					};
+				};
+
+				UpdateResponse response = null;
+				UserGroupInformation ugi = MiscUtil.getUGILoginUser();
+				if (ugi != null) {
+					response = ugi.doAs(action);
+				} else {
+					response = action.run();
+				}
 				if (response.getStatus() != 0) {
 					addFailedCount(events.size());
 					logFailedEvent(events, response.toString());

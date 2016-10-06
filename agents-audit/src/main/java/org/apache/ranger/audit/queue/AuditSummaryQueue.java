@@ -19,7 +19,6 @@
 
 package org.apache.ranger.audit.queue;
 
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -147,26 +146,14 @@ public class AuditSummaryQueue extends AuditQueue implements Runnable {
 	@Override
 	public void run() {
 		try {
-			if (isConsumerDestination && MiscUtil.getUGILoginUser() != null) {
-				PrivilegedAction<Void> action = new PrivilegedAction<Void>() {
-					public Void run() {
-						runDoAs();
-						return null;
-					};
-				};
-				logger.info("Running queue " + getName() + " as user "
-						+ MiscUtil.getUGILoginUser());
-				MiscUtil.getUGILoginUser().doAs(action);
-			} else {
-				runDoAs();
-			}
+			runLogAudit();
 		} catch (Throwable t) {
 			logger.fatal("Exited thread without abnormaly. queue=" + getName(),
 					t);
 		}
 	}
 
-	public void runDoAs() {
+	public void runLogAudit() {
 
 		long lastDispatchTime = System.currentTimeMillis();
 

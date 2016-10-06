@@ -28,7 +28,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -753,26 +752,14 @@ public class AuditFileSpool implements Runnable {
 	@Override
 	public void run() {
 		try {
-			if (MiscUtil.getUGILoginUser() != null) {
-				PrivilegedAction<Void> action = new PrivilegedAction<Void>() {
-					public Void run() {
-						runDoAs();
-						return null;
-					};
-				};
-				logger.info("Running fileSpool " + consumerProvider.getName()
-						+ " as user " + MiscUtil.getUGILoginUser());
-				MiscUtil.getUGILoginUser().doAs(action);
-			} else {
-				runDoAs();
-			}
+			runLogAudit();
 		} catch (Throwable t) {
 			logger.fatal("Exited thread without abnormaly. queue="
 					+ consumerProvider.getName(), t);
 		}
 	}
 
-	public void runDoAs() {
+	public void runLogAudit() {
 		// boolean isResumed = false;
 		while (true) {
 			try {
