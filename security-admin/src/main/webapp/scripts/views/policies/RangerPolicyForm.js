@@ -380,7 +380,7 @@ define(function(require){
 			});// 'isRecursive' attribute of model is updated
 			//set sameLevel fieldAttr value with resource name
 			_.each(this.model.attributes, function(val, key) {
-                if(key.indexOf("sameLevel") >= 0){ 
+                if(key.indexOf("sameLevel") >= 0 && !_.isNull(val)){
                 	this.model.set(val.resourceType,val);
                 	that.model.unset(key);
                 }
