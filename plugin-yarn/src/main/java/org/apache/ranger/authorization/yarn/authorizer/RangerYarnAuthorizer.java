@@ -224,14 +224,6 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 
 		return ret;
 	}
-
-	private String toString(PrivilegedEntity entity) {
-		if(entity != null) {
-			return "{name=" + entity.getName() + "; type=" + entity.getType() + "}";
-		}
-
-		return "null";
-	}
 }
 
 class RangerYarnPlugin extends RangerBasePlugin {
