@@ -33,7 +33,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.ranger.audit.model.AuditEventBase;
 import org.apache.ranger.audit.provider.MiscUtil;
 import org.apache.ranger.audit.utils.RollingTimeUtil;
@@ -63,9 +62,7 @@ public class HDFSAuditDestination extends AuditDestination {
 
 	private String logFolder;
 
-	PrintWriter logWriter = null;
-
-	private Date fileCreateTime = null;
+	private PrintWriter logWriter = null;
 
 	private String currentFileName;
 
@@ -73,7 +70,7 @@ public class HDFSAuditDestination extends AuditDestination {
 
 	private RollingTimeUtil rollingTimeUtil = null;
 
-	private Date  nextRollOverTime = null;
+	private Date nextRollOverTime = null;
 
 	private boolean rollOverByDuration  = false;
 
@@ -153,7 +150,7 @@ public class HDFSAuditDestination extends AuditDestination {
 						+ ". Will write to HDFS file=" + currentFileName);
 			}
 
-			PrivilegedExceptionAction<PrintWriter> action = new PrivilegedExceptionAction<PrintWriter>() {
+			final PrintWriter out = MiscUtil.executePrivilegedAction(new PrivilegedExceptionAction<PrintWriter>() {
 				@Override
 				public PrintWriter run()  throws Exception {
 					PrintWriter out = getLogFileStream();
@@ -162,15 +159,7 @@ public class HDFSAuditDestination extends AuditDestination {
 					}
 					return out;
 				};
-			};
-
-			PrintWriter out = null;
-			UserGroupInformation ugi =  MiscUtil.getUGILoginUser();
-			if ( ugi != null) {
-				out = ugi.doAs(action);
-			} else {
-				out = action.run();
-			}
+			});
 
 			// flush and check the stream for errors
 			if (out.checkError()) {
@@ -289,7 +278,6 @@ public class HDFSAuditDestination extends AuditDestination {
 			logger.info("Creating new log file. hdfPath=" + fullPath);
 			FSDataOutputStream ostream = fileSystem.create(hdfPath);
 			logWriter = new PrintWriter(ostream);
-			fileCreateTime = new Date();
 			currentFileName = fullPath;
 		}
 		return logWriter;

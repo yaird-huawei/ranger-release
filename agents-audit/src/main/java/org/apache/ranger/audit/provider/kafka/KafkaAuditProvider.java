@@ -17,13 +17,10 @@
 package org.apache.ranger.audit.provider.kafka;
 
 import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -77,20 +74,14 @@ public class KafkaAuditProvider extends AuditDestination {
 				LOG.info("Connecting to Kafka producer using properties:"
 						+ kakfaProps.toString());
 
-				PrivilegedAction<Producer<String, String>> action = new PrivilegedAction<Producer<String, String>>() {
+				producer  = MiscUtil.executePrivilegedAction(new PrivilegedAction<Producer<String, String>>() {
 					@Override
 					public Producer<String, String> run(){
 						Producer<String, String> producer = new KafkaProducer<String, String>(kakfaProps);
 						return producer;
 					};
-				};
+				});
 
-				UserGroupInformation ugi =  MiscUtil.getUGILoginUser();
-				if ( ugi != null) {
-					producer = ugi.doAs(action);
-				} else {
-					producer = action.run();
-				}
 				initDone = true;
 			}
 		} catch (Throwable t) {
@@ -123,20 +114,15 @@ public class KafkaAuditProvider extends AuditDestination {
 				// TODO: Add partition key
 				final ProducerRecord<String, String> keyedMessage = new ProducerRecord<String, String>(
 						topic, message);
-				PrivilegedAction<Void> action = new PrivilegedAction<Void>() {
+
+				MiscUtil.executePrivilegedAction(new PrivilegedAction<Void>() {
 					@Override
 					public Void run(){
 						producer.send(keyedMessage);
 						return null;
 					};
-				};
+				});
 
-				UserGroupInformation ugi =  MiscUtil.getUGILoginUser();
-				if ( ugi != null) {
-					ugi.doAs(action);
-				} else {
-					action.run();
-				}
 			} else {
 				LOG.info("AUDIT LOG (Kafka Down):" + message);
 			}
@@ -183,20 +169,13 @@ public class KafkaAuditProvider extends AuditDestination {
 		LOG.info("stop() called");
 		if (producer != null) {
 			try {
-				PrivilegedExceptionAction<Void> action = new PrivilegedExceptionAction<Void>() {
+				MiscUtil.executePrivilegedAction(new PrivilegedAction<Void>() {
 					@Override
-					public Void run() throws Exception{
+					public Void run() {
 						producer.close();
 						return null;
 					};
-				};
-				MiscUtil.getUGILoginUser().doAs(action);
-				UserGroupInformation ugi =  MiscUtil.getUGILoginUser();
-				if ( ugi != null) {
-					ugi.doAs(action);
-				} else {
-					action.run();
-				}
+				});
 			} catch (Throwable t) {
 				LOG.error("Error closing Kafka producer");
 			}
