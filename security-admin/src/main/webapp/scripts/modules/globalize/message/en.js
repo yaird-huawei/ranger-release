@@ -339,7 +339,8 @@ define(function(require) {
 				grpUpdatedSucc            : 'Group updated successfully',
 				grpCreatedSucc            : 'Group created successfully',
 				errorLoadingAuditLogs	  : 'Unable to connect to Audit store !!',
-				enterCustomMask			  : 'Please enter custom masked value or expression !!'
+				enterCustomMask			  : 'Please enter custom masked value or expression !!',
+				addUserOrGroupForDelegateAdmin  : 'Please select user/group for the selected permission(s)'
 				
 				
 				

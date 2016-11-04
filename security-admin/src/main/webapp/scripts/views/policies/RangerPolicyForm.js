@@ -460,7 +460,7 @@ define(function(require){
 						var RangerPolicyItemAccessList = Backbone.Collection.extend();
 						var rangerPlcItemAccessList = new RangerPolicyItemAccessList(m.get('accesses'));
 						policyItem.set('accesses', rangerPlcItemAccessList)
-						policyItemList.add(policyItem)
+						
 					}
 					if(!_.isUndefined(m.get('dataMaskInfo'))){
 						policyItem.set("dataMaskInfo",m.get("dataMaskInfo"));
@@ -469,7 +469,7 @@ define(function(require){
 						policyItem.set("rowFilterInfo",m.get("rowFilterInfo"));
 					}
 					
-					
+					policyItemList.add(policyItem);
 				}
 			}, this);
 			return policyItemList;
@@ -703,16 +703,17 @@ define(function(require){
 			return JSON.stringify(context);
 		},
 		formValidation : function(coll){
-			var groupSet = false,permSet = false,groupPermSet = false,
+			var groupSet = false,permSet = false,groupPermSet = false, delegateAdmin = false,
 			userSet=false, userPerm = false, userPermSet =false,breakFlag =false, condSet = false,customMaskSet = true;
 			console.log('validation called..');
 			coll.each(function(m){
 				if(_.isEmpty(m.attributes)) return;
-				if(m.has('groupName') || m.has('userName') || m.has('accesses') ){
+				if(m.has('groupName') || m.has('userName') || m.has('accesses') || m.has('delegateAdmin') ){
 					if(! breakFlag){
 						groupSet = m.has('groupName') ? true : false;
 						userSet = m.has('userName') ? true : false;
-						permSet = m.has('accesses') ? true : false; 
+						permSet = m.has('accesses') ? true : false;
+						delegateAdmin = m.has('delegateAdmin') ? m.get('delegateAdmin') : false;
 						if(groupSet && permSet){
 							groupPermSet = true;
 							userPermSet = false;
@@ -720,13 +721,16 @@ define(function(require){
 							userPermSet = true;
 							groupPermSet = false;
 						}else{
-							breakFlag=true;
+							if(!((userSet || groupSet) && delegateAdmin)){
+								breakFlag=true;
+							}
 						}
 					}
 				}
 				if(m.has('conditions') && !_.isEmpty(m.get('conditions'))){
 					condSet = m.has('conditions') ? true : false;
 				}
+
 				if(m.has('dataMaskInfo') && !_.isUndefined(m.get('dataMaskInfo').dataMaskType)){
 					if(m.get('dataMaskInfo').dataMaskType === "CUSTOM"){
 						customMaskSet = _.isUndefined(m.get('dataMaskInfo').valueExpr) || _.isEmpty(m.get('dataMaskInfo')).valueExpr ? false : true;
@@ -739,7 +743,8 @@ define(function(require){
 						userSet 		: userSet, isUsers:userPermSet,
 						auditLoggin 	: auditStatus,
 						condSet			: condSet,
-						customMaskSet   : customMaskSet
+						customMaskSet   : customMaskSet,
+						delegateAdmin	: delegateAdmin
 					};
 			if(groupSet || userSet){
 				obj['permSet'] = groupSet ? permSet : false;
