@@ -32,8 +32,8 @@ import org.apache.ranger.audit.provider.AuditHandler;
 import org.apache.ranger.audit.provider.AuditProviderFactory;
 import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
 import org.apache.ranger.plugin.audit.RangerDefaultAuditHandler;
+import org.apache.ranger.plugin.contextenricher.RangerTagForEval;
 import org.apache.ranger.plugin.model.RangerPolicy;
-import org.apache.ranger.plugin.model.RangerTag;
 import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.policyengine.TestPolicyEngine.PolicyEngineTestCase.TestData;
 import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
@@ -53,6 +53,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -250,8 +251,22 @@ public class TestPolicyEngine {
 	}
 
 	@Test
+	public void testPolicyEngine_descendant_tags() {
+		String[] resourceFiles = {"/policyengine/test_policyengine_descendant_tags.json"};
+
+		runTestsFromResourceFiles(resourceFiles);
+	}
+
+	@Test
 	public void testPolicyEngine_hiveMasking() {
 		String[] resourceFiles = {"/policyengine/test_policyengine_hive_mask_filter.json"};
+
+		runTestsFromResourceFiles(resourceFiles);
+	}
+
+	@Test
+	public void testPolicyEngine_owner() {
+		String[] resourceFiles = {"/policyengine/test_policyengine_owner.json"};
 
 		runTestsFromResourceFiles(resourceFiles);
 	}
@@ -336,11 +351,11 @@ public class TestPolicyEngine {
 
 				if(!StringUtils.isEmpty(tagsJsonString)) {
 					try {
-						Type listType = new TypeToken<List<RangerTag>>() {
+						Type setType = new TypeToken<Set<RangerTagForEval>>() {
 						}.getType();
-						List<RangerTag> tagList = gsonBuilder.fromJson(tagsJsonString, listType);
+						Set<RangerTagForEval> tags = gsonBuilder.fromJson(tagsJsonString, setType);
 
-						context.put(RangerAccessRequestUtil.KEY_CONTEXT_TAGS, tagList);
+						context.put(RangerAccessRequestUtil.KEY_CONTEXT_TAGS, tags);
 					} catch (Exception e) {
 						System.err.println("TestPolicyEngine.runTests(): error parsing TAGS JSON string in file " + testName + ", tagsJsonString=" +
 								tagsJsonString + ", exception=" + e);

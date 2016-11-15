@@ -33,15 +33,21 @@ import org.apache.ranger.plugin.model.RangerTag;
 import org.apache.ranger.plugin.policyengine.RangerAccessRequest;
 import org.apache.ranger.plugin.policyengine.RangerAccessResource;
 import org.apache.ranger.plugin.policyresourcematcher.RangerDefaultPolicyResourceMatcher;
+import org.apache.ranger.plugin.policyresourcematcher.RangerPolicyResourceMatcher;
 import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 import org.apache.ranger.plugin.util.RangerResourceTrie;
 import org.apache.ranger.plugin.util.ServiceTags;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,10 +63,8 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 
 	private RangerTagRefresher                 tagRefresher               = null;
 	private RangerTagRetriever                 tagRetriever               = null;
-	private ServiceTags                        serviceTags                = null;
-	private List<RangerServiceResourceMatcher> serviceResourceMatchers    = null;
-	private Map<String, RangerResourceTrie>    serviceResourceTrie        = null;
 	private boolean                            disableTrieLookupPrefilter = false;
+	private EnrichedServiceTags                enrichedServiceTags;
 
 	@Override
 	public void init() {
@@ -89,7 +93,7 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 			} catch (ClassCastException exception) {
 				LOG.error("Class " + tagRetrieverClassName + " is not a type of RangerTagRetriever, exception=" + exception);
 			} catch (IllegalAccessException exception) {
-				LOG.error("Class " + tagRetrieverClassName + " could not be instantiated, exception=" + exception);
+				LOG.error("Class " + tagRetrieverClassName + " illegally accessed, exception=" + exception);
 			} catch (InstantiationException exception) {
 				LOG.error("Class " + tagRetrieverClassName + " could not be instantiated, exception=" + exception);
 			}
@@ -132,7 +136,7 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 			LOG.debug("==> RangerTagEnricher.enrich(" + request + ")");
 		}
 
-		List<RangerTag> matchedTags = findMatchingTags(request.getResource(), request.getContext());
+		final Set<RangerTagForEval> matchedTags = findMatchingTags(request);
 
 		RangerAccessRequestUtil.setRequestTagsInContext(request.getContext(), matchedTags);
 
@@ -168,19 +172,22 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 
 		}
 
-		Map<String, RangerResourceTrie> serviceResourceTrie = null;
+		Map<String, RangerResourceTrie<RangerServiceResourceMatcher>> serviceResourceTrie = null;
 
 		if(!disableTrieLookupPrefilter) {
-			serviceResourceTrie = new HashMap<String, RangerResourceTrie>();
+			serviceResourceTrie = new HashMap<String, RangerResourceTrie<RangerServiceResourceMatcher>>();
 
 			for (RangerServiceDef.RangerResourceDef resourceDef : serviceDef.getResources()) {
-				serviceResourceTrie.put(resourceDef.getName(), new RangerResourceTrie(resourceDef, resourceMatchers));
+				serviceResourceTrie.put(resourceDef.getName(), new RangerResourceTrie<RangerServiceResourceMatcher>(resourceDef, resourceMatchers));
 			}
 		}
 
-		this.serviceResourceMatchers = resourceMatchers;
-		this.serviceResourceTrie     = serviceResourceTrie;
-		this.serviceTags             = serviceTags;
+		Set<RangerTagForEval> tagsForEmptyResourceAndAnyAccess = new HashSet<RangerTagForEval>();
+		for (Map.Entry<Long, RangerTag> entry : serviceTags.getTags().entrySet()) {
+			tagsForEmptyResourceAndAnyAccess.add(new RangerTagForEval(entry.getValue(), RangerPolicyResourceMatcher.MatchType.ANCESTOR));
+		}
+
+		enrichedServiceTags = new EnrichedServiceTags(serviceTags, resourceMatchers, serviceResourceTrie, tagsForEmptyResourceAndAnyAccess);
 	}
 
 	@Override
@@ -202,28 +209,45 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 		return ret;
 	}
 
-	private List<RangerTag> findMatchingTags(final RangerAccessResource resource, final Map<String, Object> evalContext) {
+	private Set<RangerTagForEval> findMatchingTags(final RangerAccessRequest request) {
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("==> RangerTagEnricher.findMatchingTags(" + resource + ", " + evalContext + ")");
+			LOG.debug("==> RangerTagEnricher.findMatchingTags(" + request + ")");
 		}
 
-		List<RangerTag> ret = null;
-		final List<RangerServiceResourceMatcher> serviceResourceMatchers = getEvaluators(resource);
+		// To minimize chance for race condition between Tag-Refresher thread and access-evaluation thread
+		final EnrichedServiceTags enrichedServiceTags = this.enrichedServiceTags;
 
-		if (CollectionUtils.isNotEmpty(serviceResourceMatchers)) {
+		Set<RangerTagForEval> ret = null;
 
-			final ServiceTags serviceTags = this.serviceTags;
+		RangerAccessResource resource = request.getResource();
 
-			for (RangerServiceResourceMatcher resourceMatcher : serviceResourceMatchers) {
+		if ((resource == null || resource.getKeys() == null || resource.getKeys().size() == 0) && request.isAccessTypeAny()) {
+			ret = enrichedServiceTags.getTagsForEmptyResourceAndAnyAccess();
+		} else {
 
-				boolean matchResult = resourceMatcher.isMatch(resource, evalContext);
+			final List<RangerServiceResourceMatcher> serviceResourceMatchers = getEvaluators(resource, enrichedServiceTags);
 
-				if (matchResult) {
-					if (ret == null) {
-						ret = new ArrayList<RangerTag>();
+			if (CollectionUtils.isNotEmpty(serviceResourceMatchers)) {
+
+				for (RangerServiceResourceMatcher resourceMatcher : serviceResourceMatchers) {
+
+					final RangerPolicyResourceMatcher.MatchType matchType = resourceMatcher.getMatchType(resource, request.getContext());
+
+					final boolean isMatched;
+
+					if (request.isAccessTypeAny()) {
+						isMatched = matchType != RangerPolicyResourceMatcher.MatchType.NONE;
+					} else if (request.getResourceMatchingScope() == RangerAccessRequest.ResourceMatchingScope.SELF_OR_DESCENDANTS) {
+						isMatched = matchType == RangerPolicyResourceMatcher.MatchType.SELF || matchType == RangerPolicyResourceMatcher.MatchType.DESCENDANT;
+					} else {
+						isMatched = matchType == RangerPolicyResourceMatcher.MatchType.SELF || matchType == RangerPolicyResourceMatcher.MatchType.ANCESTOR;
 					}
-					// Find tags from serviceResource
-					ret.addAll(getTagsForServiceResource(serviceTags, resourceMatcher.getServiceResource()));
+					if (isMatched) {
+						if (ret == null) {
+							ret = new HashSet<RangerTagForEval>();
+						}
+						ret.addAll(getTagsForServiceResource(enrichedServiceTags.getServiceTags(), resourceMatcher.getServiceResource(), matchType));
+					}
 				}
 			}
 		}
@@ -237,25 +261,33 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 		}
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerTagEnricher.findMatchingTags(" + resource + ", " + evalContext + ")");
+			LOG.debug("<== RangerTagEnricher.findMatchingTags(" + request + ")");
 		}
 
 		return ret;
 	}
 
-	private List<RangerServiceResourceMatcher> getEvaluators(RangerAccessResource resource) {
+	private List<RangerServiceResourceMatcher> getEvaluators(RangerAccessResource resource, EnrichedServiceTags enrichedServiceTags) {
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerTagEnricher.getEvaluators(" + (resource != null ? resource.getAsString() : null) + ")");
+		}
+
 		List<RangerServiceResourceMatcher> ret = null;
 
-		if(serviceResourceTrie == null) {
+		final List<RangerServiceResourceMatcher> serviceResourceMatchers = enrichedServiceTags.getServiceResourceMatchers();
+		final Map<String, RangerResourceTrie<RangerServiceResourceMatcher>> serviceResourceTrie = enrichedServiceTags.getServiceResourceTrie();
+
+		if (resource == null || resource.getKeys() == null || resource.getKeys().size() == 0 || serviceResourceTrie == null) {
 			ret = serviceResourceMatchers;
 		} else {
-			Set<String> resourceKeys = resource == null ? null : resource.getKeys();
+			Set<String> resourceKeys = resource.getKeys();
 
 			if (CollectionUtils.isNotEmpty(resourceKeys)) {
+
 				boolean isRetModifiable = false;
 
 				for (String resourceName : resourceKeys) {
-					RangerResourceTrie trie = serviceResourceTrie.get(resourceName);
+					RangerResourceTrie<RangerServiceResourceMatcher> trie = serviceResourceTrie.get(resourceName);
 
 					if (trie == null) { // if no trie exists for this resource level, ignore and continue to next level
 						continue;
@@ -267,7 +299,7 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 						ret = null;
 					} else if (ret == null) { // initialize ret with policies found for this resource
 						ret = resourceEvaluators;
-					} else { // remove policies from ret that are not in resourceEvaluators
+					} else { // remove matchers from ret that are not in resourceEvaluators
 						if (isRetModifiable) {
 							ret.retainAll(resourceEvaluators);
 						} else {
@@ -288,7 +320,7 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 						}
 					}
 
-					if (CollectionUtils.isEmpty(ret)) { // if no policy exists, bail out and return empty list
+					if (CollectionUtils.isEmpty(ret)) { // if no matcher exists, bail out and return empty list
 						ret = null;
 						break;
 					}
@@ -301,15 +333,15 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 		}
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerTagEnricher.getEvaluators(" + resource.getAsString() + "): evaluatorCount=" + ret.size());
+			LOG.debug("<== RangerTagEnricher.getEvaluators(" + (resource != null ? resource.getAsString() : null) + "): evaluatorCount=" + ret.size());
 		}
 
 		return ret;
 	}
 
-	static private List<RangerTag> getTagsForServiceResource(final ServiceTags serviceTags, final RangerServiceResource serviceResource) {
+	static private Set<RangerTagForEval> getTagsForServiceResource(final ServiceTags serviceTags, final RangerServiceResource serviceResource, final RangerPolicyResourceMatcher.MatchType matchType) {
 
-		List<RangerTag> ret = new ArrayList<RangerTag>();
+		Set<RangerTagForEval> ret = new HashSet<RangerTagForEval>();
 
 		final Long resourceId = serviceResource.getId();
 
@@ -327,7 +359,7 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 					RangerTag tag = tags.get(tagId);
 
 					if (tag != null) {
-						ret.add(tag);
+						ret.add(new RangerTagForEval(tag, matchType));
 					}
 				}
 			}
@@ -336,12 +368,32 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 		return ret;
 	}
 
+	static private final class EnrichedServiceTags {
+		final private ServiceTags                        serviceTags;
+		final private List<RangerServiceResourceMatcher> serviceResourceMatchers;
+		final private Map<String, RangerResourceTrie<RangerServiceResourceMatcher>>    serviceResourceTrie;
+		final private Set<RangerTagForEval>              tagsForEmptyResourceAndAnyAccess; // Used only when accessed resource is empty and access type is 'any'
+
+		EnrichedServiceTags(ServiceTags serviceTags, List<RangerServiceResourceMatcher> serviceResourceMatchers,
+							Map<String, RangerResourceTrie<RangerServiceResourceMatcher>> serviceResourceTrie, Set<RangerTagForEval> tagsForEmptyResourceAndAnyAccess) {
+			this.serviceTags             = serviceTags;
+			this.serviceResourceMatchers = serviceResourceMatchers;
+			this.serviceResourceTrie     = serviceResourceTrie;
+			this.tagsForEmptyResourceAndAnyAccess          = tagsForEmptyResourceAndAnyAccess;
+		}
+		ServiceTags getServiceTags() {return serviceTags;}
+		List<RangerServiceResourceMatcher> getServiceResourceMatchers() { return serviceResourceMatchers;}
+		Map<String, RangerResourceTrie<RangerServiceResourceMatcher>> getServiceResourceTrie() { return serviceResourceTrie;}
+		Set<RangerTagForEval> getTagsForEmptyResourceAndAnyAccess() { return tagsForEmptyResourceAndAnyAccess;}
+	}
+
 	static class RangerTagRefresher extends Thread {
 		private static final Log LOG = LogFactory.getLog(RangerTagRefresher.class);
 
 		private final RangerTagRetriever tagRetriever;
 		private final RangerTagEnricher tagEnricher;
 		private long lastKnownVersion = -1L;
+		private long lastActivationTimeInMillis = 0L;
 
 		private final long pollingIntervalMs;
 		private final String cacheFile;
@@ -364,6 +416,14 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 			} catch(Throwable excp) {
 				LOG.fatal("failed to create GsonBuilder object", excp);
 			}
+		}
+
+		public long getLastActivationTimeInMillis() {
+			return lastActivationTimeInMillis;
+		}
+
+		public void setLastActivationTimeInMillis(long lastActivationTimeInMillis) {
+			this.lastActivationTimeInMillis = lastActivationTimeInMillis;
 		}
 
 		@Override
@@ -408,7 +468,7 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 			if (tagEnricher != null) {
 				ServiceTags serviceTags = null;
 
-				serviceTags = tagRetriever.retrieveTags(lastKnownVersion);
+				serviceTags = tagRetriever.retrieveTags(lastKnownVersion, lastActivationTimeInMillis);
 
 				if (serviceTags == null) {
 					if (!hasProvidedTagsToReceiver) {
@@ -420,9 +480,11 @@ public class RangerTagEnricher extends RangerAbstractContextEnricher {
 
 				if (serviceTags != null) {
 					tagEnricher.setServiceTags(serviceTags);
-					lastKnownVersion = serviceTags.getTagVersion() == null ? -1L : serviceTags.getTagVersion();
-					LOG.info("RangerTagRefresher.populateTags() - Updated tags-cache to new version of tags, lastKnownVersion=" + lastKnownVersion + "; newVersion=" + serviceTags.getTagVersion());
+					LOG.info("RangerTagRefresher.populateTags() - Updated tags-cache to new version of tags, lastKnownVersion=" + lastKnownVersion + "; newVersion="
+							+ (serviceTags.getTagVersion() == null ? -1L : serviceTags.getTagVersion()));
 					hasProvidedTagsToReceiver = true;
+					lastKnownVersion = serviceTags.getTagVersion() == null ? -1L : serviceTags.getTagVersion();
+					setLastActivationTimeInMillis(System.currentTimeMillis());
 				} else {
 					if (LOG.isDebugEnabled()) {
 						LOG.debug("RangerTagRefresher.populateTags() - No need to update tags-cache. lastKnownVersion=" + lastKnownVersion);

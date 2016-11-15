@@ -20,9 +20,9 @@
 # This script will install policymanager webapplication under tomcat and also, initialize the database with ranger users/tables.
 
 PROPFILE=$PWD/install.properties
-propertyValue=''
 pidFolderName='/var/run/ranger'
 mkdir -p ${pidFolderName}
+propertyValue=''
 if [ ! $? = "0" ];then
 	log "$PROPFILE file not found....!!";
 	exit 1;
@@ -116,6 +116,7 @@ sso_enabled=$(get_prop 'sso_enabled' $PROPFILE)
 sso_providerurl=$(get_prop 'sso_providerurl' $PROPFILE)
 sso_publickey=$(get_prop 'sso_publickey' $PROPFILE)
 RANGER_ADMIN_LOG_DIR=$(eval echo "$(get_prop 'RANGER_ADMIN_LOG_DIR' $PROPFILE)")
+RANGER_PID_DIR_PATH=$(eval echo "$(get_prop 'RANGER_PID_DIR_PATH' $PROPFILE)")
 
 spnego_principal=$(get_prop 'spnego_principal' $PROPFILE)
 spnego_keytab=$(get_prop 'spnego_keytab' $PROPFILE)
@@ -1132,6 +1133,17 @@ setup_install_files(){
         echo "export RANGER_ADMIN_LOG_DIR=${RANGER_ADMIN_LOG_DIR}" > ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger-admin-env-logdir.sh
         chmod a+rx ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger-admin-env-logdir.sh
 
+        if [ ! -d ${RANGER_PID_DIR_PATH} ]; then
+                log "[I]Creating Ranger PID folder: ${RANGER_PID_DIR_PATH}"
+                mkdir -p ${RANGER_PID_DIR_PATH}
+        fi
+        if [ -d ${RANGER_PID_DIR_PATH} ]; then
+                chown -R ${unix_user} ${RANGER_PID_DIR_PATH}
+        fi
+        echo "export RANGER_PID_DIR_PATH=${RANGER_PID_DIR_PATH}" > ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger-admin-env-piddir.sh
+        echo "export RANGER_USER=${unix_user}" >> ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger-admin-env-piddir.sh
+        chmod a+rx ${WEBAPP_ROOT}/WEB-INF/classes/conf/ranger-admin-env-piddir.sh
+
 	log "[I] Setting up installation files and directory DONE";
 
 	if [ ! -f ${INSTALL_DIR}/rpm ]; then
@@ -1166,24 +1178,24 @@ check_python_command
 run_dba_steps
 if [ "$?" == "0" ]
 then
-$PYTHON_COMMAND_INVOKER db_setup.py
-else
-	exit 1
-fi
-if [ "$?" == "0" ]
-then
 update_properties
 do_authentication_setup
 else
 	log "[E] DB schema setup failed! Please contact Administrator."
 	exit 1
 fi
-$PYTHON_COMMAND_INVOKER db_setup.py -javapatch
 if [ "$?" == "0" ]
 then
 echo "ln -sf ${WEBAPP_ROOT}/WEB-INF/classes/conf ${INSTALL_DIR}/conf"
 ln -sf ${WEBAPP_ROOT}/WEB-INF/classes/conf ${INSTALL_DIR}/conf
-echo "Installation of Ranger PolicyManager Web Application is completed."
 else
 	exit 1
 fi
+if [ "$?" == "0" ]
+then
+$PYTHON_COMMAND_INVOKER db_setup.py
+else
+        exit 1
+fi
+$PYTHON_COMMAND_INVOKER db_setup.py -javapatch
+echo "Installation of Ranger PolicyManager Web Application is completed."
