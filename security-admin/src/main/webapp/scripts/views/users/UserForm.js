@@ -83,12 +83,12 @@ define(function(require){
 				firstName : { 
 					type		: 'Text',
 					title		: localization.tt("lbl.firstName")+' *',
-					validators  : ['required',{type:'regexp',regexp:/^[a-zA-Z][a-zA-Z0-9\s_-]*[a-zA-Z0-9]+$/,message :'First name should start with alphabets & can have underscore, hyphen, space.'}]
+					validators  : ['required',{type:'regexp',regexp:/^[a-zA-Z0-9][a-zA-Z0-9\s_+.-]+$/,message :'First name should start with alpha/numeric letters and can have number,underscore, hyphen, space, dot and plus.'}]
 				},
 				lastName : { 
 					type		: 'Text',
 					title		: localization.tt("lbl.lastName"),
-					validators  : [{type:'regexp',regexp:/^[a-zA-Z][a-zA-Z0-9\s_-]*[a-zA-Z0-9]+$/,message :'Last name should start with alphabets & can have underscore, hyphen, space.'}]
+					validators  : [{type:'regexp',regexp:/^[a-zA-Z0-9][a-zA-Z0-9\s_+.-]+$/,message :'Last name should start with alpha/numeric letters and can have number,underscore, hyphen, space, dot and plus.'}]
 				},
 				emailAddress : {
 					type		: 'Text',
@@ -196,6 +196,7 @@ define(function(require){
 				//Remove validation checks for external users
 				if(this.model.get('userSource') == XAEnums.UserSource.XA_USER.value){
 					this.fields.firstName.editor.validators = [];
+					this.fields.lastName.editor.validators = [];
 					var labelStr = this.fields.firstName.$el.find('label').html().replace('*','');
 					this.fields.firstName.$el.find('label').html(labelStr);	
 				}
