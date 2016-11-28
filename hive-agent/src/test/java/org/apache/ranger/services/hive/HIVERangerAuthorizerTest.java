@@ -45,7 +45,7 @@ import org.junit.Assert;
  * a) A user "bob" can do a select/update on the table "words"
  * b) A group called "IT" can do a select only on the "count" column in "words"
  * c) "bob" can create any database
- * 
+ * d) "da_test_user" is delegate admin for rangerauthz database.
  */
 public class HIVERangerAuthorizerTest {
     
@@ -502,5 +502,128 @@ public class HIVERangerAuthorizerTest {
         connection.close();
     }
     
-    
+	@org.junit.Test
+	public void testCreateDropMacro() throws Exception {
+		String initialUrl = "jdbc:hive2://localhost:" + port;
+		Connection connection = DriverManager.getConnection(initialUrl, "admin", "admin");
+		Statement statement = connection.createStatement();
+		statement.execute("CREATE DATABASE IF NOT EXISTS rangerauthz2");
+
+		statement.close();
+		connection.close();
+
+		// Load data into HIVE
+		String url = "jdbc:hive2://localhost:" + port + "/rangerauthz2";
+		connection = DriverManager.getConnection(url, "admin", "admin");
+		statement = connection.createStatement();
+
+		statement.execute("create table if not exists rangerauthz2.macro_testing (a INT, b INT)");
+		statement.execute("insert into rangerauthz2.macro_testing (a, b) values (4, 5)");
+		statement.execute("insert into rangerauthz2.macro_testing (a, b) values (3, 5)");
+
+		ResultSet resultSet = statement.executeQuery("SELECT * FROM rangerauthz2.macro_testing where b == '5'");
+		//Verify Table Created And Contains Data
+
+		if (resultSet.next()) {
+			Assert.assertEquals(5, resultSet.getInt(2));
+		} else {
+			Assert.fail("No Resultset Found");
+		}
+
+		statement.execute("create temporary macro math_cube(x int) x*x*x");
+		ResultSet resultSet2 = statement.executeQuery("select math_cube(b) from rangerauthz2.macro_testing");
+
+		if (resultSet2.next()) {
+			Assert.assertEquals(125, resultSet2.getInt(1));
+		} else {
+			Assert.fail("Macro Not Created Properly");
+		}
+
+		statement.execute("drop temporary macro math_cube");
+
+		try{
+			statement.executeQuery("select math_cube(b) from rangerauthz2.macro_testing");
+			Assert.fail("macro deleted already");
+		}
+		catch(SQLException ex){
+			//expected
+		}
+
+		statement.execute("DROP TABLE rangerauthz2.macro_testing");
+		statement.execute("DROP DATABASE rangerauthz2");
+
+		statement.close();
+		connection.close();
+	}
+
+	@org.junit.Test
+	public void testCreateDropFunction() throws Exception {
+		String initialUrl = "jdbc:hive2://localhost:" + port;
+		Connection connection = DriverManager.getConnection(initialUrl, "admin", "admin");
+		Statement statement = connection.createStatement();
+
+		statement.execute("CREATE DATABASE IF NOT EXISTS rangerauthz3");
+		statement.close();
+		connection.close();
+
+		String url = "jdbc:hive2://localhost:" + port + "/rangerauthz3";
+		connection = DriverManager.getConnection(url, "admin", "admin");
+		statement = connection.createStatement();
+		statement.execute("CREATE TABLE if not exists rangerauthz3.function_testing (a DOUBLE, b DOUBLE)");
+		statement.execute("insert into rangerauthz3.function_testing (a, b) values (4.54845, 5.5487)");
+		ResultSet resultSet2 = statement.executeQuery("select round(b) from rangerauthz3.function_testing");
+
+		if (resultSet2.next()) {
+			Assert.assertEquals(6, resultSet2.getInt(1));
+		} else {
+			Assert.fail("No Resultset Found");
+		}
+
+		statement.execute("DROP TABLE rangerauthz3.function_testing");
+		statement.execute("DROP DATABASE rangerauthz3");
+
+		statement.close();
+		connection.close();
+	}
+
+	@org.junit.Test
+	public void testGrantrevoke() throws Exception {
+		String initialUrl = "jdbc:hive2://localhost:" + port;
+		Connection connection = DriverManager.getConnection(initialUrl, "admin", "admin");
+		Statement statement = connection.createStatement();
+		statement.execute("CREATE DATABASE IF NOT EXISTS rangerauthzx");
+		statement.execute("use rangerauthzx");
+		statement.execute("CREATE TABLE rangerauthzx.tbl1 (a INT, b INT)");
+		statement.close();
+		connection.close();
+
+		String url = "jdbc:hive2://localhost:" + port;
+		connection = DriverManager.getConnection(url, "dave", "dave");
+		statement = connection.createStatement();
+		try{
+		statement.execute("use rangerauthzx");
+		statement.execute("grant select ON TABLE rangerauthzx.tbl1 to USER jane with grant option");
+		Assert.fail("access should not have been granted");
+		}
+		catch(SQLException ex){
+			//expected
+		}
+
+		connection = DriverManager.getConnection(url, "da_test_user", "da_test_user");
+		statement = connection.createStatement();
+		try{
+		statement.execute("use rangerauthzx");
+		statement.execute("grant select ON TABLE rangerauthzx.tbl1 to USER jane with grant option");
+		}
+		catch(SQLException ex){
+			Assert.fail("access should have been granted to da_test_user");
+		}
+		statement.close();
+		connection.close();
+
+		connection = DriverManager.getConnection(url, "admin", "admin");
+		statement = connection.createStatement();
+		statement.execute("DROP TABLE rangerauthzx.tbl1");
+	}
+
 }

@@ -105,6 +105,88 @@
       "updateTime": "20160609-11:09:59.000-+0100",
       "version": 2
     },
+
+    {
+      "service": "HIVETest",
+      "name": "Delagate admin-allowed on rangerauthzx",
+      "policyType": 0,
+      "isAuditEnabled": true,
+      "resources": {
+        "database": {
+          "values": [
+            "rangerauthzx"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        },
+        "column": {
+          "values": [
+            "*"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        },
+        "table": {
+          "values": [
+            "*"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        }
+      },
+      "policyItems": [
+        {
+          "accesses": [
+            {
+              "type": "select",
+              "isAllowed": true
+            },
+            {
+              "type": "update",
+              "isAllowed": true
+            },
+            {
+              "type": "create",
+              "isAllowed": true
+            },
+            {
+              "type": "drop",
+              "isAllowed": true
+            },
+            {
+              "type": "alter",
+              "isAllowed": true
+            },
+            {
+              "type": "index",
+              "isAllowed": true
+            },
+            {
+              "type": "lock",
+              "isAllowed": true
+            },
+            {
+              "type": "all",
+              "isAllowed": true
+            }
+          ],
+          "users": [
+            "da_test_user"
+          ],
+          "groups": [],
+          "conditions": [],
+          "delegateAdmin": true
+        }
+      ],
+      "denyPolicyItems": [],
+      "allowExceptions": [],
+      "denyExceptions": [],
+      "dataMaskPolicyItems": [],
+      "rowFilterPolicyItems": [],
+      "id": 8,
+      "isEnabled": true,
+      "version": 2
+    },
     {
       "service": "HIVETest",
       "name": "HIVETest-2-20160609091836",
@@ -248,6 +330,7 @@
       "updateTime": "20160610-10:59:16.000-+0100",
       "version": 7
     },
+
     {
       "service": "HIVETest",
       "name": "SelectCountWords",
