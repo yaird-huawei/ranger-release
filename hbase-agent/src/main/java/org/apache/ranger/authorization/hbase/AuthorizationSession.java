@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -22,6 +22,7 @@ package org.apache.ranger.authorization.hbase;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.security.AccessDeniedException;
@@ -85,7 +86,7 @@ public class AuthorizationSession {
 	}
 	
 	AuthorizationSession access(String anAccess) {
-		_access = anAccess; 
+		_access = anAccess;
 		return this;
 	}
 
@@ -159,7 +160,15 @@ public class AuthorizationSession {
 	boolean isProvided(String aString) {
 		return aString != null && !aString.isEmpty();
 	}
-	
+
+	boolean isNameSpaceOperation() {
+		return StringUtils.equals(_operation, "createNamespace") ||
+				StringUtils.equals(_operation, "deleteNamespace") ||
+				StringUtils.equals(_operation, "modifyNamespace") ||
+				StringUtils.equals(_operation, "setUserNamespaceQuota") ||
+				StringUtils.equals(_operation, "setNamespaceQuota");
+	}
+
 	AuthorizationSession buildRequest() {
 
 		verifyBuildable();
@@ -168,7 +177,11 @@ public class AuthorizationSession {
 		// TODO get this via a factory instead
 		RangerAccessResourceImpl resource = new RangerAccessResourceImpl();
 		// policy engine should deal sensibly with null/empty values, if any
-		resource.setValue("table", _table);
+		if (isNameSpaceOperation() && StringUtils.isNotBlank(_otherInformation)) {
+				resource.setValue("table", _otherInformation + ":");
+		} else {
+			resource.setValue("table", _table);
+		}
 		resource.setValue("column-family", _columnFamily);
 		resource.setValue("column", _column);
 		
@@ -229,7 +242,7 @@ public class AuthorizationSession {
 		if (_auditHandler != null) {
 			List<AuthzAuditEvent> events = null;
 			/*
-			 * What we log to audit depends on authorization status.  For success we log all accumulated events.  In case of failure 
+			 * What we log to audit depends on authorization status.  For success we log all accumulated events.  In case of failure
 			 * we log just the last set of audit messages as we only need to record the cause of overall denial.
 			 */
 			if (authorized) {
