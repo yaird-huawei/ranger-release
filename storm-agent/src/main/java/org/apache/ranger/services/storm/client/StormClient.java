@@ -181,6 +181,7 @@ public class StormClient {
 		try {
 			ret = executeUnderKerberos(this.userName, this.password, this.lookupPrincipal, this.lookupKeytab, this.nameRules, topologyListGetter);
 		} catch (IOException e) {
+			ret=null;
 			LOG.error("Unable to get Topology list from [" + stormUIUrl + "]", e);
 		}
 		
