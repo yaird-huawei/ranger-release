@@ -99,6 +99,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import com.google.protobuf.Service;
+import java.util.Map;
 import java.util.Set;
 import com.google.common.net.HostAndPort;
 
@@ -2482,6 +2483,29 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		return ret;
 	}
 
+	@Override
+  public boolean postBulkLoadHFile(ObserverContext<RegionCoprocessorEnvironment> ctx,
+      List<Pair<byte[], String>> familyPaths, Map<byte[], List<Path>> map, boolean hasLoaded)
+      throws IOException {
+		final boolean ret;
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerAuthorizationCoprocessor.postBulkLoadHFile()");
+		}
+
+		try {
+			activatePluginClassLoader();
+			ret = implRegionObserver.postBulkLoadHFile(ctx, familyPaths, map, hasLoaded);
+		} finally {
+			deactivatePluginClassLoader();
+		}
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerAuthorizationCoprocessor.postBulkLoadHFile()");
+		}
+
+		return ret;
+  }
 	@Override
 	public Reader preStoreFileReaderOpen(ObserverContext<RegionCoprocessorEnvironment> ctx, FileSystem fs, Path p, FSDataInputStreamWrapper in, long size,
 											CacheConfig cacheConf, Reference r, Reader reader) throws IOException {
