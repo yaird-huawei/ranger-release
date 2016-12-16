@@ -598,13 +598,6 @@ table td.backgrid-filter .clear {
   background-color: #eeeeee;
 }
 
-table.table-permission tr th:last-child, table.table-permission tr td:last-child {
-  border: 0;
-  padding-left: 6%;
-  color: transparent;
-  background-color: #fff;
-}
-
 .table-permission thead tr {
   color: #4F4F4F;
   font-weight: bold;
@@ -1843,4 +1836,28 @@ td.select-row-cell {
 	margin-left: -5px;
     margin-top: -2px;
     font-size: 11px;
+}
+.selected-widget {
+    padding: 3px 5px 3px 4px;
+    border-radius: 3px;
+    border: 1px solid #aaaaaa;
+    background-color: #e4e4e4;
+    margin: 3px 3px;
+    float: left;
+}
+.selected-list {
+    margin: 5px;
+    max-height: 270px;
+    overflow: auto;
+}
+
+.inline {
+    display: inline;
+}
+.vertAlignInitial{
+	vertical-align: initial !important;
+	text-align: left;
+}
+.selected-widget .remove {
+    cursor: pointer;
 }

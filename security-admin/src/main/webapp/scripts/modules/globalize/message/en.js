@@ -227,7 +227,9 @@ define(function(require) {
 				createService					: 'Create Service',
 				editService						: 'Edit Service',
 				serviceDetails					: 'Service Details',
-				serviceName						: 'Service Name'
+				serviceName						: 'Service Name',
+				selectAndAddUser                : 'Select and Add User',
+                selectAndAddGroup               : 'Select and Add Group',
 			},
 			btn : {
 				add							: 'Add',
@@ -324,7 +326,10 @@ define(function(require) {
 				policyDisabledMsg		  : 'This policy is currently in disabled state.',
 				noRecordsFound			  : 'No Records Found',
 				keyDeleteMsg			  : 'Key deleted successfully',
-				rolloverSuccessfully	  : 'Key rollover successfully'
+				rolloverSuccessfully	  : 'Key rollover successfully',
+				pleaseSelectUser          : 'Please select user.',
+				pleaseSelectGroup         : 'Please select group.',
+				addSelectedUserGroup      : 'Please add selected user/group to permissions else user/group will not be added.'
 				
 				
 				
