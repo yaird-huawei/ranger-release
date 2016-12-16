@@ -234,7 +234,9 @@ define(function(require) {
 				selectDataMaskTypes				: 'Select Data Mask Types',
 				accessTypes						: 'Access Types',
 				rowLevelFilter					: 'Row Level Filter',
-				selectMaskingOption				: 'Select Masking Option'
+				selectMaskingOption				: 'Select Masking Option',
+				selectAndAddUser                : 'Select and Add User',
+                selectAndAddGroup               : 'Select and Add Group',
 			},
 			btn : {
 				add							: 'Add',
@@ -340,7 +342,10 @@ define(function(require) {
 				grpCreatedSucc            : 'Group created successfully',
 				errorLoadingAuditLogs	  : 'Unable to connect to Audit store !!',
 				enterCustomMask			  : 'Please enter custom masked value or expression !!',
-				addUserOrGroupForDelegateAdmin  : 'Please select user/group for the selected permission(s)'
+				addUserOrGroupForDelegateAdmin  : 'Please select user/group for the selected permission(s)',
+				pleaseSelectUser          : 'Please select user.',
+				pleaseSelectGroup         : 'Please select group.',
+				addSelectedUserGroup      : 'Please add selected user/group to permissions else user/group will not be added.'
 				
 				
 				
