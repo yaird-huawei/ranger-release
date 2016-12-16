@@ -2478,8 +2478,6 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.preCommitStoreFile()");
 		}
-
-		return;
 	}
 
 	@Override
@@ -2500,8 +2498,6 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.postCommitStoreFile()");
 		}
-
-		return;
 	}
 	@Override
 	public boolean postBulkLoadHFile(ObserverContext<RegionCoprocessorEnvironment> ctx,	List<Pair<byte[], String>> familyPaths, boolean hasLoaded) throws IOException {
