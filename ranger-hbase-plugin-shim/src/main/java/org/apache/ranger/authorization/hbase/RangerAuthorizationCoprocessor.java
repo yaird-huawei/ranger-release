@@ -2461,6 +2461,49 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
+  public void preCommitStoreFile(final ObserverContext<RegionCoprocessorEnvironment> ctx,
+    final byte[] family, final List<Pair<Path, Path>> pairs) throws IOException {
+		
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerAuthorizationCoprocessor.preCommitStoreFile()");
+		}
+
+		try {
+			activatePluginClassLoader();
+			implRegionObserver.preCommitStoreFile(ctx, family, pairs);
+		} finally {
+			deactivatePluginClassLoader();
+		}
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerAuthorizationCoprocessor.preCommitStoreFile()");
+		}
+
+		return;
+	}
+
+	@Override
+  public void postCommitStoreFile(final ObserverContext<RegionCoprocessorEnvironment> ctx,
+    final byte[] family, Path srcPath, Path dstPath) throws IOException {
+		
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerAuthorizationCoprocessor.postCommitStoreFile()");
+		}
+
+		try {
+			activatePluginClassLoader();
+			implRegionObserver.postCommitStoreFile(ctx, family, srcPath, dstPath);
+		} finally {
+			deactivatePluginClassLoader();
+		}
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerAuthorizationCoprocessor.postCommitStoreFile()");
+		}
+
+		return;
+	}
+	@Override
 	public boolean postBulkLoadHFile(ObserverContext<RegionCoprocessorEnvironment> ctx,	List<Pair<byte[], String>> familyPaths, boolean hasLoaded) throws IOException {
 		
 		final boolean ret;
