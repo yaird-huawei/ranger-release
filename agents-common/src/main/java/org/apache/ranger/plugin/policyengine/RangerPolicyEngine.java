@@ -27,6 +27,7 @@ import java.util.Set;
 import org.apache.ranger.plugin.model.RangerPolicy;
 import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
+import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
 
 public interface RangerPolicyEngine {
 	String GROUP_PUBLIC   = "public";
@@ -36,6 +37,8 @@ public interface RangerPolicyEngine {
 	String AUDIT_ALL = "audit-all";
 	String AUDIT_NONE = "audit-none";
 	String AUDIT_DEFAULT = "audit-default";
+
+	String USER_CURRENT = "{" + RangerAccessRequestUtil.KEY_USER + "}";
 
 	String getServiceName();
 
@@ -61,9 +64,9 @@ public interface RangerPolicyEngine {
 
 	boolean isAccessAllowed(Map<String, RangerPolicyResource> resources, String user, Set<String> userGroups, String accessType);
 
-	List<RangerPolicy> getExactMatchPolicies(RangerAccessResource resource);
+	List<RangerPolicy> getExactMatchPolicies(RangerAccessResource resource, Map<String, Object> evalContext);
 
-	List<RangerPolicy> getExactMatchPolicies(Map<String, RangerPolicyResource> resources);
+	List<RangerPolicy> getExactMatchPolicies(Map<String, RangerPolicyResource> resources, Map<String, Object> evalContext);
 
 	List<RangerPolicy> getAllowedPolicies(String user, Set<String> userGroups, String accessType);
 
