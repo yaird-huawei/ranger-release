@@ -1010,7 +1010,7 @@ public class UserMgr {
 		XXPortalUser gjUser = daoManager.getXXPortalUser().getById(userId);
 		if (gjUser == null) {
 			throw restErrorUtil
-					.create403RESTException("serverMsg.userMgrWrongUser"
+					.create403RESTException("serverMsg.userMgrWrongUser: "
 							+ userId);
 		}
 
@@ -1252,7 +1252,7 @@ public class UserMgr {
 		if (sess != null && sess.isUserAdmin()) {
 			return;
 		}
-		throw restErrorUtil.create403RESTException("Operation not allowed." + " loggedInUser=" + (sess != null ? sess.getXXPortalUser().getId() : "Not Logged In"));
+		throw restErrorUtil.create403RESTException("Operation not allowed." + " loggedInUser=" + (sess != null ? sess.getXXPortalUser().getId() : ". Not Logged In."));
 	}
 
 	public Collection<String> getRolesByLoginId(String loginId) {
