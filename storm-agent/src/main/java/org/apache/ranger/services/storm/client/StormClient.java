@@ -89,8 +89,6 @@ public class StormClient {
 				topologyNameMatching);
 		final String errMsg = errMessage;
 		
-		List<String> ret = new ArrayList<String>();
-		
 		PrivilegedAction<ArrayList<String>> topologyListGetter = new PrivilegedAction<ArrayList<String>>() {
 			@Override
 			public ArrayList<String> run() {
@@ -179,7 +177,7 @@ public class StormClient {
 				return lret;
 			}
 		};
-		
+		List<String> ret = null;
 		try {
 			ret = executeUnderKerberos(this.userName, this.password, this.lookupPrincipal, this.lookupKeytab, this.nameRules, topologyListGetter);
 		} catch (IOException e) {
