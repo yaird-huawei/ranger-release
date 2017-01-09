@@ -90,3 +90,4 @@ HDP CHANGES:
      BUG-43616-Update USERSEARCHFILTER for Ranger Authentication on Windows
      BUG-44939: Package commons-io, which is a required dependency, as part of storm plugin
      BUG-44234: Update to HDP-CHANGES.txt file
+     BUG-71359: RANGER-1126:Authorization checks for non existent file/directory should not be recursive in Ranger Hive authorizer
