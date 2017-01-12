@@ -154,3 +154,4 @@ HDP CHANGES:
      BUG-44939: Package commons-io, which is a required dependency, as part of storm plugin
      BUG-44234: Update to HDP-CHANGES.txt file
      BUG-72047: RANGER-1152: Improver performance of ranger audit login while audit event-id creation
+     BUG-72047: RANGER-809:Audit framework need to cache the getHostName() values to reuse for successive calls
