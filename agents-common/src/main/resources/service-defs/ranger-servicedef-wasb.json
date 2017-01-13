@@ -80,7 +80,32 @@
 		}
 	],
 
-  "configs": [],
+  "configs":
+  [
+    {
+      "itemId": 1,
+      "name": "username",
+      "type": "string",
+      "subType": "",
+      "mandatory": false,
+      "validationRegEx":"",
+      "validationMessage": "",
+      "uiHint":"",
+      "label": "Username"
+    },
+    {
+      "itemId":2,
+      "name": "commonNameForCertificate",
+      "type": "string",
+      "subType": "",
+      "mandatory": false,
+      "validationRegEx":"",
+      "validationMessage": "",
+      "uiHint":"",
+      "label": "Common Name for Certificate"
+    }
+  ],
+  "options": { "enableDenyAndExceptionsInPolicies": "true" },
   "contextEnrichers": [],
 	"policyConditions": []
 }
