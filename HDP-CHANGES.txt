@@ -49,3 +49,4 @@ BUG
 	[RANGER-1097] - Ranger KMS Plugin should not fails to download policy when UGI ticket expires
 	[BUG-71857] - RANGER-1095 - Invert authorization logic in RangerSolrAuthorizer
 	[BUG-71858] - RANGER-1171 - Invert authorization logic in RangerKafkaAuthorizer
+	[BUG-71860] - RANGER-1181: Ranger HDFS authorizer should fall back to native authorizer for each level of access to be authorized i.e. ancestor/parent/node/sub-access
