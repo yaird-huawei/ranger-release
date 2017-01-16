@@ -50,3 +50,4 @@ BUG
 	[BUG-71857] - RANGER-1095 - Invert authorization logic in RangerSolrAuthorizer
 	[BUG-71858] - RANGER-1171 - Invert authorization logic in RangerKafkaAuthorizer
 	[BUG-71860] - RANGER-1181: Ranger HDFS authorizer should fall back to native authorizer for each level of access to be authorized i.e. ancestor/parent/node/sub-access
+	[BUG-71863] - RANGER-1216: Ranger Audit framework fails to audit to keberized + SSL enabled Solr
