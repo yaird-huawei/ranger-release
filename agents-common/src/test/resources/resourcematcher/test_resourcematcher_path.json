@@ -15,8 +15,7 @@
 			  { "name":"child-path","input":"/a/b/y.txt", "result":true},
 			  { "name":"grand-child-path","input":"/a/b1/b2/y.txt", "result":true},
 			  { "name":"descendant-child-path","input":"/a/b1/c1/d1/any.txt", "result":true},
-			  { "name":"mismatche-path","input":"/a/any.txt", "result":false},
-
+			  { "name":"mismatche-path","input":"/a/any.txt", "result":false}
 		  ]
 	  }
 	  ,
@@ -35,7 +34,7 @@
 			  { "name":"child-path","input":"/a/b/y.txt", "result":true},
 			  { "name":"grand-child-path","input":"/a/b1/b2/y.txt", "result":true},
 			  { "name":"descendant-child-path","input":"/a/b1/c1/d1/any.txt", "result":true},
-			  { "name":"mismatche-path","input":"/a/any.txt", "result":false},
+			  { "name":"mismatche-path","input":"/a/any.txt", "result":false}
 		  ]
 	  }
 	  ,
@@ -89,7 +88,7 @@
       	{ "name":"exact-path","input":"/", "result":true},
       	{ "name":"child-path","input":"/path1", "result":false},
       	{ "name":"grand-child-path","input":"/path1/path2", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -108,7 +107,7 @@
       	{ "name":"exact-path","input":"/path1", "result":true},
       	{ "name":"child-path","input":"/path1/path2", "result":false},
       	{ "name":"grand-child-path","input":"/path1/path2/path3", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -128,7 +127,7 @@
       	{ "name":"child-path","input":"/path1/path2", "result":true},
       	{ "name":"grand-child-path","input":"/path1/path2/path3", "result":true},
       	{ "name":"sibling-path","input":"/path2/path3/path4", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -146,7 +145,7 @@
       	{ "name":"exact-path","input":"/", "result":true},
       	{ "name":"child-path","input":"/path1", "result":true},
       	{ "name":"grand-child-path","input":"/path1/path2", "result":true},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -217,7 +216,7 @@
       	{ "name":"grand-child-path-camel-case","input":"/Path-To-Success/Is-Slow/And-Fun", "result":true},
       	{ "name":"unmatched-path","input":"/pat1ha", "result":false},
       	{ "name":"unmatched-child-path","input":"/pat1ha/path2b", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -242,7 +241,7 @@
       	{ "name":"grand-child-path-camel-case","input":"/Path1/Path2/Path3", "result":true},
       	{ "name":"unmatched-path","input":"/path1a", "result":false},
       	{ "name":"unmatched-child-path","input":"/path1a/path2b", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -266,7 +265,7 @@
       	{ "name":"grand-child-path","input":"/public/archive/2008/first-test", "result":true},
       	{ "name":"unmatched-path","input":"/pat1ha", "result":false},
       	{ "name":"unmatched-child-path","input":"/pat1ha/path2b", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -297,7 +296,7 @@
       	{ "name":"grand-child-path","input":"/public/last-test/best-result/details", "result":true},
       	{ "name":"unmatched-path","input":"/pat1ha", "result":false},
       	{ "name":"unmatched-child-path","input":"/pat1ha/path2b", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -328,7 +327,7 @@
       	{ "name":"grand-child-path","input":"/public/last-test/best-result/details", "result":true}, # TODO: should this be false since isRecursive=false?
       	{ "name":"unmatched-path","input":"/pat1ha", "result":false},
       	{ "name":"unmatched-child-path","input":"/pat1ha/path2b", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -346,7 +345,7 @@
       	{ "name":"exact-path","input":"root", "result":true},
       	{ "name":"child-path","input":"root.default", "result":false},
       	{ "name":"grand-child-path","input":"root.default.mycompany", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -368,7 +367,7 @@
       	{ "name":"child-path","input":"root.default.mycompany1.test", "result":true}, # TODO: should this be false since isRecursive=false
       	{ "name":"child-path","input":"root.default.mycompany1.dev", "result":true}, # TODO: should this be false since isRecursive=false
       	{ "name":"sibling-path","input":"root.default.othercompany1.dev", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -386,7 +385,7 @@
       	{ "name":"exact-path","input":"root", "result":true},
       	{ "name":"child-path","input":"root.default", "result":true},
       	{ "name":"grand-child-path","input":"root.default.mycompany", "result":true},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   	,
@@ -408,7 +407,7 @@
       	{ "name":"child-path","input":"root.default.mycompany1.test", "result":true},
       	{ "name":"child-path","input":"root.default.mycompany1.dev", "result":true},
       	{ "name":"sibling-path","input":"root.default.othercompany1.dev", "result":false},
-      	{ "name":"invalid-path","input":"path1", "result":false},
+      	{ "name":"invalid-path","input":"path1", "result":false}
       ]
   	}
   ]
