@@ -158,7 +158,7 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 	 */
 	@Override
 	public AuthorizationResponse authorize(AuthorizationContext context) {
-		boolean isDenied = false;
+		boolean isDenied = true;
 
 		try {
 			if (logger.isDebugEnabled()) {
@@ -207,6 +207,8 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 						isDenied = true;
 						// rejecting on first failure
 						break;
+					} else {
+						isDenied = false;
 					}
 				}
 			} finally {
