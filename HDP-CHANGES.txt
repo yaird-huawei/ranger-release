@@ -54,3 +54,4 @@ BUG
 	[BUG-71870] - RANGER-1229:RangerResourceMatcher for Hdfs and Yarn resources does not correctly handle policy containing only one resource whose value is "*"
 	[BUG-71872] - RANGER-1245: Ranger UI group name limitation (32 characters in UI)
 	[RANGER-1180] - Add HBase Authorization tests
+	[BUG-73822] - RANGER-1314: updated HBase plugin to support authorization of namespace operations
