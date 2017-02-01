@@ -62,6 +62,7 @@ import org.apache.ranger.biz.ServiceDBStore;
 import org.apache.ranger.biz.ServiceMgr;
 import org.apache.ranger.biz.TagDBStore;
 import org.apache.ranger.biz.XUserMgr;
+import org.apache.ranger.common.AppConstants;
 import org.apache.ranger.common.ContextUtil;
 import org.apache.ranger.common.GUIDUtil;
 import org.apache.ranger.common.JSONUtil;
@@ -1601,6 +1602,7 @@ public class ServiceREST {
 			List<XXTrxLog> trxLogList = new ArrayList<XXTrxLog>();
 			XXTrxLog xxTrxLog = new XXTrxLog();
 			xxTrxLog.setAction("EXPORT EXCEL");
+			xxTrxLog.setObjectClassType(AppConstants.CLASS_TYPE_RANGER_POLICY);
 			xxTrxLog.setPreviousValue(metaDataInfo);
 			trxLogList.add(xxTrxLog);
 			bizUtil.createTrxLog(trxLogList);
@@ -1647,6 +1649,7 @@ public class ServiceREST {
 			List<XXTrxLog> trxLogList = new ArrayList<XXTrxLog>();
 			XXTrxLog xxTrxLog = new XXTrxLog();
 			xxTrxLog.setAction("EXPORT CSV");
+			xxTrxLog.setObjectClassType(AppConstants.CLASS_TYPE_RANGER_POLICY);
 			xxTrxLog.setPreviousValue(metaDataInfo);
 			trxLogList.add(xxTrxLog);
 			bizUtil.createTrxLog(trxLogList);
@@ -1698,6 +1701,7 @@ public class ServiceREST {
 				List<XXTrxLog> trxLogList = new ArrayList<XXTrxLog>();
 				XXTrxLog xxTrxLog = new XXTrxLog();
 				xxTrxLog.setAction("EXPORT JSON");
+				xxTrxLog.setObjectClassType(AppConstants.CLASS_TYPE_RANGER_POLICY);
 				xxTrxLog.setPreviousValue(metaDataInfo);
 				trxLogList.add(xxTrxLog);
 				bizUtil.createTrxLog(trxLogList);
@@ -1740,6 +1744,7 @@ public class ServiceREST {
 			List<XXTrxLog> trxLogList = new ArrayList<XXTrxLog>();
 			XXTrxLog xxTrxLog = new XXTrxLog();
 			xxTrxLog.setAction("IMPORT START");
+			xxTrxLog.setObjectClassType(AppConstants.CLASS_TYPE_RANGER_POLICY);
 			trxLogList.add(xxTrxLog);
 			bizUtil.createTrxLog(trxLogList);
 			
@@ -1931,6 +1936,7 @@ public class ServiceREST {
 		} catch(JsonSyntaxException ex) { 
 			LOG.error("Provided json file is not valid!!", ex);
 			xxTrxLogError.setAction("IMPORT ERROR");
+			xxTrxLogError.setObjectClassType(AppConstants.CLASS_TYPE_RANGER_POLICY);
 			if(StringUtils.isNotEmpty(metaDataInfo)){
 				xxTrxLogError.setPreviousValue(metaDataInfo);
 			}
@@ -1940,6 +1946,7 @@ public class ServiceREST {
 	      }catch (WebApplicationException excp) {
 			LOG.error("Error while importing policy from file!!", excp);
 			xxTrxLogError.setAction("IMPORT ERROR");
+			xxTrxLogError.setObjectClassType(AppConstants.CLASS_TYPE_RANGER_POLICY);
 			if(StringUtils.isNotEmpty(metaDataInfo)){
 				xxTrxLogError.setPreviousValue(metaDataInfo);
 			}
@@ -1949,6 +1956,7 @@ public class ServiceREST {
 		} catch (Throwable excp) {
 			LOG.error("Error while importing policy from file!!", excp);
 			xxTrxLogError.setAction("IMPORT ERROR");
+			xxTrxLogError.setObjectClassType(AppConstants.CLASS_TYPE_RANGER_POLICY);
 			if(StringUtils.isNotEmpty(metaDataInfo)){
 				xxTrxLogError.setPreviousValue(metaDataInfo);
 			}
@@ -1960,6 +1968,7 @@ public class ServiceREST {
 			List<XXTrxLog> trxLogListEnd = new ArrayList<XXTrxLog>();
 			XXTrxLog xxTrxLogEnd = new XXTrxLog();
 			xxTrxLogEnd.setAction("IMPORT END");
+			xxTrxLogEnd.setObjectClassType(AppConstants.CLASS_TYPE_RANGER_POLICY);
 			if(StringUtils.isNotEmpty(metaDataInfo)){
 				xxTrxLogEnd.setPreviousValue(metaDataInfo);
 			}
