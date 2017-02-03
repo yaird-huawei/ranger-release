@@ -41,6 +41,7 @@ import backtype.storm.Config;
 import backtype.storm.security.auth.IAuthorizer;
 import backtype.storm.security.auth.ReqContext;
 
+
 public class RangerStormAuthorizer implements IAuthorizer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RangerStormAuthorizer.class);
@@ -158,17 +159,10 @@ public class RangerStormAuthorizer implements IAuthorizer {
 
 				if (me == null) {
 					try {
-						Subject subject = getStormSubject();
-
-						UserGroupInformation ugi = MiscUtil.createUGIFromSubject(subject);
-
-						if (ugi != null) {
-							MiscUtil.setUGILoginUser(ugi, subject);
-						}
-
+						MiscUtil.setUGIFromJAASConfig(STORM_CLIENT_JASS_CONFIG_SECTION);
 						LOG.info("LoginUser=" + MiscUtil.getUGILoginUser());
 					} catch (Throwable t) {
-						LOG.error("Error getting principal.", t);
+						LOG.error("Error while setting UGI for Storm Plugin...", t);
 					}
 
 					LOG.info("Creating StormRangerPlugin");
@@ -180,20 +174,4 @@ public class RangerStormAuthorizer implements IAuthorizer {
 		}
 	}
 
-	private Subject getStormSubject() {
-		Subject ret = null;
-
-		try {
-			LoginContext lc = new LoginContext(STORM_CLIENT_JASS_CONFIG_SECTION);
-
-			lc.login();
-
-			ret = lc.getSubject();
-		} catch (Exception excp) {
-			LOG.error("Failed to get Storm server login subject", excp);
-		}
-
-		return ret;
-	}
-	
 }
