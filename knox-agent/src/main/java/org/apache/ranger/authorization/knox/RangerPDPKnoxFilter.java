@@ -39,19 +39,43 @@ import org.apache.hadoop.gateway.filter.AbstractGatewayFilter;
 import org.apache.hadoop.gateway.security.GroupPrincipal;
 import org.apache.hadoop.gateway.security.ImpersonatedPrincipal;
 import org.apache.hadoop.gateway.security.PrimaryPrincipal;
+import org.apache.ranger.audit.provider.MiscUtil;
 import org.apache.ranger.plugin.policyengine.RangerAccessRequest;
 import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 
 public class RangerPDPKnoxFilter implements Filter {
 
 	private static final Log LOG = LogFactory.getLog(RangerPDPKnoxFilter.class);
+
+	private static final String KNOX_GATEWAY_JASS_CONFIG_SECTION = "com.sun.security.jgss.initiate";
+
 	private String resourceRole = null;
-	static final KnoxRangerPlugin plugin = new KnoxRangerPlugin();
+	private static volatile KnoxRangerPlugin plugin = null;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		resourceRole = getInitParameter(filterConfig, "resource.role");
-		plugin.init();
+
+		KnoxRangerPlugin me = plugin;
+
+		if(me == null) {
+			synchronized (RangerPDPKnoxFilter.class) {
+				me = plugin;
+
+				if(me == null) {
+					try {
+						MiscUtil.setUGIFromJAASConfig(KNOX_GATEWAY_JASS_CONFIG_SECTION);
+						LOG.info("LoginUser=" + MiscUtil.getUGILoginUser());
+					} catch (Throwable t) {
+						LOG.error("Error while setting UGI for Knox Plugin...", t);
+					}
+
+					LOG.info("Creating KnoxRangerPlugin");
+					plugin = new KnoxRangerPlugin();
+					plugin.init();
+				}
+			}
+		}
 	}
 
 	private String getInitParameter(FilterConfig filterConfig, String paramName) {
@@ -155,6 +179,4 @@ public class RangerPDPKnoxFilter implements Filter {
 	private String getServiceName() {
 		return resourceRole;
 	}
-
-
 }
