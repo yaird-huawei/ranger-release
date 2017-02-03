@@ -189,3 +189,4 @@ HDP CHANGES:
      BUG-50517: remove test jar.
      BUG-50954: HBase plugin: Implement the new methods added to MasterObservers Interface and mimic their implementation in Hbase AccessController
      BUG-68468: Audit to Hdfs fails with GSS initiate error in Ranger Storm Plugin
+     BUG-73878: RANGER-1338:Ranger Plugin failed to download policy when JaasConfig alone is used to set the UGI instead of Principal/Keytab
