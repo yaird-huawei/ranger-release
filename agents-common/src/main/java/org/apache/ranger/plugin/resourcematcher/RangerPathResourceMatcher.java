@@ -96,6 +96,11 @@ public class RangerPathResourceMatcher extends RangerDefaultResourceMatcher {
 			return null;
 		}
 
+		// To ensure that when policyValue is single '*', ResourceMatcher created here returns true for isMatchAny()
+		if (optWildCard && policyValue.equals(WILDCARD_ASTERISK)) {
+			return new CaseInsensitiveStringMatcher("");
+		}
+
 		boolean isWildcardPresent = false;
 
 		if (optWildCard) {
@@ -115,7 +120,7 @@ public class RangerPathResourceMatcher extends RangerDefaultResourceMatcher {
 			ret = optIgnoreCase ? new CaseInsensitiveRecursiveWildcardMatcher(policyValue, pathSeparatorChar)
 								: new CaseSensitiveRecursiveWildcardMatcher(policyValue, pathSeparatorChar);
 		} else {
-			ret = optIgnoreCase ? new CaseInsensitiveStartsWithMatcher(policyValue) : new CaseSensitiveStartsWithMatcher(policyValue);
+			ret = optIgnoreCase ? new CaseInsensitiveRecursiveMatcher(policyValue, pathSeparatorChar) : new CaseSensitiveRecursiveMatcher(policyValue, pathSeparatorChar);
 		}
 
 		return ret;
@@ -155,7 +160,6 @@ public class RangerPathResourceMatcher extends RangerDefaultResourceMatcher {
 
 		return ret;
 	}
-
 
 	public StringBuilder toString(StringBuilder sb) {
 		sb.append("RangerPathResourceMatcher={");
@@ -197,3 +201,74 @@ final class CaseInsensitiveRecursiveWildcardMatcher extends ResourceMatcher {
 
 }
 
+abstract class RecursiveMatcher extends ResourceMatcher {
+	final char levelSeparatorChar;
+	String valueWithoutSeparator = null;
+	String valueWithSeparator = null;
+
+	RecursiveMatcher(String value, char levelSeparatorChar) {
+		super(value);
+		this.levelSeparatorChar = levelSeparatorChar;
+	}
+
+	String getStringToCompare(String policyValue) {
+		return (policyValue.lastIndexOf(levelSeparatorChar) == policyValue.length()-1) ?
+			policyValue.substring(0, policyValue.length()-1) : policyValue;
+	}
+}
+
+final class CaseSensitiveRecursiveMatcher extends RecursiveMatcher {
+	CaseSensitiveRecursiveMatcher(String value, char levelSeparatorChar) {
+		super(value, levelSeparatorChar);
+	}
+
+	@Override
+	boolean isMatch(String resourceValue) {
+
+		final String noSeparator;
+		if (valueWithoutSeparator == null) {
+			valueWithoutSeparator = getStringToCompare(value);
+			valueWithSeparator = valueWithoutSeparator + Character.toString(levelSeparatorChar);
+		}
+		noSeparator = valueWithoutSeparator;
+
+		boolean ret = StringUtils.equals(resourceValue, noSeparator);
+
+		if (!ret) {
+			final String withSeparator = valueWithSeparator;
+			ret = StringUtils.startsWith(resourceValue, withSeparator);
+		}
+
+		return ret;
+	}
+	int getPriority() { return 7;}
+}
+
+final class CaseInsensitiveRecursiveMatcher extends RecursiveMatcher {
+	CaseInsensitiveRecursiveMatcher(String value, char levelSeparatorChar) {
+		super(value, levelSeparatorChar);
+	}
+
+	@Override
+	boolean isMatch(String resourceValue) {
+
+		final String noSeparator;
+		if (valueWithoutSeparator == null) {
+			valueWithoutSeparator = getStringToCompare(value);
+			valueWithSeparator = valueWithoutSeparator + Character.toString(levelSeparatorChar);
+		}
+		noSeparator = valueWithoutSeparator;
+
+		boolean ret = StringUtils.equalsIgnoreCase(resourceValue, noSeparator);
+
+		if (!ret) {
+			final String withSeparator = valueWithSeparator;
+			ret = StringUtils.startsWithIgnoreCase(resourceValue, withSeparator);
+		}
+
+		return ret;
+	}
+
+	int getPriority() { return 8;}
+
+}
