@@ -89,8 +89,8 @@ public class RangerPathResourceMatcher extends RangerAbstractResourceMatcher {
 				if(policyIsRecursive && optWildCard) {
 					ret = isRecursiveWildCardMatch(resource, policyValue, pathSeparatorChar, caseSensitivity);
 				} else if(policyIsRecursive) {
-					ret = optIgnoreCase ? StringUtils.startsWithIgnoreCase(resource, policyValue)
-										: StringUtils.startsWith(resource, policyValue);
+					ret = optIgnoreCase ? (new CaseInsensitiveRecursiveMatcher(policyValue, pathSeparatorChar)).isMatch(resource)
+							: (new CaseSensitiveRecursiveMatcher(policyValue, pathSeparatorChar)).isMatch(resource);
 				} else if(optWildCard) {
 					ret = FilenameUtils.wildcardMatch(resource, policyValue, caseSensitivity);
 				} else {
@@ -165,5 +165,56 @@ public class RangerPathResourceMatcher extends RangerAbstractResourceMatcher {
 		sb.append("}");
 
 		return sb;
+	}
+}
+
+abstract class RecursiveMatcher {
+	final String value;
+	final char levelSeparatorChar;
+	String valueWithoutSeparator = null;
+	String valueWithSeparator = null;
+
+	RecursiveMatcher(String value, char levelSeparatorChar) {
+		this.value = value;
+		this.levelSeparatorChar = levelSeparatorChar;
+	}
+
+	String getStringToCompare(String policyValue) {
+		return (policyValue.lastIndexOf(levelSeparatorChar) == policyValue.length()-1) ?
+			policyValue.substring(0, policyValue.length()-1) : policyValue;
+	}
+}
+
+final class CaseSensitiveRecursiveMatcher extends RecursiveMatcher {
+	CaseSensitiveRecursiveMatcher(String value, char levelSeparatorChar) {
+		super(value, levelSeparatorChar);
+	}
+
+	boolean isMatch(String resourceValue) {
+
+		if (valueWithoutSeparator == null) {
+			valueWithoutSeparator = getStringToCompare(value);
+			valueWithSeparator = valueWithoutSeparator + Character.toString(levelSeparatorChar);
+		}
+
+		return StringUtils.equals(resourceValue, valueWithoutSeparator)
+				|| StringUtils.startsWith(resourceValue, valueWithSeparator);
+	}
+}
+
+final class CaseInsensitiveRecursiveMatcher extends RecursiveMatcher {
+	CaseInsensitiveRecursiveMatcher(String value, char levelSeparatorChar) {
+		super(value, levelSeparatorChar);
+	}
+
+	boolean isMatch(String resourceValue) {
+
+		if (valueWithoutSeparator == null) {
+			valueWithoutSeparator = getStringToCompare(value);
+			valueWithSeparator = valueWithoutSeparator + Character.toString(levelSeparatorChar);
+		}
+
+		return StringUtils.equalsIgnoreCase(resourceValue, valueWithoutSeparator)
+		    || StringUtils.startsWithIgnoreCase(resourceValue, valueWithSeparator);
 	}
 }
