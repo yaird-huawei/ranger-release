@@ -331,9 +331,10 @@ define(function(require) {
 							var html = _.map(value, function(val,name) {
 								var label = (i%2 == 0) ? 'label label-inverse' : 'label';
 								i++;
-								return _.isEmpty(val) ? '' : '<span class="'+label+'">'+name+' : '+ val + '</span>';	
+								return _.isEmpty(val) ? '' : '<span class="'+label+'">'+name+' : '+ _.escape(val) + '</span>';	
 							});
 							var cond = _.map(value, function(val, name) {
+								val = _.escape(val);
 								return {'type' : name, 'values' : !_.isArray(val) ?  val.split(',') : val};
 							});
 							that.model.set('conditions', cond);
