@@ -1590,8 +1590,8 @@ public class ServiceREST {
 			if (CollectionUtils.isNotEmpty(policyLists)){
 				svcStore.getPoliciesInExcel(policyLists, response);
 			}else{
+				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 				LOG.error("No policies found to download!");
-				throw restErrorUtil.createRESTException(HttpServletResponse.SC_NO_CONTENT, "No policies found to download!", true);
 			}
 			
 			RangerExportPolicyList rangerExportPolicyList = new RangerExportPolicyList();
@@ -1636,8 +1636,8 @@ public class ServiceREST {
 			if (CollectionUtils.isNotEmpty(policyLists)){
 				svcStore.getPoliciesInCSV(policyLists, response);
 			}else{
+				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 				LOG.error("No policies found to download!");
-				throw restErrorUtil.createRESTException(HttpServletResponse.SC_NO_CONTENT, "No policies found to download!", true);
 			}
 			
 			RangerExportPolicyList rangerExportPolicyList = new RangerExportPolicyList();
@@ -1686,8 +1686,9 @@ public class ServiceREST {
 			if (CollectionUtils.isNotEmpty(policyLists)) {
 				svcStore.getPoliciesInJson(policyLists, response);
 			} else {
+				checkPoliciesExists = true;
+				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 				LOG.error("There is no Policy to Export!!");
-				throw restErrorUtil.createRESTException(HttpServletResponse.SC_NO_CONTENT, "There is no Policy to Export!!", true);
 			}
 			if(!checkPoliciesExists){
 				RangerExportPolicyList rangerExportPolicyList = new RangerExportPolicyList();
@@ -1809,17 +1810,25 @@ public class ServiceREST {
 					Gson gson = new Gson();
 					
 					String policiesString = IOUtils.toString(uploadedInputStream);
+					policiesString = policiesString.trim();
 					if (StringUtils.isNotEmpty(policiesString)){
 						gson.fromJson(policiesString, RangerExportPolicyList.class);
 						rangerExportPolicyList = new ObjectMapper().readValue(policiesString, RangerExportPolicyList.class);
+					} else {
+						LOG.error("Provided json file is empty!!");
+						throw restErrorUtil.createRESTException("Provided json file is empty!!");
 					}
 					if (!CollectionUtils.sizeIsEmpty(rangerExportPolicyList.getMetaDataInfo())){
 						metaDataInfo = new ObjectMapper().writeValueAsString(rangerExportPolicyList.getMetaDataInfo());
+					} else {
+						LOG.info("metadata info is not provided!!");
 					}
 					if (!CollectionUtils.sizeIsEmpty(rangerExportPolicyList.getPolicies())){
 						policies = rangerExportPolicyList.getPolicies();
+					} else {
+						LOG.error("Provided json file does not contain any policy!!");
+						throw restErrorUtil.createRESTException("Provided json file does not contain any policy!!");
 					}
-					
 					if (CollectionUtils.sizeIsEmpty(servicesMappingMap) && isOverride){
 						if(!CollectionUtils.sizeIsEmpty(policies)){
 							for (RangerPolicy policyInJson: policies){
@@ -1912,7 +1921,8 @@ public class ServiceREST {
 						}
 					}
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOG.error(e.getMessage());
+					throw restErrorUtil.createRESTException(e.getMessage());
 				}
 			}else{
 				LOG.error("Provided file format is not supported!!");
@@ -1926,7 +1936,7 @@ public class ServiceREST {
 			}
 			trxLogListError.add(xxTrxLogError);
 			bizUtil.createTrxLog(trxLogListError);
-			throw ex;
+			throw restErrorUtil.createRESTException(ex.getMessage());
 	      }catch (WebApplicationException excp) {
 			LOG.error("Error while importing policy from file!!", excp);
 			xxTrxLogError.setAction("IMPORT ERROR");
