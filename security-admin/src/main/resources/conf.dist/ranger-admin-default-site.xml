@@ -481,10 +481,10 @@
 	</property>
 	<property>
 		<name>ranger.rest-csrf.browser-useragents-regex</name>
-		<value>^Mozilla.*,^Opera.*,^Chrome.*</value>
+		<value>Mozilla,Opera,Chrome</value>
 	</property>
 	<property>
 		<name>ranger.krb.browser-useragents-regex</name>
-		<value>^Mozilla.*,^Opera.*,^Chrome.*</value>
+		<value>Mozilla,Opera,Chrome</value>
 	</property>
 </configuration>
