@@ -248,18 +248,6 @@
                 Hortonworks
             </organization>
         </developer>
-	<developer>
-            <id>pradeep</id>
-            <name>Pradeep Agrawal</name>
-            <email>pradeep@apache.org</email>
-            <timezone>Asia/Kolkata</timezone>
-            <roles>
-                <role>Committer</role>
-            </roles>
-            <organization>
-                Freestone Infotech
-            </organization>
-	</developer>
         <developer>
             <id>rmani</id>
             <name>Ramesh Mani</name>
@@ -372,6 +360,10 @@
         </contributor>
         <contributor>
           	<name>Mugdha Varadkar</name>
+          	<organization>Freestone Infotech</organization>
+        </contributor>
+        <contributor>
+          	<name>Pradeep Agrawal</name>
           	<organization>Freestone Infotech</organization>
         </contributor>
         <contributor>
