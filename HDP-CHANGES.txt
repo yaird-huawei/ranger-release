@@ -188,3 +188,4 @@ HDP CHANGES:
      BUG-44234: Update to HDP-CHANGES.txt file
      BUG-50517: remove test jar.
      BUG-50954: HBase plugin: Implement the new methods added to MasterObservers Interface and mimic their implementation in Hbase AccessController
+     BUG-75464: RANGER-1310: Ranger Audit framework enhancement to provide an option to allow audit records to be spooled to local disk first before sending it to destinations
