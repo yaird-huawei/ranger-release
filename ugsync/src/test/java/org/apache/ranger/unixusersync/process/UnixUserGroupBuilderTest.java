@@ -110,8 +110,8 @@ public class UnixUserGroupBuilderTest {
     @Test
     public void testUnixPasswdAndGroupFile() throws Throwable {
         config.setProperty("ranger.usersync.unix.backend", "passwd");
-        config.setProperty(UserGroupSyncConfig.UGSYNC_UNIX_PASSWORD_FILE, "src/test/resources/passwordFile");
-        config.setProperty(UserGroupSyncConfig.UGSYNC_UNIX_GROUP_FILE, "src/test/resources/groupFile");
+        config.setProperty(UserGroupSyncConfig.UGSYNC_UNIX_PASSWORD_FILE, "src/test/resources/passwordFile.txt");
+        config.setProperty(UserGroupSyncConfig.UGSYNC_UNIX_GROUP_FILE, "src/test/resources/groupFile.txt");
 
         UnixUserGroupBuilder builder = new UnixUserGroupBuilder();
         builder.init();
