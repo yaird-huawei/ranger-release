@@ -1,4 +1,6 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
+[RANGER-1489] : Solr plugin fails to get client address
+[RANGER-1658] : Solr gives NPE while printing the AuthorizationContext in INFO and DEBUG log
 [RANGER-1620] : Fix kafka-ranger-env.sh script to not throw error when it is sourced from bash
 [RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist
 [RANGER-1612] : When servicedef is accessed, def_options property "enableDenyAndExceptionsInPolicies" is returned as "false" if there is no value set for it
