@@ -204,3 +204,4 @@ HDP CHANGES:
      BUG-50517: remove test jar.
      BUG-50954: HBase plugin: Implement the new methods added to MasterObservers Interface and mimic their implementation in Hbase AccessController
      BUG-77229: Backport RANGER-1097
+     BUG-77227: RANGER-1126 : Authorization checks for non existent file/directory should not be recursive in Ranger Hive authorizer
