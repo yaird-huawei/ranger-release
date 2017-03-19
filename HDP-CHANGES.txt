@@ -1,0 +1,26 @@
+Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
+
+[RANGER-1459] :   Ranger update policy API is failing on Postgres / Oracle for case sensitive ACLs
+[BUG-77263]   :   tagsync policies are not working if associated with HDFS
+[RANGER-1453] :   Ranger KMS failed to start with Exception] :   More than one Master Key exists
+[RANGER-1448] :   Change of import / export icons on Ranger UI
+[RANGER-1435] :   fixed minor issue of resource filenames from previous commit
+[RANGER-1435] :   Allow different files to be specified for unix based usersync - 2.6-maint
+[RANGER-1440] :   Improve install script to retry failing statements
+[RANGER-1428] :   In certain scenario user data contains junk email-id
+[RANGER-1434] :   Enable Group Search First causes issues when Enable Group Sync is disabled - 2.6-maint branch
+[RANGER-1392] :   Revert "RANGER-1392:   Hive test connection is failing even if jdbc.url configured is correct to 2.6-maint"
+[RANGER-1392] :   Hive test connection is failing even if jdbc.url configured is correct to 2.6-maint
+[RANGER-1422] :   Ranger Knox Plugin audit doesn't have the access type populated
+[RANGER-1405] :   groups are not shown if exact user name is passed in search filter
+[RANGER-1417] :   Ranger Upgrade is failing for Oracle DB flavor
+[RANGER-1378] :   Update MySQL Schema to fix issues related to only_full_group_by restriction of MySQL 5.7 version.
+[RANGER-1413] :   Good coding practice in Ranger recommended by static code analysis
+[RANGER-1407] :   Service update transaction log is not generated in some cases
+[RANGER-1413] :   Fix issues uncovered by static code analysis
+[RANGER-1409] :   User role get deleted from table when he tries to update his role to a restricted role
+[RANGER-1406] :   Audit spoolfile not getting created when ranger service user didn't have permission to log into Solr
+[RANGER-1401] :   Add consolidated db schema script for SQLServer DB flavor
+[BUG-75869]   :   RangerHiveAuthorizer.applyRowFilterAndColumnMasking should only return tables if they need masking/filtering
+[RANGER-1383] :   Use resource matchers for filtering service policies
+
