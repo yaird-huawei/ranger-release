@@ -338,10 +338,11 @@ public class ServiceDBStore extends AbstractServiceStore {
 		if (populateExistingBaseFields) {
 			svcDefServiceWithAssignedId.setPopulateExistingBaseFields(true);
 			daoMgr.getXXServiceDef().setIdentityInsert(true);
-
-			svcDefServiceWithAssignedId.create(serviceDef);
-
-			svcDefServiceWithAssignedId.setPopulateExistingBaseFields(false);
+			try{
+				svcDefServiceWithAssignedId.create(serviceDef);
+			}finally{
+				svcDefServiceWithAssignedId.setPopulateExistingBaseFields(false);
+			}
 			daoMgr.getXXServiceDef().updateSequence();
 			daoMgr.getXXServiceDef().setIdentityInsert(false);
 		} else {
@@ -1358,12 +1359,13 @@ public class ServiceDBStore extends AbstractServiceStore {
 		if (populateExistingBaseFields) {
 			svcServiceWithAssignedId.setPopulateExistingBaseFields(true);
 			daoMgr.getXXService().setIdentityInsert(true);
-
-			service = svcServiceWithAssignedId.create(service);
-
+			try{
+				service = svcServiceWithAssignedId.create(service);
+			}finally{
+				svcServiceWithAssignedId.setPopulateExistingBaseFields(false);
+			}
 			daoMgr.getXXService().setIdentityInsert(false);
 			daoMgr.getXXService().updateSequence();
-			svcServiceWithAssignedId.setPopulateExistingBaseFields(false);
 			createDefaultPolicy = false;
 		} else {
 			service = svcService.create(service);
@@ -1506,8 +1508,11 @@ public class ServiceDBStore extends AbstractServiceStore {
 
 		if(populateExistingBaseFields) {
 			svcServiceWithAssignedId.setPopulateExistingBaseFields(true);
-			service = svcServiceWithAssignedId.update(service);
-			svcServiceWithAssignedId.setPopulateExistingBaseFields(false);
+			try{
+				service = svcServiceWithAssignedId.update(service);
+			}finally{
+				svcServiceWithAssignedId.setPopulateExistingBaseFields(false);
+			}
 		} else {
 			service.setCreateTime(existing.getCreateTime());
 			service.setGuid(existing.getGuid());
@@ -1767,12 +1772,13 @@ public class ServiceDBStore extends AbstractServiceStore {
 		if(populateExistingBaseFields) {
 			assignedIdPolicyService.setPopulateExistingBaseFields(true);
 			daoMgr.getXXPolicy().setIdentityInsert(true);
-
-			policy = assignedIdPolicyService.create(policy);
-
+			try{
+				policy = assignedIdPolicyService.create(policy);
+			}finally{
+				assignedIdPolicyService.setPopulateExistingBaseFields(false);
+			}
 			daoMgr.getXXPolicy().setIdentityInsert(false);
 			daoMgr.getXXPolicy().updateSequence();
-			assignedIdPolicyService.setPopulateExistingBaseFields(false);
 		} else {
 			policy = policyService.create(policy);
 		}
