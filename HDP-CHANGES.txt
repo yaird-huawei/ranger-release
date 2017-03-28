@@ -1,5 +1,6 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 
+[RANGER-1477] :   'show databases' fails with access-denied when user doesn't have access to some of the databases
 [RANGER-1459] :   Ranger update policy API is failing on Postgres / Oracle for case sensitive ACLs
 [BUG-77263]   :   tagsync policies are not working if associated with HDFS
 [RANGER-1453] :   Ranger KMS failed to start with Exception] :   More than one Master Key exists
