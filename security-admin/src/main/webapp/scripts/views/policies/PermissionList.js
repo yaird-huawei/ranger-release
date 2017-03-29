@@ -457,8 +457,7 @@ define(function(require) {
                                                                 return '<span class="'+label+' white-space-normal" >'+name+' : '+ _.escape(val) + '</span>';
 							});
 							var cond = _.map(value, function(val, name) {
-                                                                val = _.escape(val);
-                                                                return {'type' : name, 'values' : !_.isArray(val) ?  val.split(',') : val};
+								return {'type' : name, 'values' : !_.isArray(val) ?  val.split(',') : val};
 							});
 							
 							that.model.set('conditions', cond);
