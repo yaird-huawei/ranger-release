@@ -3231,6 +3231,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 			response.setContentLength(outArray.length);
 			response.setHeader("Expires:", "0");
 			response.setHeader("Content-Disposition", "attachment; filename=" + excelFileName);
+			response.setStatus(HttpServletResponse.SC_OK);
 			outStream = response.getOutputStream();
 			outStream.write(outArray);
 			outStream.flush();
@@ -3463,6 +3464,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 			}
 		}
 		response.setHeader("Content-Disposition", "attachment; filename=" + cSVFileName);
+		response.setStatus(HttpServletResponse.SC_OK);
 		return csvBuffer;
 	}
 
