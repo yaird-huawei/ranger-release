@@ -117,6 +117,7 @@ public class HDFSAuditDestination extends AuditDestination {
 			return false;
 		}
 
+		PrintWriter out = null;
 		try {
 			if (logger.isDebugEnabled()) {
 				logger.debug("UGI=" + MiscUtil.getUGILoginUser()
@@ -134,7 +135,6 @@ public class HDFSAuditDestination extends AuditDestination {
 				};
 			};
 
-			PrintWriter out = null;
 			UserGroupInformation ugi =  MiscUtil.getUGILoginUser();
 			if ( ugi != null) {
 				out = ugi.doAs(action);
