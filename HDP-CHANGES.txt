@@ -59,3 +59,12 @@ BUG
 	[BUG-73964] - RANGER-1253: UI error when a special character is entered for a username in the admin webapp
 	[RANGER-1182] : Remove code duplication around the PrivilegedAction handling
 	[BUG-73059] - RANGER-1310: Ranger Audit framework enhancement to provide an option to allow audit records to be spooled to local disk first before sending it to destinations
+	RANGER-1239 - BUG-71871: Backport RANGER-1239: hbase policy created as a result of hbase grant request does not allow dropping the namespace for the grantee user
+	RANGER-1243 - BUG-77632: Unable to create any services in ranger UI through ambari as well as manually
+	RANGER-1288 - BUG-54085: Ranger upgrade fails if using SSL enabled DB environment.
+	RANGER-1355 - BUG-65326: RangerAuthorizer for Hive MSCK command
+	RANGER-1379 - BUG-74953: Seeing HTTP 404 in the logs for PolicyRefresher intermittently for different services
+	RANGER-1423 - BUG-76215: Preparing Ranger Admin Step fails during RU
+	RANGER-1434 - BUG-76701: Enable Group Search First causes issues
+	RANGER-1435 - BUG-76703: Allow different files to be specified for unix based usersync
+	RANGER-1499 - BUG-78284: Ranger - Upgrade Tomcat version
