@@ -97,9 +97,10 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 		RangerYarnPlugin       plugin       = yarnPlugin;
 		RangerYarnAuditHandler auditHandler = null;
 		RangerAccessResult     result       = null;
+		String clusterName  = yarnPlugin.getClusterName();
 
 		if(plugin != null) {
-			RangerYarnAccessRequest request = new RangerYarnAccessRequest(accessRequest);
+			RangerYarnAccessRequest request = new RangerYarnAccessRequest(accessRequest, clusterName);
 
 			auditHandler = new RangerYarnAuditHandler();
 
@@ -250,7 +251,7 @@ class RangerYarnResource extends RangerAccessResourceImpl {
 }
 
 class RangerYarnAccessRequest extends RangerAccessRequestImpl {
-	public RangerYarnAccessRequest(AccessRequest accessRequest) {
+	public RangerYarnAccessRequest(AccessRequest accessRequest, String clusterName) {
 		String               accessType = getRangerAccessType(accessRequest.getAccessType());
 		String               action     = accessRequest.getAccessType().name();
 		PrivilegedEntity     entity     = accessRequest.getEntity();
@@ -266,6 +267,7 @@ class RangerYarnAccessRequest extends RangerAccessRequestImpl {
 		super.setRequestData(accessRequest.getAppName());
 		super.setRemoteIPAddress(accessRequest.getRemoteAddress());
 		super.setForwardedAddresses(accessRequest.getForwardedAddresses());
+		super.setClusterName(clusterName);
 	}
 	
 	private static String getRangerAccessType(AccessType accessType) {
