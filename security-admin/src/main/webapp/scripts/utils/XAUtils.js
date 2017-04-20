@@ -777,22 +777,27 @@ define(function(require) {
 				reset : true,
 				cache : false,
 				error : function(coll, response, options) {
-					that.notifyError('Error', localization.tt('msg.errorLoadingAuditLogs'));
+					if(response && response.responseJSON && response.responseJSON.msgDesc){
+						that.notifyError('Error', response.responseJSON.msgDesc);
+					}else{
+						that.notifyError('Error', localization.tt('msg.errorLoadingAuditLogs'));
+					}
 				}
-			// data : params,
+			
 			});
 		};
-		// var searchOpt = ['Event Time','User','Resource Name','Resource
-		// ID','Resource Type','Repository Name','Repository
-		// Type','Result','Client IP','Client Type','Access Type','Access
-		// Enforcer','Audit Type','Session ID'];
-
+		
 		var callbackCommon = {
 			search : function(query, searchCollection) {
 				collection.VSQuery = query;
 				search(searchCollection, serverAttrName, searchOpt, collection);
 			},
 			clearSearch : function(callback) {
+				//Remove search history when click on clear search 
+				if(!_.isUndefined(pluginAttr.type)){
+					var App = require('App');
+					App.vsHistory[pluginAttr.type] = [];
+				}
 				_.each(serverAttrName, function(attr) {
 					delete collection.queryParams[attr.label];
 				});
@@ -822,10 +827,6 @@ define(function(require) {
 				if (!_.isUndefined(removedFacetSeverName)) {
 					delete collection.queryParams[removedFacetSeverName.label];
 					collection.state.currentPage = collection.state.firstPage;
-					collection.fetch({
-						reset : true,
-						cache : false
-					});
 				}
 				// TODO Added for Demo to remove datapicker popups
 				if (!_.isUndefined(visualSearch.searchBox.$el))
@@ -848,12 +849,15 @@ define(function(require) {
 	};
 
 	XAUtils.displayDatepicker = function($el, facet, $date, callback) {
-		var input = $el
-				.find('.search_facet.is_editing input.search_facet_input');
+		var input = $el.find('.search_facet.is_editing input.search_facet_input');
+		//disabling user enter value in date 
+		input.keypress(function(event) {
+			event.preventDefault();
+		});
 		$el.parents('body').find('.datepicker').hide();
 		input.datepicker({
 			autoclose : true,
-			dateFormat : 'yy-mm-dd'
+			dateFormat : 'yy-mm-dd',
 		}).on('changeDate', function(ev) {
 			callback(ev.date);
 			input.datepicker("hide");
@@ -1275,6 +1279,11 @@ define(function(require) {
 	XAUtils.isEmptyObjectResourceVal = function (obj) {
 		return !_.isUndefined(obj['resources']) && !_.isEmpty(obj['resources'])
 		 		&& !_.isNull(obj['resources']) ? false : true;
+	};
+	XAUtils.removeEmptySearchValue = function(arr) {
+		return  _.reject(arr,function(m){
+			return (m.get('value')=="");
+		});
 	};
 	return XAUtils;
 });
