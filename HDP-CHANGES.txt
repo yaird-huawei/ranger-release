@@ -188,3 +188,4 @@ HDP CHANGES:
      BUG-44234: Update to HDP-CHANGES.txt file
      BUG-50517: remove test jar.
      BUG-50954: HBase plugin: Implement the new methods added to MasterObservers Interface and mimic their implementation in Hbase AccessController
+     BUG-79267, HOTFIX-805, RANGER-891: Audit shutdown hook to be registered with Hadoop ShutdownHookManager instead of directly with Java Runtime
