@@ -20,4 +20,4 @@ BEGIN
                 execute immediate 'ALTER TABLE x_policy_export_audit ADD cluster_name varchar(255) NOT NULL';
         end if; 
         commit; 
-END;
+END;/
