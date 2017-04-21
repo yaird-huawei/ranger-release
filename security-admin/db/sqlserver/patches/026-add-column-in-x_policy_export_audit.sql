@@ -16,7 +16,7 @@
 GO
 IF NOT EXISTS(select * from INFORMATION_SCHEMA.columns where table_name = 'x_policy_export_audit' and column_name = 'cluster_name')
 BEGIN
-	ALTER TABLE [dbo].[x_policy_export_audit] ADD [cluster_name] [varchar](255) NOT NULL;
+	ALTER TABLE [dbo].[x_policy_export_audit] ADD [cluster_name] [varchar](255) DEFAULT NULL NULL;
 END
 GO
 

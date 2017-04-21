@@ -22,7 +22,7 @@ DECLARE
 BEGIN
  select count(*) into v_column_exists from pg_attribute where attrelid in(select oid from pg_class where relname='x_policy_export_audit') and attname='cluster_name';
  IF v_column_exists = 0 THEN
-  ALTER TABLE x_policy_export_audit ADD COLUMN cluster_name VARCHAR(255) NOT NULL;
+  ALTER TABLE x_policy_export_audit ADD COLUMN cluster_name VARCHAR(255) DEFAULT NULL NULL;
  END IF;
 END;
 $$ LANGUAGE plpgsql;

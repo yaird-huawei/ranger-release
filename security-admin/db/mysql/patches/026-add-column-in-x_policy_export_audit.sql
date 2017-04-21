@@ -19,7 +19,7 @@ delimiter ;;
 create procedure add_column_in_x_policy_export_audit() begin
 
 if not exists (select * from information_schema.columns where table_schema=database() and table_name = 'x_policy_export_audit' and column_name='cluster_name') then
-        ALTER TABLE x_policy_export_audit ADD cluster_name varchar(255) NOT NULL;
+        ALTER TABLE x_policy_export_audit ADD cluster_name varchar(255) NULL DEFAULT NULL;
 end if;
 end;;
 

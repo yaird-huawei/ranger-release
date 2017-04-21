@@ -14,7 +14,7 @@
 -- limitations under the License.
 
 IF NOT EXISTS(select * from SYS.SYSCOLUMNS where tname = 'x_policy_export_audit' and cname = 'cluster_name') THEN
-		ALTER TABLE dbo.x_policy_export_audit ADD cluster_name varchar(255) NOT NULL;
+		ALTER TABLE dbo.x_policy_export_audit ADD cluster_name varchar(255) DEFAULT NULL NULL;
 END IF;
 GO
 

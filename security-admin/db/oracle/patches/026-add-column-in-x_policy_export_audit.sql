@@ -17,7 +17,7 @@ DECLARE
 BEGIN   
         select count(*) into v_count from user_tab_cols where table_name='X_POLICY_EXPORT_AUDIT' and column_name='CLUSTER_NAME';
         if (v_count = 0) then 
-                execute immediate 'ALTER TABLE x_policy_export_audit ADD cluster_name varchar(255) NOT NULL';
+                execute immediate 'ALTER TABLE x_policy_export_audit ADD cluster_name varchar(255) DEFAULT NULL NULL';
         end if; 
         commit; 
 END;/
