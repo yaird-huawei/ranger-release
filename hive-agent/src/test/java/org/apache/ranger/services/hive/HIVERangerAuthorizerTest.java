@@ -666,6 +666,26 @@ public class HIVERangerAuthorizerTest {
                 connection.close();
         }
 
+        // S3 location URI authorization (by the policy - user bob)
+        @Test
+        public void testS3URIAuthorization() throws Exception {
+
+            String url = "jdbc:hive2://localhost:" + port + "/rangerauthz";
+            Connection connection = null;
+            Statement statement   = null;
+            try {
+                connection = DriverManager.getConnection(url, "bob", "bob");
+                statement = connection.createStatement();
+                statement.executeQuery("create table if not exists words (word STRING, count INT) row format delimited fields terminated by '\t' stored as textfile LOCATION 's3a://test/data'");
+                Assert.fail("Failure expected on an unauthorized call");
+            } catch(SQLException ex){
+                    //expected
+            } finally {
+                statement.close();
+                connection.close();
+            }
+        }
+
         @Test
         public void testGrantrevoke() throws Exception {
                 String initialUrl = "jdbc:hive2://localhost:" + port;

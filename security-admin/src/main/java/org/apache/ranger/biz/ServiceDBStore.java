@@ -208,6 +208,8 @@ public class ServiceDBStore extends AbstractServiceStore {
 	private static final String USER_NAME = "Exported by";
 	private static final String RANGER_VERSION = "Ranger apache version";
 	private static final String TIMESTAMP = "Export time";
+	private static final String AUDITTOHDFS_KMS_PATH = "/ranger/kms/audit";
+	private static final String AUDITTOHDFS_POLICY_NAME = "kms-audit-path";
 	
 	static {
 		try {
@@ -2459,8 +2461,94 @@ public class ServiceDBStore extends AbstractServiceStore {
 				RangerPolicy policy = new RangerPolicy();
 				createDefaultPolicy(policy, createdService, vXUser, aHierarchy);
 				policy = createPolicy(policy);
+				RangerPolicy policyAudit = new RangerPolicy();
+				createPolicyForKeyAdmin(policyAudit, serviceDef, aHierarchy, createdService);
 			}
 		}
+	}
+
+	private void createPolicyForKeyAdmin(RangerPolicy policyAudit, RangerServiceDef serviceDef, List<RangerResourceDef> aHierarchy, XXService createdService) {
+		if (serviceDef.getName().equals(EmbeddedServiceDefsUtil.EMBEDDED_SERVICEDEF_HDFS_NAME)) {
+			try {
+                // we need to create one policy for keyadmin user for audit to HDFS
+                RangerPolicy policy = getPolicyForKMSAudit(aHierarchy , createdService.getName(), serviceDef);
+				if (policy != null) {
+					createPolicy(policy);
+				}
+			} catch (Exception e) {
+                LOG.error("Error creating policy for keyadmin for audit to HDFS : " + serviceDef.getName(), e);
+			}
+		}
+	}
+
+	private RangerPolicy getPolicyForKMSAudit(List<RangerResourceDef> resourceHierarchy, String serviceName, RangerServiceDef serviceDef) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("==> ServiceDBStore.getPolicyForKMSAudit()");
+	    }
+
+	    RangerPolicy policy = new RangerPolicy();
+
+	    policy.setIsEnabled(true);
+	    policy.setVersion(1L);
+	    policy.setName(AUDITTOHDFS_POLICY_NAME);
+		policy.setService(serviceName);
+	    policy.setDescription("Policy for " + AUDITTOHDFS_POLICY_NAME);
+	    policy.setIsAuditEnabled(true);
+	    policy.setResources(createKMSAuditResource(resourceHierarchy));
+
+	    List<RangerPolicy.RangerPolicyItem> policyItems = new ArrayList<RangerPolicy.RangerPolicyItem>();
+	    //Create policy item for keyadmin
+	    RangerPolicy.RangerPolicyItem policyItem = new RangerPolicy.RangerPolicyItem();
+	    List<String> userKeyAdmin = new ArrayList<String>();
+	    userKeyAdmin.add("keyadmin");
+	    policyItem.setUsers(userKeyAdmin);
+	    policyItem.setAccesses(getAndAllowAllAccesses(serviceDef));
+	    policyItem.setDelegateAdmin(false);
+
+	    policyItems.add(policyItem);
+	    policy.setPolicyItems(policyItems);
+
+	    if (LOG.isDebugEnabled()) {
+	            LOG.debug("<== ServiceDBStore.getPolicyForKMSAudit()" + policy);
+	    }
+
+	    return policy;
+	}
+
+	public List<RangerPolicy.RangerPolicyItemAccess> getAndAllowAllAccesses(RangerServiceDef serviceDef) {
+		List<RangerPolicy.RangerPolicyItemAccess> ret = new ArrayList<RangerPolicy.RangerPolicyItemAccess>();
+
+		for (RangerServiceDef.RangerAccessTypeDef accessTypeDef : serviceDef.getAccessTypes()) {
+			RangerPolicy.RangerPolicyItemAccess access = new RangerPolicy.RangerPolicyItemAccess();
+			access.setType(accessTypeDef.getName());
+			access.setIsAllowed(true);
+			ret.add(access);
+		}
+		return ret;
+	}
+
+	private Map<String, RangerPolicyResource> createKMSAuditResource(
+			List<RangerServiceDef.RangerResourceDef> resourceHierarchy) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("==> ServiceDBStore.createKMSAuditResource()");
+		}
+		Map<String, RangerPolicy.RangerPolicyResource> resourceMap = new HashMap<>();
+
+		for (RangerServiceDef.RangerResourceDef resourceDef : resourceHierarchy) {
+			RangerPolicy.RangerPolicyResource polRes = new RangerPolicy.RangerPolicyResource();
+
+			polRes.setIsExcludes(false);
+			polRes.setIsRecursive(resourceDef.getRecursiveSupported());
+			polRes.setValue(AUDITTOHDFS_KMS_PATH);
+
+			resourceMap.put(resourceDef.getName(), polRes);
+		}
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("<== ServiceDBStore.createKMSAuditResource():"
+					+ resourceMap);
+		}
+		return resourceMap;
 	}
 
 	private void createDefaultTagPolicy(XXService createdService) throws Exception {
