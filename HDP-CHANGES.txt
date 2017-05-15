@@ -25,6 +25,9 @@ RANGER-821: Ranger shutdown hook should not only do its processing asynchronousl
 RANGER-777: Remove the mavn profile that was added for building kafka plugin
 RANGER-825: groupId in ranger's child poms should be consistent and follow convention.
 RANGER-804: Delete groups associated with User causes Exception in UserSync
+RANGER-1097: Ranger KMS Plugin should not fails to download policy when UGI ticket expires
+RANGER-1126: Authorization checks for non existent file/directory should not be recursive in Ranger Hive authorizer
+RANGER-1136: Ranger audit to HDFS fails with TGT errors in Ranger HiveServer2 plugin when UGI -TGT expires in audit thread
 
 SUB-TASK
 
