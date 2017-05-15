@@ -1041,7 +1041,6 @@ define(function(require) {
                                                 cell: Backgrid.HtmlCell.extend({
                                                         className : 'tagsColumn'
                                                 }),
-						cell: "string",
 						click : false,
 						drag : false,
 						sortable:false,
