@@ -153,3 +153,4 @@ HDP CHANGES:
      BUG-43616-Update USERSEARCHFILTER for Ranger Authentication on Windows
      BUG-44939: Package commons-io, which is a required dependency, as part of storm plugin
      BUG-44234: Update to HDP-CHANGES.txt file
+     BUG-80455: Fix KMS compilation issue caused by HADOOP-13155
