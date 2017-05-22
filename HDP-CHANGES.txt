@@ -25,3 +25,72 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [BUG-75869]   :   RangerHiveAuthorizer.applyRowFilterAndColumnMasking should only return tables if they need masking/filtering
 [RANGER-1383] :   Use resource matchers for filtering service policies
 
+BUG
+	[RANGER-1603] - Wildcard policy authorization incorrectly performs prefix match
+	[RANGER-1156] - Audit migration script from DB to Solr cloud failing
+	[RANGER-1152] - Improver performance of ranger audit login while audit event-id creation
+	[RANGER-1149] - Label spelling correction
+	[RANGER-1147] - Knox repository test connection is failing
+	[RANGER-1148] - Ranger needs to map Storm ACL- debug, setLogConfig , getLogConfig to getTopologyInfo
+	[RANGER-1139] -  Ranger Kafka Plugin should include commons-codec jar as a dependency
+	[RANGER-1143] - added ranger-plugins-cred lib for tagsync deployment
+	[RANGER-1103] - added maven version enforcer and moved the plugin to be run as part of maven compile
+	[RANGER-1141] - Null pointer exception while retrieving the key during copy file
+	[RANGER-1124] - Good coding practices in Ranger recommended by static code analysis -UI 
+	[Revert BUG-63083] - Ranger compilation failure-due to hive lib changes
+	[RANGER-1136] - Ranger audit to HDFS fails with TGT errors in Ranger HiveServer2 plugin when UGI -TGT expires in audit thread
+	[RANGER-1135] - Modified InMemory JAAS configuration to use parent config - if exists
+	[RANGER-1135] - Knox and Storm plugins should use secure policy download endpoint in kerberos mode
+	[RANGER-1124] - Good coding practices in Ranger recommended by static code analysis - medium impact
+	[RANGER-1105] - Ranger should provide configuration to do hdfs audit file rollover at absolute time
+	[RANGER-1132] - Ranger Storm Plugin should include commons-codec jar as a dependency
+	[RANGER-1134] - Audit to Secure solr fails in case of Ranger Knox Plugin due to MDC context issue
+	  [BUG-63483] - fix for PMD violations - unused class import
+	  [BUG-63444] - Ranger YARN Plugin should support now Forwarded and remoteIPAddress based on the YARN access request changes
+	[RANGER-1124] - Good coding practices in Ranger recommended by static code analysis-High Impact
+	[RANGER-1129] - Ability to specify 'audit all accesses' via Ranger admin configuration
+	[RANGER-1128] - Data Masking label changes for ranger policies
+	[RANGER-1126] - Authorization checks for non existent file/directory should not be recursive in Ranger Hive authorizer
+	[RANGER-1123] - keyadmin user is not able to make getservice call using rest v2 public api
+	[RANGER-1127] - Ranger HA: Handle scenarios for request with X-Forwarded-Server
+	[RANGER-1119] - Exclude test jars from ranger-admin plugin folders as dependency
+	[RANGER-1121] - Resolving circular dependency of spring beans by enabling lazy initialization of the beans.
+	[RANGER-1120] - Need a java patch to handle upgrade of hive servicedef
+	  [BUG-63121] - Ranger HivePluginUnitTest fails with change in the Hive Global constants changes
+	  [BUG-63083] - Ranger compilation failure-due to hive lib changes
+	[RANGER-1116] - Ranger HivePluginUnitTest fails due to Hive Metastore version check
+	[RANGER-1114] - Nimbus, Storm UI server stopped after disabling ranger plugins
+	[RANGER-1113] - Ranger Hive authorizer updated to get query string from HiveConf
+	[RANGER-1111] - Enhancements to the db admin setup scripts.
+	[RANGER-1090] - Revoke command with grant option does not disable delegated admin permission for users/groups in the corresponding policy
+	[RANGER-1106] - issue after upgrade on ranger hive policy page
+	[RANGER-1104] - Catching and Logging DB transaction exceptions during Ranger startup
+	[RANGER-1101] - jceks keystore is not created successfully after enabling ssl for atlas ranger plugin
+	[RANGER-1090] - Revoke command with grant option does not disable delegated admin permission for users/groups in the corresponding policy
+	  [BUG-59678] - update to HDP-CHANGES.txt with changes not covered by RANGER 0.6.0 release version
+	[RANGER-1100] - Hive authorizer does not block update when row-filter/column-mask is specified on the table for the user
+	[RANGER-1099] - keyadmin user is not able to create service/repo using public apis
+	[RANGER-1096] - Revert to jceks scheme for credential store related operations
+	[RANGER-1094] - One way SSL (when Kerberos is enabled) for Ranger and its plugins
+	[RANGER-1097] - Ranger KMS Plugin should not fails to download policy when UGI ticket expires
+	[BUG-71857] - RANGER-1095 - Invert authorization logic in RangerSolrAuthorizer
+	[BUG-71858] - RANGER-1171 - Invert authorization logic in RangerKafkaAuthorizer
+	[BUG-71860] - RANGER-1181: Ranger HDFS authorizer should fall back to native authorizer for each level of access to be authorized i.e. ancestor/parent/node/sub-access
+	[BUG-71863] - RANGER-1216: Ranger Audit framework fails to audit to keberized + SSL enabled Solr
+	[BUG-71870] - RANGER-1229:RangerResourceMatcher for Hdfs and Yarn resources does not correctly handle policy containing only one resource whose value is "*"
+	[BUG-71872] - RANGER-1245: Ranger UI group name limitation (32 characters in UI)
+	[RANGER-1180] - Add HBase Authorization tests
+	[BUG-73822] - RANGER-1314: updated HBase plugin to support authorization of namespace operations
+	[BUG-74024] - RANGER-1338: Ranger Plugin failed to download policy when JaasConfig alone is used to set the UGI instead of Principal/Keytab
+	[BUG-73964] - RANGER-1253: UI error when a special character is entered for a username in the admin webapp
+	[RANGER-1182] : Remove code duplication around the PrivilegedAction handling
+	[BUG-73059] - RANGER-1310: Ranger Audit framework enhancement to provide an option to allow audit records to be spooled to local disk first before sending it to destinations
+	RANGER-1239 - BUG-71871: Backport RANGER-1239: hbase policy created as a result of hbase grant request does not allow dropping the namespace for the grantee user
+	RANGER-1243 - BUG-77632: Unable to create any services in ranger UI through ambari as well as manually
+	RANGER-1288 - BUG-54085: Ranger upgrade fails if using SSL enabled DB environment.
+	RANGER-1355 - BUG-65326: RangerAuthorizer for Hive MSCK command
+	RANGER-1379 - BUG-74953: Seeing HTTP 404 in the logs for PolicyRefresher intermittently for different services
+	RANGER-1423 - BUG-76215: Preparing Ranger Admin Step fails during RU
+	RANGER-1434 - BUG-76701: Enable Group Search First causes issues
+	RANGER-1435 - BUG-76703: Allow different files to be specified for unix based usersync
+	RANGER-1499 - BUG-78284: Ranger - Upgrade Tomcat version
