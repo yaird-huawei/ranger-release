@@ -1,27 +1,55 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 
-[RANGER-1477] :   'show databases' fails with access-denied when user doesn't have access to some of the databases
-[RANGER-1459] :   Ranger update policy API is failing on Postgres / Oracle for case sensitive ACLs
-[BUG-77263]   :   tagsync policies are not working if associated with HDFS
-[RANGER-1453] :   Ranger KMS failed to start with Exception] :   More than one Master Key exists
-[RANGER-1448] :   Change of import / export icons on Ranger UI
-[RANGER-1435] :   fixed minor issue of resource filenames from previous commit
-[RANGER-1435] :   Allow different files to be specified for unix based usersync - 2.6-maint
-[RANGER-1440] :   Improve install script to retry failing statements
-[RANGER-1428] :   In certain scenario user data contains junk email-id
-[RANGER-1434] :   Enable Group Search First causes issues when Enable Group Sync is disabled - 2.6-maint branch
-[RANGER-1392] :   Revert "RANGER-1392:   Hive test connection is failing even if jdbc.url configured is correct to 2.6-maint"
-[RANGER-1392] :   Hive test connection is failing even if jdbc.url configured is correct to 2.6-maint
-[RANGER-1422] :   Ranger Knox Plugin audit doesn't have the access type populated
-[RANGER-1405] :   groups are not shown if exact user name is passed in search filter
-[RANGER-1417] :   Ranger Upgrade is failing for Oracle DB flavor
-[RANGER-1378] :   Update MySQL Schema to fix issues related to only_full_group_by restriction of MySQL 5.7 version.
-[RANGER-1413] :   Good coding practice in Ranger recommended by static code analysis
-[RANGER-1407] :   Service update transaction log is not generated in some cases
-[RANGER-1413] :   Fix issues uncovered by static code analysis
-[RANGER-1409] :   User role get deleted from table when he tries to update his role to a restricted role
-[RANGER-1406] :   Audit spoolfile not getting created when ranger service user didn't have permission to log into Solr
-[RANGER-1401] :   Add consolidated db schema script for SQLServer DB flavor
-[BUG-75869]   :   RangerHiveAuthorizer.applyRowFilterAndColumnMasking should only return tables if they need masking/filtering
-[RANGER-1383] :   Use resource matchers for filtering service policies
+[RANGER-1607] : Ranger service check failed on SLES11.3 cluster with sslv3 alert handshake failure
+[RANGER-1602] : Hive policy form should not show include/exclude option for URL resource.
+[RANGER-1603] : Code improvement as recommended by good coding practices
+[RANGER-1583] : Test connections are failing for plugins after upgrade
+[RANGER-1581] : Ranger plugins need to support additional date formats for tag attribute values
+[RANGER-1578] : Ranger plugins should use default service-def when it fails to obtain from Ranger Admin or cache
+[RANGER-1576] : Show attribute values to tags column in audit log
+[RANGER-1577] : Update Ranger-WASB servicedefinition to remove Execute permission and disallow policies with a trailing slash
+[RANGER-1571] : Code Improvement To Follow Best Practices
+[RANGER-1562] : HDFS test connection is failing due to null pointer exception
+[RANGER-1561] : Good coding practice in Ranger recommended by static code analysis
+[RANGER-1513] : Add Support for S3 authorization in Ranger Hive Plugin
+[RANGER-1560] : Code Improvement To Follow Best Practices
+[RANGER-1500] : Add support to exclude/disable SSL protocols
+[RANGER-1431] : Do some code improvement in Java method AuthSessionService.mapEntityToViewBean
+[RANGER-1556] : Provide keyadmin user with privileges to read ranger kms audits
+[RANGER-1557] : Add Nifi as default in supported component list
+[RANGER-1576] : Show attribute values to tags column in audit log - backend work
+[RANGER-1554] : Upgrade springframework version in Ranger to 3.2.10.Release
+[RANGER-1416] : SunX509 is the hardcoded Algorithm for SSL
+[RANGER-1553] : Audit log record for 'show databases' hive command contains all tags
+[RANGER-1499] : Upgrade Tomcat version
+[RANGER-1471] : Remember filters on all tabs of Ranger Audits page
+[RANGER-1483] : Ranger hive service definition to use hive metastore directly
+[RANGER-1484] : Escape of policy condition text entered in the policy form.
+[RANGER-1474] : On SP12, hive policy page opens up with UDF as default under resources, rather than table.
+[RANGER-1481] : Differentiate audit events from multiple clusters
+[RANGER-1476] : Editing should be allowed for External users in Ranger UI
+[RANGER-1477] : 'show databases' fails with access-denied when user doesn't have access to some of the databases
+[RANGER-1459] : Ranger update policy API is failing on Postgres / Oracle for case sensitive ACLs
+[RANGER-1460] : tagsync policies are not working if associated with HDFS
+[RANGER-1453] : Ranger KMS failed to start with Exception] :   More than one Master Key exists
+[RANGER-1448] : Change of import / export icons on Ranger UI
+[RANGER-1435] : fixed minor issue of resource filenames from previous commit
+[RANGER-1435] : Allow different files to be specified for unix based usersync - 2.6-maint
+[RANGER-1440] : Improve install script to retry failing statements
+[RANGER-1428] : In certain scenario user data contains junk email-id
+[RANGER-1434] : Enable Group Search First causes issues when Enable Group Sync is disabled - 2.6-maint branch
+[RANGER-1392] : Revert "RANGER-1392:   Hive test connection is failing even if jdbc.url configured is correct to 2.6-maint"
+[RANGER-1392] : Hive test connection is failing even if jdbc.url configured is correct to 2.6-maint
+[RANGER-1422] : Ranger Knox Plugin audit doesn't have the access type populated
+[RANGER-1405] : groups are not shown if exact user name is passed in search filter
+[RANGER-1417] : Ranger Upgrade is failing for Oracle DB flavor
+[RANGER-1378] : Update MySQL Schema to fix issues related to only_full_group_by restriction of MySQL 5.7 version.
+[RANGER-1413] : Good coding practice in Ranger recommended by static code analysis
+[RANGER-1407] : Service update transaction log is not generated in some cases
+[RANGER-1413] : Fix issues uncovered by static code analysis
+[RANGER-1409] : User role get deleted from table when he tries to update his role to a restricted role
+[RANGER-1406] : Audit spoolfile not getting created when ranger service user didn't have permission to log into Solr
+[RANGER-1401] : Add consolidated db schema script for SQLServer DB flavor
+[RANGER-1414] : RangerHiveAuthorizer.applyRowFilterAndColumnMasking should only return tables if they need masking/filtering
+[RANGER-1383] : Use resource matchers for filtering service policies
 
