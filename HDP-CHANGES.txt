@@ -48,3 +48,4 @@ BUG
 	[RANGER-1094] - One way SSL (when Kerberos is enabled) for Ranger and its plugins
 	[RANGER-1097] - Ranger KMS Plugin should not fails to download policy when UGI ticket expires
 
+	[BUG-81392] - RANGER-1310: Ranger Audit framework enhancement to provide an option to allow audit records to be spooled to local disk first before sending it to destinations

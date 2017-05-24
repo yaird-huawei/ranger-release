@@ -147,6 +147,7 @@ public class HDFSAuditDestination extends AuditDestination {
 			return false;
 		}
 
+		PrintWriter out = null;
 		try {
 			if (logger.isDebugEnabled()) {
 				logger.debug("UGI=" + MiscUtil.getUGILoginUser()
@@ -164,7 +165,6 @@ public class HDFSAuditDestination extends AuditDestination {
 				};
 			};
 
-			PrintWriter out = null;
 			UserGroupInformation ugi =  MiscUtil.getUGILoginUser();
 			if ( ugi != null) {
 				out = ugi.doAs(action);
@@ -185,9 +185,22 @@ public class HDFSAuditDestination extends AuditDestination {
 			addDeferredCount(events.size());
 			logError("Error writing to log file.", t);
 			return false;
+		} finally {
+			logger.info("Flushing HDFS audit. Event Size:" + events.size());
+			if (out != null) {
+				out.flush();
+			}
 		}
 		addSuccessCount(events.size());
 		return true;
+	}
+
+	@Override
+	public void flush() {
+		if ( logWriter != null) {
+			logWriter.flush();
+			logger.info("Flush HDFS audit logs completed.....");
+		 }
 	}
 
 	/*
