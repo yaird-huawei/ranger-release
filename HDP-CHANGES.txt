@@ -1,7 +1,8 @@
 Changes only in Hortonworks github and not in ranger 0.6.0 Apache Release and hence not covered by CHANGES.txt.
 
 BUG
-	[RANGER-1603]   - Wildcard policy authorization incorrectly performs prefix match
+	[RANGER-1619] - Ranger Hive Plugin fails to check the URI when the location doesn't exist
+	[RANGER-1603] - Wildcard policy authorization incorrectly performs prefix match
 	[RANGER-1156] - Audit migration script from DB to Solr cloud failing
 	[RANGER-1152] - Improver performance of ranger audit login while audit event-id creation
 	[RANGER-1149] - Label spelling correction
