@@ -26,6 +26,7 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1383] :   Use resource matchers for filtering service policies
 
 BUG
+	[RANGER-1619] - Ranger Hive Plugin fails to check the URI when the location doesn't exist
 	[RANGER-1603] - Wildcard policy authorization incorrectly performs prefix match
 	[RANGER-1156] - Audit migration script from DB to Solr cloud failing
 	[RANGER-1152] - Improver performance of ranger audit login while audit event-id creation
