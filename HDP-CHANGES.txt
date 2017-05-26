@@ -1,5 +1,5 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
-
+[RANGER-1612] : When servicedef is accessed, def_options property "enableDenyAndExceptionsInPolicies" is returned as "false" if there is no value set for it
 [RANGER-1607] : Ranger service check failed on SLES11.3 cluster with sslv3 alert handshake failure
 [RANGER-1602] : Hive policy form should not show include/exclude option for URL resource.
 [RANGER-1603] : Code improvement as recommended by good coding practices
@@ -17,11 +17,19 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1431] : Do some code improvement in Java method AuthSessionService.mapEntityToViewBean
 [RANGER-1556] : Provide keyadmin user with privileges to read ranger kms audits
 [RANGER-1557] : Add Nifi as default in supported component list
+[RANGER-1475] : reducing the highest time stamp value to pick all the users syncd during sync cycle
 [RANGER-1576] : Show attribute values to tags column in audit log - backend work
 [RANGER-1554] : Upgrade springframework version in Ranger to 3.2.10.Release
 [RANGER-1416] : SunX509 is the hardcoded Algorithm for SSL
 [RANGER-1553] : Audit log record for 'show databases' hive command contains all tags
+[RANGER-1550] : HDFS test connection and resource lookup failing
+[RANGER-1548] : Ranger needs better error messages when Ambari Infra is off
 [RANGER-1499] : Upgrade Tomcat version
+[RANGER-1546] : Code Improvement To Follow Best Practices
+[RANGER-1490] : Increase size of sort_order column of x_policy_resource_map
+[RANGER-1436] : Disable, by default, deny policies with ranger.servicedef.enableDenyAndExceptionsInPolicies config parameter
+[RANGER-1436] : Turn Ranger Deny Policy & Except Conditions block to On by default 
+[RANGER-1531] : Good coding practice while parsing XML documents in Ranger
 [RANGER-1471] : Remember filters on all tabs of Ranger Audits page
 [RANGER-1483] : Ranger hive service definition to use hive metastore directly
 [RANGER-1484] : Escape of policy condition text entered in the policy form.
