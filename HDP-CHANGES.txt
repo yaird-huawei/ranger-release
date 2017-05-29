@@ -155,6 +155,9 @@ BUG
      [RANGER-778] - Fix user update issue
      [RANGER-725] - Add the right .gitignore file to the newly added projects so that directory listing is clean after a build
      [RANGER-809] - Audit framework need to cache the getHostName() values to reuse for successive calls
+     [RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist
+     [RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist-exclude EXEC permission for IMPORT/EXPORT/LOAD
+     [RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist-exclude EXEC permission for IMPORT/EXPORT/LOAD-new commands
 
 NEW FEATURE
 
@@ -206,3 +209,4 @@ HDP CHANGES:
      BUG-77229: Backport RANGER-1097
      BUG-77227: RANGER-1126 : Authorization checks for non existent file/directory should not be recursive in Ranger Hive authorizer
      BUG-77228: RANGER-1136: Ranger audit to HDFS fails with TGT errors in Ranger HiveServer2 plugin when UGI -TGT expires in audit thread
+
