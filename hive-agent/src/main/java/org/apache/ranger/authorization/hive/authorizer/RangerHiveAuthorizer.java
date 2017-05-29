@@ -901,6 +901,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case ALTERVIEW_PROPERTIES:
 				case ALTERVIEW_RENAME:
 				case DROPVIEW_PROPERTIES:
+				case ALTERTABLE_DROPCONSTRAINT:
+				case ALTERTABLE_ADDCONSTRAINT:
 					accessType = HiveAccessType.ALTER;
 				break;
 
@@ -1012,11 +1014,11 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		switch(hiveOpType) {
 			case LOAD:
 			case IMPORT:
-				ret = FsAction.READ_EXECUTE;
+				ret = FsAction.READ;
 				break;
 
 			case EXPORT:
-				ret = FsAction.WRITE_EXECUTE;
+				ret = FsAction.WRITE;
 				break;
 
 			case CREATEDATABASE:
