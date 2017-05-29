@@ -26,6 +26,7 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1383] :   Use resource matchers for filtering service policies
 
 BUG
+	[RANGER-1619] - Ranger Hive Plugin fails to check the URI when the location doesn't exist-exclude EXEC permission for IMPORT/EXPORT/LOAD-new commands
 	[RANGER-1619] - Ranger Hive Plugin fails to check the URI when the location doesn't exist-exclude EXEC permission for IMPORT/EXPORT/LOAD
 	[RANGER-1619] - Ranger Hive Plugin fails to check the URI when the location doesn't exist
 	[RANGER-1603] - Wildcard policy authorization incorrectly performs prefix match
