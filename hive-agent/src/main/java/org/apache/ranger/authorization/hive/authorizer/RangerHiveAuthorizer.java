@@ -628,6 +628,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case ALTERVIEW_PROPERTIES:
 				case ALTERVIEW_RENAME:
 				case DROPVIEW_PROPERTIES:
+				case ALTERTABLE_DROPCONSTRAINT:
+				case ALTERTABLE_ADDCONSTRAINT:
 					accessType = HiveAccessType.ALTER;
 				break;
 
