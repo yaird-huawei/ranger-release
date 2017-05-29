@@ -1058,11 +1058,11 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		switch(hiveOpType) {
 			case LOAD:
 			case IMPORT:
-				ret = FsAction.READ_EXECUTE;
+				ret = FsAction.READ;
 				break;
 
 			case EXPORT:
-				ret = FsAction.WRITE_EXECUTE;
+				ret = FsAction.WRITE;
 				break;
 
 			case CREATEDATABASE:
