@@ -70,11 +70,11 @@
         <dependencySets>
           <dependencySet>
             <includes>
-              <include>org.apache.hive:hive-common:jar:${hive.version}</include>
-              <include>org.apache.hive:hive-service:jar:${hive.version}</include>
-              <include>org.apache.hive:hive-exec:jar:${hive.version}</include>
-              <include>org.apache.hive:hive-jdbc:jar:${hive.version}</include>
-              <include>org.apache.hive:hive-metastore:jar:${hive.version}</include>
+              <include>org.apache.hive:hive-common:jar:${hive1.version}</include>
+              <include>org.apache.hive:hive-service:jar:${hive1.version}</include>
+              <include>org.apache.hive:hive-exec:jar:${hive1.version}</include>
+              <include>org.apache.hive:hive-jdbc:jar:${hive1.version}</include>
+              <include>org.apache.hive:hive-metastore:jar:${hive1.version}</include>
               <include>org.apache.thrift:libfb303:jar:${hive.thrift.version}</include>
               <include>org.apache.thrift:libthrift:jar:${hive.thrift.version}</include>
             </includes>

@@ -434,6 +434,31 @@
             <artifactId>guice</artifactId>
             <version>3.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-common</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-service</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-metastore</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-jdbc</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -484,7 +509,8 @@
                             <packagingExcludes>
                                                         WEB-INF/lib/spring-*.SEC03.jar,
                                                         WEB-INF/lib/spring-*.RC3.jar,
-                                                        WEB-INF/lib/spring-2.*.jar
+                                                        WEB-INF/lib/spring-2.*.jar,
+														WEB-INF/lib/hive*-${hive1.version}.jar
                                                 </packagingExcludes>
                             <warSourceDirectory>${project.build.directory}/${project.build.finalName}</warSourceDirectory>
                         </configuration>
