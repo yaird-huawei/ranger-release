@@ -1,4 +1,6 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
+[RANGER-1620] : Fix kafka-ranger-env.sh script to not throw error when it is sourced from bash
+[RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist
 [RANGER-1612] : When servicedef is accessed, def_options property "enableDenyAndExceptionsInPolicies" is returned as "false" if there is no value set for it
 [RANGER-1607] : Ranger service check failed on SLES11.3 cluster with sslv3 alert handshake failure
 [RANGER-1602] : Hive policy form should not show include/exclude option for URL resource.
