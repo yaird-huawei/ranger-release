@@ -68,3 +68,5 @@ BUG
 	RANGER-1434 - BUG-76701: Enable Group Search First causes issues
 	RANGER-1435 - BUG-76703: Allow different files to be specified for unix based usersync
 	RANGER-1499 - BUG-78284: Ranger - Upgrade Tomcat version
+	RANGER-1603 - BUG-81748: Wildcard policy authorization incorrectly performs prefix match
+	RANGER-1619 - BUG-81764: [2.5] HS2 doesn't evaluate WASB ranger policies on the location given in Create & Load commands if the location doesn't exist / Ranger Hive Plugin fails to check the URI when the location doesn't exist 
