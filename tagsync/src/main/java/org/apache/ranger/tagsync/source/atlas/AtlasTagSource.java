@@ -20,28 +20,22 @@
 package org.apache.ranger.tagsync.source.atlas;
 
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-
+import org.apache.atlas.kafka.NotificationProvider;
+import org.apache.atlas.notification.NotificationConsumer;
+import org.apache.atlas.notification.NotificationInterface;
+import org.apache.atlas.notification.entity.EntityNotification;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.apache.atlas.notification.NotificationConsumer;
-import org.apache.atlas.notification.NotificationInterface;
-import org.apache.atlas.notification.NotificationModule;
-import org.apache.atlas.notification.entity.EntityNotification;
-
-import org.apache.ranger.tagsync.model.AbstractTagSource;
 import org.apache.ranger.plugin.util.ServiceTags;
 import org.apache.atlas.kafka.AtlasKafkaMessage;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.ranger.tagsync.model.AbstractTagSource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
 import java.util.List;
+import java.util.Properties;
 
 public class AtlasTagSource extends AbstractTagSource {
 	private static final Log LOG = LogFactory.getLog(AtlasTagSource.class);
@@ -104,12 +98,7 @@ public class AtlasTagSource extends AbstractTagSource {
 		}
 
 		if (ret) {
-			NotificationModule notificationModule = new NotificationModule();
-
-			Injector injector = Guice.createInjector(notificationModule);
-
-			Provider<NotificationInterface> consumerProvider = injector.getProvider(NotificationInterface.class);
-			NotificationInterface notification = consumerProvider.get();
+			NotificationInterface notification = NotificationProvider.get();
 			List<NotificationConsumer<EntityNotification>> iterators = notification.createConsumers(NotificationInterface.NotificationType.ENTITIES, 1);
 
 			consumerTask = new ConsumerRunnable(iterators.get(0));
