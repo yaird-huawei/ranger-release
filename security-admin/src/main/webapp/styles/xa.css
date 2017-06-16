@@ -2188,3 +2188,12 @@ td.subgrid-custom-cell{
     font-weight: bold;
     font-style: italic;
 }
+.backgrid-paginator ul > li > a,
+.backgrid-paginator ul > li > span{
+    width: auto !important;
+    min-width: 30px;
+    max-width: 44px;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
