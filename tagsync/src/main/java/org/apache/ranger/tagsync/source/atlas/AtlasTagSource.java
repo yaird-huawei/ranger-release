@@ -36,7 +36,6 @@ import org.apache.atlas.notification.entity.EntityNotification;
 import org.apache.ranger.tagsync.model.AbstractTagSource;
 import org.apache.ranger.plugin.util.ServiceTags;
 import org.apache.atlas.kafka.AtlasKafkaMessage;
-import org.apache.atlas.kafka.AtlasKafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 
 import java.io.IOException;
