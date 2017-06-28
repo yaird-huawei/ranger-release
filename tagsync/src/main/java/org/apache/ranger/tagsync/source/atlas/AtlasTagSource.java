@@ -29,6 +29,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.plugin.util.ServiceTags;
 import org.apache.ranger.tagsync.model.AbstractTagSource;
+import org.apache.atlas.kafka.AtlasKafkaMessage;
+import org.apache.atlas.kafka.AtlasKafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -152,15 +155,6 @@ public class AtlasTagSource extends AbstractTagSource {
 			this.consumer = consumer;
 		}
 
-		private boolean hasNext() {
-			boolean ret = false;
-			try {
-				ret = consumer.hasNext();
-			} catch (Exception exception) {
-				LOG.error("EntityNotification consumer threw exception, IGNORING...:", exception);
-			}
-			return ret;
-		}
 
 		@Override
 		public void run() {
@@ -169,8 +163,11 @@ public class AtlasTagSource extends AbstractTagSource {
 			}
 			while (true) {
 				try {
-					if (hasNext()) {
-						EntityNotification notification = consumer.peek();
+					List<AtlasKafkaMessage<EntityNotification>> messages = consumer.receive(1000L);
+
+					for (AtlasKafkaMessage<EntityNotification> message :  messages) {
+						EntityNotification notification = message != null ? message.getMessage() : null;
+
 						if (notification != null) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug("Notification=" + getPrintableEntityNotification(notification));
@@ -180,11 +177,12 @@ public class AtlasTagSource extends AbstractTagSource {
 							if (serviceTags != null) {
 								updateSink(serviceTags);
 							}
+
+							TopicPartition partition = new TopicPartition("ATLAS_ENTITIES", message.getPartition());
+							consumer.commit(partition, message.getOffset());
 						} else {
 							LOG.error("Null entityNotification received from Kafka!! Ignoring..");
 						}
-						// Move iterator forward
-						consumer.next();
 					}
 				} catch (Exception exception) {
 					LOG.error("Caught exception..: ", exception);
