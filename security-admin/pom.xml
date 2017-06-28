@@ -459,6 +459,10 @@
             <artifactId>hive-jdbc</artifactId>
             <version>${hive1.version}</version>
         </dependency>
+        <dependency>
+                        <groupId>com.webcohesion.enunciate</groupId>
+                        <artifactId>enunciate-core-annotations</artifactId>
+                </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -484,6 +488,17 @@
                         </dependencies>
 -->
                 </plugin>
+                 <plugin>
+                                        <groupId>com.webcohesion.enunciate</groupId>
+                                        <artifactId>enunciate-maven-plugin</artifactId>
+                                        <configuration>
+                                                <configFile>enunciate.xml</configFile>
+                                                <enunciateArtifactId/>
+                                                <docsDir>docs/target/</docsDir>
+                                                <source>1.8</source>
+                                                <target>1.8</target>
+                                        </configuration>
+                                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
