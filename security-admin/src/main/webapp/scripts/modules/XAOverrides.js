@@ -574,11 +574,24 @@
 			  			this.value.isRecursive = _.isUndefined(this.value.isRecursive) ? true : this.value.isRecursive;
 			  			isRecursive = this.value.isRecursive;
 			  		}
-			  	}
+			  		this.$recursiveSupport.show();
+		  			this.$recursiveSupport.removeClass('recursive-toggle-1 recursive-toggle-2');
+		  			this.$recursiveSupport.addClass(this.excludeSupport ? 'recursive-toggle-2' : 'recursive-toggle-1')
+		  			this.$recursiveSupport.toggles({
+		  				on: isRecursive,
+		  				text : {on : 'recursive', off : 'non-recursive' },
+		  				width: 120,
+		  			}).on('toggle', function (e, active) {
+		  				that.value.isRecursive = active;
+                        XAUtil.checkDirtyFieldForToggle($(e.currentTarget))
+                    });
+		  		} else {
+		  			this.$recursiveSupport.hide();
+		  		}
 		  },
 		  renderSameLevelResource : function() {
                           var that = this, dirtyFieldValue = null;
-                          var XAUtil = require('utils/XAUtils'), localization	= require('utils/XALangSupport');;
+                          var XAUtil = require('utils/XAUtils'), localization	= require('utils/XALangSupport');
 			  if(!_.isUndefined(this.$resourceType) && this.$resourceType.length > 0){
 			  		if(!_.isNull(this.value) && !_.isEmpty(this.value)){
 			  			this.$resourceType.val(this.value.resourceType);
@@ -668,14 +681,20 @@
 		  	},
 		  	getTemplate : function() {
 				  var optionsHtml="", selectTemplate = '',excludeSupportToggleDiv='', recursiveSupportToggleDiv='';
-				  this.preserveResourceValues = {};
+				  this.preserveResourceValues = {} , klass = '';
 				    if(this.resourcesAtSameLevel){
 				    	_.each(this.sameLevelOpts, function(option){ return optionsHtml += "<option value='"+option+"'>"+option+"</option>"; },this);
 				    	selectTemplate = '<select data-js="resourceType" class="btn dropdown-toggle sameLevelDropdown" >\
 				    						'+optionsHtml+'\
 				    					</select>';
 				    }
-				    excludeSupportToggleDiv = '<div class="toggle-xa include-toggle toggle" data-js="include"></div>';
+				    excludeSupportToggleDiv = '<div class="toggle-xa include-toggle" data-js="include" style ="height: 20px; width: 80px;"><div class="toggle"></div></div>';
+				    if(this.name == "path"){
+					  klass = (!this.excludeSupport) ? "recursive-toggle-hdfs-1" : "recursive-toggle-hdfs-2";
+				    }else{
+					  klass = (!this.excludeSupport) ? "recursive-toggle-1" : "recursive-toggle-2";
+				    }
+			        recursiveSupportToggleDiv = '<div class="toggle-xa recursive-toggle '+klass+'"" data-js="recursive" style="height: 20px; width: 120px;"><div  class="toggle"></div></div>';
 				    return _.template(selectTemplate+'<input data-js="resource" type="text">'+
 				    					excludeSupportToggleDiv+''+recursiveSupportToggleDiv);
 			  },
