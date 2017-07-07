@@ -32,5 +32,4 @@ public interface RangerResourceMatcher {
 	boolean isMatch(String resource);
 
 	boolean isCompleteMatch(String resource);
-
 }

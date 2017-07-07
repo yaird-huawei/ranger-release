@@ -20,7 +20,6 @@
 package org.apache.ranger.plugin.resourcematcher;
 
 import com.google.common.collect.Lists;
-import org.apache.ranger.plugin.model.RangerPolicy;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -61,16 +60,14 @@ public class RangerDefaultResourceMatcherTest {
 
     static class MatcherWrapper extends RangerDefaultResourceMatcher {
         MatcherWrapper(String policyValue, boolean exclude) {
-            RangerPolicy.RangerPolicyResource policyResource = new RangerPolicy.RangerPolicyResource();
-            policyResource.setIsExcludes(exclude);
-            policyResource.setValues(Lists.newArrayList(policyValue));
-            setPolicyResource(policyResource);
-
+            this.policyValues = Lists.newArrayList(policyValue);
+            if (WILDCARD_ASTERISK.equals(policyValue)) {
+                this.isMatchAny = true;
+            }
             if (policyValue.contains(WILDCARD_ASTERISK)) {
                 this.optWildCard = true;
             }
-            this.optIgnoreCase = false;
-            init();
+            this.policyIsExcludes = exclude;
         }
     }
 
