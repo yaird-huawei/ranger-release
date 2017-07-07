@@ -208,7 +208,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 	private static final String USER_NAME = "Exported by";
 	private static final String RANGER_VERSION = "Ranger apache version";
 	private static final String TIMESTAMP = "Export time";
-	private static final String AUDITTOHDFS_KMS_PATH = "/ranger/kms/audit";
+        private static final String AUDITTOHDFS_KMS_PATH = "/ranger/audit/kms";
 	private static final String AUDITTOHDFS_POLICY_NAME = "kms-audit-path";
 	
         public static final String CRYPT_ALGO = PropertiesUtil.getProperty("ranger.password.encryption.algorithm", PasswordUtils.DEFAULT_CRYPT_ALGO);
