@@ -305,16 +305,14 @@ public abstract class RangerAbstractResourceMatcher implements RangerResourceMat
 			}
 		}
 
-		if (needWildcardMatch) { // test?, test*a*, test*a*b, *test*a
+		if (needWildcardMatch) {
 			ret = optIgnoreCase ? new CaseInsensitiveWildcardMatcher(policyValue) : new CaseSensitiveWildcardMatcher(policyValue);
-		} else if (wildcardStartIdx == -1) { // test, testa, testab
+		} else if (wildcardStartIdx == -1) {
 			ret = optIgnoreCase ? new CaseInsensitiveStringMatcher(policyValue) : new CaseSensitiveStringMatcher(policyValue);
-		} else if (wildcardStartIdx == 0) { // *test, **test, *testa, *testab
+		} else if (wildcardStartIdx == 0) {
 			String matchStr = policyValue.substring(wildcardEndIdx + 1);
 			ret = optIgnoreCase ? new CaseInsensitiveEndsWithMatcher(matchStr) : new CaseSensitiveEndsWithMatcher(matchStr);
-		} else if (wildcardEndIdx != (len - 1)) { // test*a, test*ab
-			ret = optIgnoreCase ? new CaseInsensitiveWildcardMatcher(policyValue) : new CaseSensitiveWildcardMatcher(policyValue);
-		} else { // test*, test**, testa*, testab*
+		} else {
 			String matchStr = policyValue.substring(0, wildcardStartIdx);
 			ret = optIgnoreCase ? new CaseInsensitiveStartsWithMatcher(matchStr) : new CaseSensitiveStartsWithMatcher(matchStr);
 		}

@@ -49,6 +49,5 @@ BUG
 	[RANGER-1097] - Ranger KMS Plugin should not fails to download policy when UGI ticket expires
 	[BUG-83186] - RANGER-1619 : Ranger Hive Plugin fails to check the URI when the location doesn't exist
 	[BUG-83186] - RANGER-1619 : Ranger Hive Plugin fails to check the URI when the location doesn't exist-exclude EXEC permission for IMPORT/EXPORT/LOAD
-	[RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist
-	[RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist-exclude EXEC permission for IMPORT/EXPORT/LOAD
-	[RANGER-1603] : Ranger: policy resource matcher should not ignore characters after the wildcard character
+    [RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist
+    [RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist-exclude EXEC permission for IMPORT/EXPORT/LOAD
