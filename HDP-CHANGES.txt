@@ -1,4 +1,5 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
+[RANGER-1631] : create temp function failing with permission issues
 [RANGER-1620] : Fix kafka-ranger-env.sh script to not throw error when it is sourced from bash
 [RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist
 [RANGER-1612] : When servicedef is accessed, def_options property "enableDenyAndExceptionsInPolicies" is returned as "false" if there is no value set for it
@@ -62,4 +63,3 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1401] : Add consolidated db schema script for SQLServer DB flavor
 [RANGER-1414] : RangerHiveAuthorizer.applyRowFilterAndColumnMasking should only return tables if they need masking/filtering
 [RANGER-1383] : Use resource matchers for filtering service policies
-
