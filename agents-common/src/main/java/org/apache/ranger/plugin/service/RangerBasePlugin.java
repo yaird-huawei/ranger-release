@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -98,7 +97,12 @@ public class RangerBasePlugin {
 		policyEngineOptions.cacheAuditResults       = RangerConfiguration.getInstance().getBoolean(propertyPrefix + ".policyengine.option.cache.audit.results", true);
 		policyEngineOptions.disableContextEnrichers = RangerConfiguration.getInstance().getBoolean(propertyPrefix + ".policyengine.option.disable.context.enrichers", false);
 		policyEngineOptions.disableCustomConditions = RangerConfiguration.getInstance().getBoolean(propertyPrefix + ".policyengine.option.disable.custom.conditions", false);
+		policyEngineOptions.disableTrieLookupPrefilter = RangerConfiguration.getInstance().getBoolean(propertyPrefix + ".policyengine.option.disable.trie.lookup.prefilter", false);
 
+		LOG.info("PolicyEngineOptions: { evaluatorType: " + policyEngineOptions.evaluatorType + ", cacheAuditResult: "
+				+ policyEngineOptions.cacheAuditResults  + ", disableContextEnrichers: " + policyEngineOptions.disableContextEnrichers
+				+ ", disableCustomConditions: " + policyEngineOptions.disableContextEnrichers + ", disableTrieLookupPrefilter: "
+				+ policyEngineOptions.disableTrieLookupPrefilter);
 
 		RangerAdminClient admin = createAdminClient(propertyPrefix);
 
