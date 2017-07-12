@@ -35,9 +35,72 @@
        {"accesses":[{"type":"read","isAllowed":true}],"users":[],"groups":["finance"],"delegateAdmin":false}
      ]
     }
+    ,
+    {"id":4,"name":"allow-read-to-hr under /hr/restricted/*","isEnabled":true,"isAuditEnabled":true,
+      "resources":{"path":{"values":["/hr/restricted/*"],"isRecursive":false}},
+      "policyItems":[
+        {"accesses":[{"type":"read","isAllowed":true}],"users":[],"groups":["hr"],"delegateAdmin":false}
+      ]
+    }
   ],
 
   "tests":[
+    {"name":"ALLOW 'execute /public/commons/*' for g=users",
+      "request":{
+        "resource":{"elements":{"path":"/public/commons/*"}},
+        "accessType":"execute","user":"user1","userGroups":["users"],"requestData":"execute /public/commons/*"
+      },
+      "result":{"isAudited":false,"isAllowed":true,"policyId":2}
+    }
+  ,
+    {"name":"DENY 'write /public/commons/*' for g=users",
+      "request":{
+        "resource":{"elements":{"path":"/public/commons/*"}},
+        "accessType":"write","user":"user1","userGroups":["users"],"requestData":"write /public/commons/*"
+      },
+      "result":{"isAudited":false,"isAllowed":false,"policyId":-1}
+    }
+  ,
+    {"name":"ALLOW 'read /finance/restricted/private/*' for g=finance",
+      "request":{
+        "resource":{"elements":{"path":"/finance/restricted/private/*"}},
+        "accessType":"read","user":"","userGroups":["finance"],"requestData":"read /finance/restricted/private/*"
+      },
+      "result":{"isAudited":true,"isAllowed":true,"policyId":3}
+    }
+  ,
+    {"name":"DENY 'read /finance/restricted/*' for g=public",
+      "request":{
+        "resource":{"elements":{"path":"/finance/restricted/*"}},
+        "accessType":"read","user":"","userGroups":["public"],"requestData":"read /finance/restricted/*"
+      },
+      "result":{"isAudited":true,"isAllowed":false,"policyId":-1}
+    }
+  ,
+    {"name":"DENY 'read /finance/*' for g=finance",
+      "request":{
+        "resource":{"elements":{"path":"/finance/*"}},
+        "accessType":"read","user":"","userGroups":["finance"],"requestData":"read /finance/*"
+      },
+      "result":{"isAudited":false,"isAllowed":false,"policyId":-1}
+    }
+  ,
+    {"name":"DENY 'read /hr/restricted' for g=hr",
+      "request":{
+        "resource":{"elements":{"path":"/hr/restricted"}},
+        "accessType":"read","user":"","userGroups":["hr"],"requestData":"read /hr/restricted"
+      },
+      "result":{"isAudited":false,"isAllowed":false,"policyId":-1}
+    }
+  ,
+    {"name":"ALLOW 'read /hr/restricted/*' for g=hr",
+      "request":{
+        "resource":{"elements":{"path":"/hr/restricted/*"}},
+        "accessType":"read","user":"","userGroups":["hr"],"requestData":"read /hr/restricted/*"
+      },
+      "result":{"isAudited":true,"isAllowed":true,"policyId":4}
+    }
+  ,
     {"name":"ALLOW 'read /finance/restricted/sales.db' for g=finance",
      "request":{
       "resource":{"elements":{"path":"/finance/restricted/sales.db"}},

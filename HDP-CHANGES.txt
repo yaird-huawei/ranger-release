@@ -192,3 +192,4 @@ HDP CHANGES:
 	[BUG-95441] - RANGER-1126:Authorization checks for non existent file/directory should not be recursive in Ranger Hive authorizer
 	[BUG-95441] - RANGER-1136: Ranger audit to HDFS fails with TGT errors in Ranger HiveServer2 plugin when UGI -TGT expires in audit thread
 	[BUG-102428] - RANGER-891: Audit shutdown hook to be registered with Hadoop ShutdownHookManager instead of directly with Java Runtime
+	[BUG-102428] - Backport RANGER-1161 and RANGER-1162 for NBCU Signed-off-by: rmani <rmani@hortonworks.com>

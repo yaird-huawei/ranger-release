@@ -189,7 +189,9 @@ public class RangerPolicyEngineImpl implements RangerPolicyEngine {
 		RangerPerfTracer perf = null;
 
 		if(RangerPerfTracer.isPerfTraceEnabled(PERF_POLICYENGINE_REQUEST_LOG)) {
-			perf = RangerPerfTracer.getPerfTracer(PERF_POLICYENGINE_REQUEST_LOG, "RangerPolicyEngine.isAccessAllowed(requestHashCode=" + Integer.toHexString(System.identityHashCode(request)) + ")");
+			String requestHashCode = Integer.toHexString(System.identityHashCode(request));
+			perf = RangerPerfTracer.getPerfTracer(PERF_POLICYENGINE_REQUEST_LOG, "RangerPolicyEngine.isAccessAllowed(requestHashCode=" + requestHashCode + ")");
+			LOG.info("RangerPolicyEngineImpl.isAccessAllowed(" + requestHashCode + ", " + request + ")");
 		}
 
 		RangerAccessResult ret = isAccessAllowedNoAudit(request);
@@ -255,7 +257,7 @@ public class RangerPolicyEngineImpl implements RangerPolicyEngine {
 		}
 		boolean ret = false;
 
-		for(RangerPolicyEvaluator evaluator : policyRepository.getPolicyEvaluators()) {
+		for(RangerPolicyEvaluator evaluator : policyRepository.getPolicyEvaluators(resource)) {
 			ret = evaluator.isAccessAllowed(resource, user, userGroups, accessType);
 
 			if(ret) {
@@ -361,7 +363,7 @@ public class RangerPolicyEngineImpl implements RangerPolicyEngine {
 
 		RangerResourceAccessInfo ret = new RangerResourceAccessInfo(request);
 
-		for(RangerPolicyEvaluator evaluator : policyRepository.getPolicyEvaluators()) {
+		for(RangerPolicyEvaluator evaluator : policyRepository.getPolicyEvaluators(request.getResource())) {
 			evaluator.getResourceAccessInfo(request, ret);
 		}
 
@@ -380,7 +382,7 @@ public class RangerPolicyEngineImpl implements RangerPolicyEngine {
 		RangerAccessResult ret = createAccessResult(request);
 
 		if(ret != null && request != null) {
-			List<RangerPolicyEvaluator> evaluators = policyRepository.getPolicyEvaluators();
+			List<RangerPolicyEvaluator> evaluators = policyRepository.getPolicyEvaluators(request.getResource());
 
 			if(evaluators != null) {
 				boolean foundInCache = policyRepository.setAuditEnabledFromCache(request, ret);
