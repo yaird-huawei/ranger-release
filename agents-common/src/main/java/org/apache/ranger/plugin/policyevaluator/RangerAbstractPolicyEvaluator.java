@@ -26,19 +26,14 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.plugin.model.RangerPolicy;
 import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.policyengine.RangerPolicyEngineOptions;
-import org.apache.ranger.plugin.policyengine.RangerAccessRequest;
-import org.apache.ranger.plugin.policyresourcematcher.RangerPolicyResourceEvaluator;
-import org.apache.ranger.plugin.util.ServiceDefUtil;
-import java.util.Map;
 
 
 public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvaluator {
 	private static final Log LOG = LogFactory.getLog(RangerAbstractPolicyEvaluator.class);
 
-	private RangerPolicy     policy            = null;
-	private RangerServiceDef serviceDef        = null;
-	private Integer          leafResourceLevel = null;
-	private int              evalOrder         = 0;
+	private RangerPolicy     policy     = null;
+	private RangerServiceDef serviceDef = null;
+	private int              evalOrder  = 0;
 
 
 	@Override
@@ -47,23 +42,12 @@ public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvalu
 			LOG.debug("==> RangerAbstractPolicyEvaluator.init(" + policy + ", " + serviceDef + ")");
 		}
 
-		this.policy            = policy;
-		this.serviceDef        = serviceDef;
-		this.leafResourceLevel = ServiceDefUtil.getLeafResourceLevel(serviceDef, getPolicyResource());
+		this.policy     = policy;
+		this.serviceDef = serviceDef;
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAbstractPolicyEvaluator.init(" + policy + ", " + serviceDef + ")");
 		}
-	}
-
-	@Override
-	public long getId() {
-		return policy != null ? policy.getId() :-1;
-	}
-
-	@Override
-	public Map<String, RangerPolicy.RangerPolicyResource> getPolicyResource() {
-		return policy !=null ? policy.getResources() : null;
 	}
 
 	@Override
@@ -77,12 +61,6 @@ public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvalu
 	}
 
 	@Override
-	public Integer getLeafResourceLevel() {
-		return leafResourceLevel;
-	}
-
-
-	@Override
 	public int getEvalOrder() {
 		return evalOrder;
 	}
@@ -93,23 +71,15 @@ public abstract class RangerAbstractPolicyEvaluator implements RangerPolicyEvalu
 	}
 
 	@Override
-	public int compareTo(RangerPolicyResourceEvaluator obj) {
+	public int compareTo(RangerPolicyEvaluator other) {
 		if(LOG.isDebugEnabled()) {
 		LOG.debug("==> RangerAbstractPolicyEvaluator.compareTo()");
 		}
 
-		int result;
+		int result = Integer.compare(this.getEvalOrder(), other.getEvalOrder());
 
-		if(obj instanceof RangerPolicyEvaluator) {
-			RangerPolicyEvaluator other = (RangerPolicyEvaluator)obj;
-
-			result = Integer.compare(this.getEvalOrder(), other.getEvalOrder());
-
-			if (result == 0) {
-				result = Integer.compare(getCustomConditionsCount(), other.getCustomConditionsCount());
-			}
-		} else {
-			result = Long.compare(getId(), obj.getId());
+		if (result == 0) {
+			result = Integer.compare(getCustomConditionsCount(), other.getCustomConditionsCount());
 		}
 
 		if(LOG.isDebugEnabled()) {

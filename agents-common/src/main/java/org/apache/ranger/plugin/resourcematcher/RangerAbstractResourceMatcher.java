@@ -99,9 +99,6 @@ public abstract class RangerAbstractResourceMatcher implements RangerResourceMat
 	}
 
 	@Override
-	public boolean isMatchAny() { return isMatchAny; }
-
-	@Override
 	public boolean isSingleAndExactMatch(String resource) {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAbstractResourceMatcher.isSingleAndExactMatch(" + resource + ")");

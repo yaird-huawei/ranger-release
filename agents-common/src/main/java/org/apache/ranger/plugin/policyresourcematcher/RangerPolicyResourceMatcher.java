@@ -24,7 +24,6 @@ import java.util.Map;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
 import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.policyengine.RangerAccessResource;
-import org.apache.ranger.plugin.resourcematcher.RangerResourceMatcher;
 
 public interface RangerPolicyResourceMatcher {
 	void setServiceDef(RangerServiceDef serviceDef);
@@ -32,10 +31,6 @@ public interface RangerPolicyResourceMatcher {
 	void setPolicyResources(Map<String, RangerPolicyResource> policyResources);
 
 	void init();
-
-	RangerServiceDef getServiceDef();
-
-	RangerResourceMatcher getResourceMatcher(String resourceName);
 
 	boolean isMatch(RangerAccessResource resource);
 
