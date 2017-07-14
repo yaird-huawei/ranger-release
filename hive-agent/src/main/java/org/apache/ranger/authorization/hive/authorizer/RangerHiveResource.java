@@ -49,6 +49,9 @@ public class RangerHiveResource extends RangerAccessResourceImpl {
 			break;
 	
 			case FUNCTION:
+				if (database == null) {
+					database = "";
+				}
 				setValue(KEY_DATABASE, database);
 				setValue(KEY_UDF, tableOrUdf);
 			break;
