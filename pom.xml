@@ -230,6 +230,17 @@
     </properties>
     <profiles>
         <profile>
+            <id>ppc</id>
+             <activation>
+               <os>
+                 <arch>ppcle_64</arch>
+               </os>
+            </activation>
+            <properties>
+                  <libpam4j.version>1.8-IBM-2</libpam4j.version>
+            </properties>
+        </profile>
+        <profile>
             <id>linux</id>
             <activation>
                 <os>
