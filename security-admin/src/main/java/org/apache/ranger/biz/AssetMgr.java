@@ -894,61 +894,63 @@ public class AssetMgr extends AssetMgrBase {
 			}
 		}
 		return ret;
-	}
+        }
 
-	public VXTrxLogList getReportLogs(SearchCriteria searchCriteria) {
-		if (!xaBizUtil.isAdmin()) {
-			throw restErrorUtil.create403RESTException("Permission Denied !");
-		}
+        public VXTrxLogList getReportLogs(SearchCriteria searchCriteria) {
+                if (xaBizUtil.isAdmin() || xaBizUtil.isKeyAdmin()) {
+                        if (searchCriteria == null) {
+                                searchCriteria = new SearchCriteria();
+                        }
 
-		if (searchCriteria == null) {
-			searchCriteria = new SearchCriteria();
-		}
+                        if (searchCriteria.getParamList() != null
+                                        && searchCriteria.getParamList().size() > 0) {
+                                int clientTimeOffsetInMinute = RestUtil.getClientTimeOffset();
+                                Date temp = null;
+                                DateUtil dateUtil = new DateUtil();
+                                if (searchCriteria.getParamList().containsKey("startDate")) {
+                                        temp = (Date) searchCriteria.getParamList().get(
+                                                        "startDate");
+                                        temp = dateUtil.getDateFromGivenDate(temp, 0, 0, 0, 0);
+                                        temp = dateUtil.addTimeOffset(temp, clientTimeOffsetInMinute);
+                                        searchCriteria.getParamList().put("startDate", temp);
+                                }
+                                if (searchCriteria.getParamList().containsKey("endDate")) {
+                                        temp = (Date) searchCriteria.getParamList().get(
+                                                        "endDate");
+                                        temp = dateUtil.getDateFromGivenDate(temp, 0, 23, 59, 59);
+                                        temp = dateUtil.addTimeOffset(temp, clientTimeOffsetInMinute);
+                                        searchCriteria.getParamList().put("endDate", temp);
+                                }
+                                if (searchCriteria.getParamList().containsKey("owner")) {
+                                        XXPortalUser xXPortalUser = rangerDaoManager.getXXPortalUser().findByLoginId(
+                                                        (searchCriteria.getParamList().get("owner").toString()));
+                                        if(xXPortalUser != null) {
+                                                searchCriteria.getParamList().put("owner", xXPortalUser.getId());
+                                        } else {
+                                                searchCriteria.getParamList().put("owner", 0);
+                                        }
 
-		if (searchCriteria.getParamList() != null
-				&& searchCriteria.getParamList().size() > 0) {
-			int clientTimeOffsetInMinute = RestUtil.getClientTimeOffset();
-			Date temp = null;
-			DateUtil dateUtil = new DateUtil();
-			if (searchCriteria.getParamList().containsKey("startDate")) {
-				temp = (Date) searchCriteria.getParamList().get(
-						"startDate");
-				temp = dateUtil.getDateFromGivenDate(temp, 0, 0, 0, 0);
-				temp = dateUtil.addTimeOffset(temp, clientTimeOffsetInMinute);
-				searchCriteria.getParamList().put("startDate", temp);
-			}
-			if (searchCriteria.getParamList().containsKey("endDate")) {
-				temp = (Date) searchCriteria.getParamList().get(
-						"endDate");
-				temp = dateUtil.getDateFromGivenDate(temp, 0, 23, 59, 59);
-				temp = dateUtil.addTimeOffset(temp, clientTimeOffsetInMinute);
-				searchCriteria.getParamList().put("endDate", temp);
-			}
-			if (searchCriteria.getParamList().containsKey("owner")) {
-                                XXPortalUser xXPortalUser = rangerDaoManager.getXXPortalUser().findByLoginId(
-						(searchCriteria.getParamList().get("owner").toString()));
-                                if(xXPortalUser != null) {
-					searchCriteria.getParamList().put("owner", xXPortalUser.getId());
-                                } else {
-					searchCriteria.getParamList().put("owner", 0);
-				}
-				
-			}
+                                }
 
-		}
+                        }
 
-		VXTrxLogList vXTrxLogList = xTrxLogService
-				.searchXTrxLogs(searchCriteria);
-                Long count = xTrxLogService
-				.searchXTrxLogsCount(searchCriteria);
-		vXTrxLogList.setTotalCount(count);
-		
-		List<VXTrxLog> newList = validateXXTrxLogList(vXTrxLogList.getVXTrxLogs());
-		vXTrxLogList.setVXTrxLogs(newList);
-		return vXTrxLogList;
-	}
+                        VXTrxLogList vXTrxLogList = xTrxLogService
+                                        .searchXTrxLogs(searchCriteria);
+                        Long count = xTrxLogService
+                                        .searchXTrxLogsCount(searchCriteria);
+                        vXTrxLogList.setTotalCount(count);
 
-	public VXAccessAuditList getAccessLogs(SearchCriteria searchCriteria) {
+                        List<VXTrxLog> newList = validateXXTrxLogList(vXTrxLogList.getVXTrxLogs());
+                        vXTrxLogList.setVXTrxLogs(newList);
+                        return vXTrxLogList;
+                } else {
+                        throw restErrorUtil.create403RESTException("Permission Denied !");
+                }
+
+
+        }
+
+        public VXAccessAuditList getAccessLogs(SearchCriteria searchCriteria) {
 
         if (searchCriteria == null) {
             searchCriteria = new SearchCriteria();
@@ -1052,15 +1054,13 @@ public class AssetMgr extends AssetMgrBase {
 							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "\"password\":\"******\""));
 							break;
 						}
-					}	
-				}
-			}			
-                        if(vXTrxLog.getPreviousValue() != null && !vXTrxLog.getPreviousValue().isEmpty() || vXTrxLog.getNewValue() != null && !vXTrxLog.getNewValue().isEmpty()) {
-                                vXTrxLogs.add(vXTrxLog);
+                                        }
+                                }
                         }
-		}
-		return vXTrxLogs;
-	}
+                        vXTrxLogs.add(vXTrxLog);
+                }
+                return vXTrxLogs;
+        }
 	/*
 	 * (non-Javadoc)
 	 *
