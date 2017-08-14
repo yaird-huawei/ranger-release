@@ -161,7 +161,8 @@
 				"index",
 				"lock",
 				"read",
-				"write"
+				"write",
+				"admin"
 			]
 		},
 
@@ -175,6 +176,12 @@
 			"itemId": 10,
 			"name": "write",
 			"label": "Write"
+		},
+
+		{
+			"itemId": 11,
+			"name": "admin",
+			"label": "Admin"
 		}
 	],
 
