@@ -295,6 +295,22 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					RangerHiveResource resource = new RangerHiveResource(HiveObjectType.DATABASE, null);
 					RangerHiveAccessRequest request = new RangerHiveAccessRequest(resource, user, groups, hiveOpType.name(), HiveAccessType.USE, context, sessionContext, clusterName);
 					requests.add(request);
+				} else if ( hiveOpType ==  HiveOperationType.REPLDUMP) {
+					// This happens when REPL DUMP command with null inputHObjs is sent in checkPrivileges()
+					// following parsing is done for Audit info
+					RangerHiveResource resource  = null;
+					HiveObj hiveObj  = new HiveObj(context);
+					String dbName    = hiveObj.getDatabaseName();
+					String tableName = hiveObj.getTableName();
+					LOG.debug("Database: " + dbName + " Table: " + tableName);
+					if (!StringUtil.isEmpty(tableName)) {
+						resource = new RangerHiveResource(HiveObjectType.TABLE, dbName, tableName);
+					} else {
+						resource = new RangerHiveResource(HiveObjectType.DATABASE, dbName, null);
+					}
+					//
+					RangerHiveAccessRequest request = new RangerHiveAccessRequest(resource, user, groups, hiveOpType.name(), HiveAccessType.ADMIN, context, sessionContext, clusterName);
+					requests.add(request);
 				} else {
 					if (LOG.isDebugEnabled()) {
 						LOG.debug("RangerHiveAuthorizer.checkPrivileges: Unexpected operation type[" + hiveOpType + "] received with empty input objects list!");
@@ -334,6 +350,24 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 						requests.add(request);
 					}
+				}
+			} else {
+				if (hiveOpType == HiveOperationType.REPLLOAD) {
+					// This happens when REPL LOAD command with null inputHObjs is sent in checkPrivileges()
+					// following parsing is done for Audit info
+					RangerHiveResource resource = null;
+					HiveObj hiveObj = new HiveObj(context);
+					String dbName = hiveObj.getDatabaseName();
+					String tableName = hiveObj.getTableName();
+					LOG.debug("Database: " + dbName + " Table: " + tableName);
+					if (!StringUtil.isEmpty(tableName)) {
+						resource = new RangerHiveResource(HiveObjectType.TABLE, dbName, tableName);
+					} else {
+						resource = new RangerHiveResource(HiveObjectType.DATABASE, dbName, null);
+					}
+					//
+					RangerHiveAccessRequest request = new RangerHiveAccessRequest(resource, user, groups, hiveOpType.name(), HiveAccessType.ADMIN, context, sessionContext, clusterName);
+					requests.add(request);
 				}
 			}
 
@@ -1059,6 +1093,15 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					accessType = HiveAccessType.NONE; // access check will be performed at the ranger-admin side
 				break;
 
+				case REPLDUMP:
+				case REPLLOAD:
+					accessType = HiveAccessType.ADMIN;
+				break;
+
+				case REPLSTATUS:
+					accessType = HiveAccessType.SELECT;
+				break;
+
 				case ADD:
 				case DELETE:
 				case COMPILE:
@@ -1219,6 +1262,9 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case GET_TABLES:
 			case GET_TABLETYPES:
 			case GET_TYPEINFO:
+			case REPLDUMP:
+			case REPLLOAD:
+			case REPLSTATUS:
 				break;
 		}
 
@@ -1687,6 +1733,47 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 enum HiveObjectType { NONE, DATABASE, TABLE, VIEW, PARTITION, INDEX, COLUMN, FUNCTION, URI };
 enum HiveAccessType { NONE, CREATE, ALTER, DROP, INDEX, LOCK, SELECT, UPDATE, USE, READ, WRITE, ALL, ADMIN };
+
+class HiveObj {
+	String databaseName;
+	String tableName;
+
+	HiveObj(HiveAuthzContext context) {
+	 fetchHiveObj(context);
+	}
+
+	public String getDatabaseName() {
+		return databaseName;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	private void fetchHiveObj(HiveAuthzContext context) {
+		if (context != null) {
+			String cmdString = context.getCommandString();
+			if (cmdString != null) {
+				String[] cmd = cmdString.trim().split("\\s+");
+				String dbName = cmd[2];
+				if (dbName.contains("\\.")) {
+					String[] result = splitDBName(dbName);
+					databaseName = result[0];
+					tableName = result[1];
+				} else {
+					databaseName = dbName;
+					tableName = null;
+				}
+			}
+		}
+	}
+
+	private String[] splitDBName(String dbName) {
+		String[] ret = null;
+		ret = dbName.split("\\.");
+		return ret;
+	}
+}
 
 class RangerHivePlugin extends RangerBasePlugin {
 	public static boolean UpdateXaPoliciesOnGrantRevoke = RangerHadoopConstants.HIVE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_DEFAULT_VALUE;
