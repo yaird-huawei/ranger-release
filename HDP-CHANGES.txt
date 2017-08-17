@@ -1,4 +1,42 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
+[RANGER-1737] : Fixed RANGER-1181 by providing correct set of parameters to Hdfs Native Authorizer in case of fall-back
+[RANGER-1715] : Enhance Ranger Hive Plugin to support authorization on Hive replication Tasks
+[RANGER-1491] : Add Ability in Usersync to automatically assign ADMIN/KEYADMIN role in Ranger for external users
+[RANGER-1649] : Ranger Solr Plugin fails to refresh policy due to failure in ticket renewal mechanism
+[RANGER-1708] : Remove tag services from service type and service name filters under Access Audit.
+[RANGER-1501] : Audit Flush to HDFS does not actually cause the audit logs to be flushed to HDFS
+[RANGER-1502] : Solr shutdown does not cause the audit log file to be flushed and closed
+[RANGER-1714] : Disable dynamic sorting of policies when trie pre-filter is enabled
+[RANGER-1695] : Optimize Ranger code for authorization of HDFS 'getContentSummary' and 'delete' commands
+[RANGER-1696] : Request to get all policies for hive or hbase service-type does not include policies that apply to specific child resource
+[RANGER-1689] : Enabling recursive policy only for relativepath in WASB servicedef
+[BUG-83708]   : Use IBM library for building on POWER
+[RANGER-1638] : Atlas metadata server start failure
+[RANGER-1580] : Update Kafka tests to work with 0.10.1.1
+[RANGER-1679] : Export Policy not working when Knox proxy is Enabled.
+[RANGER-1638] : Improve the password validation from Ranger API
+[RANGER-1666] : Ranger UI should consider recursiveSupported attribute value at each resource level to Store the Policy
+[RANGER-1639] : Ranger KMS should validate key name before importing into DB
+[RANGER-1661] : Default Ranger HDFS policy resource path is wrong
+[Ranger-1446] : Ranger Solr Plugin does not work when the collection list in the request is empty
+[RANGER-1489] : Solr plugin fails to get client address
+[RANGER-1658] : Solr gives NPE while printing the AuthorizationContext in INFO and DEBUG log
+[RANGER-1670] : Change in Atlas Kafka consumer interface for Atlas tag sync
+[RANGER-1651] : Improve Ranger and Ranger KMS REST API documentation
+[RANGER-1653] : Proxying Ranger UI does not work with Ranger-KnoxSSO
+[RANGER-1665] : provide a way to get list of policies associated with given resource
+[RANGER-1647] : Allow Ranger policy conditions to use tag attributes and values in Ranger
+[RANGER-1494] : Policy engine updates to support tag-based masking policies
+[RANGER-1648] : Ranger Kafka Plugin now should use the Short name from Kafka Session Object
+[RANGER-1642] : Policies listed on 2nd page and onwards of Policy Landing page don't reflect any edits on them
+[RANGER-1555] : Ranger UI Audit Menu-> Admin tab diff view pop-up does not come up.
+[BUG-82664]   : Compilation fix for ATLAS-1198 changes
+[RANGER-1582] : Support KNOX SSO Token based authentication on Ranger REST API calls
+[RANGER-1492] : UI updates to support tag-based masking policies
+[BUG-81885]   : Using Hive v1 libraries for connecting to HiveServer2 within HDP bundle
+[RANGER-1628] : Good coding practice suggested by static code analysis
+[RANGER-1494] : Tag service-def updates to support masking and row-filter policies
+[RANGER-1493] : Policy engine updates to support tag-based datamasking and rowfiltering policies
 [RANGER-1631] : create temp function failing with permission issues
 [RANGER-1620] : Fix kafka-ranger-env.sh script to not throw error when it is sourced from bash
 [RANGER-1619] : Ranger Hive Plugin fails to check the URI when the location doesn't exist
