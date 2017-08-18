@@ -680,6 +680,7 @@
 			  }
 		  	},
 		  	getTemplate : function() {
+				  var that = this , resourcesType ;
 				  var optionsHtml="", selectTemplate = '',excludeSupportToggleDiv='', recursiveSupportToggleDiv='';
 				  this.preserveResourceValues = {} , klass = '';
 				    if(this.resourcesAtSameLevel){
@@ -689,7 +690,12 @@
 				    					</select>';
 				    }
 				    excludeSupportToggleDiv = '<div class="toggle-xa include-toggle" data-js="include" style ="height: 20px; width: 80px;"><div class="toggle"></div></div>';
-				    if(this.name == "path"){
+				    _.each(this.form.rangerServiceDefModel.get('resources') , function(m){
+				    	if(that.name === m.name){
+				    		resourcesType = m.type ;
+				    	}
+				    });
+				    if(resourcesType == "path"){
 					  klass = (!this.excludeSupport) ? "recursive-toggle-hdfs-1" : "recursive-toggle-hdfs-2";
 				    }else{
 					  klass = (!this.excludeSupport) ? "recursive-toggle-1" : "recursive-toggle-2";
