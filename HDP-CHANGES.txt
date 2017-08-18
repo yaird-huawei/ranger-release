@@ -104,3 +104,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1415] : The ranger can be opened when the user enters http://localhost:6080/ in the browser address bar.
 [RANGER-1408] : When the error occurs, the system does not record the error message in RangerServiceService class
 [RANGER-1505] : Remove KeyProtector code in KMS
+[RANGER-1402] : - NPE if there is a problem with the HiveClient driverClassName
