@@ -62,4 +62,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1401] : Add consolidated db schema script for SQLServer DB flavor
 [RANGER-1414] : RangerHiveAuthorizer.applyRowFilterAndColumnMasking should only return tables if they need masking/filtering
 [RANGER-1383] : Use resource matchers for filtering service policies
-
+[RANGER-1737] : Fixed RANGER-1181 by providing correct set of parameters to Hdfs Native Authorizer in case of fall-back
