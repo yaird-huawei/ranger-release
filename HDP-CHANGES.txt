@@ -188,3 +188,4 @@ HDP CHANGES:
      BUG-44234: Update to HDP-CHANGES.txt file
      BUG-50517: remove test jar.
      BUG-50954: HBase plugin: Implement the new methods added to MasterObservers Interface and mimic their implementation in Hbase AccessController
+	[BUG-86616] - RANGER-1152: Improver performance of ranger audit login while audit event-id creation
