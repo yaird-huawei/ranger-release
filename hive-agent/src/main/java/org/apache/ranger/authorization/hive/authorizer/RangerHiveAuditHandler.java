@@ -21,6 +21,7 @@ package org.apache.ranger.authorization.hive.authorizer;
 
 import java.util.*;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ranger.audit.model.AuthzAuditEvent;
 import org.apache.ranger.plugin.audit.RangerDefaultAuditHandler;
@@ -61,6 +62,13 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 			if (hiveAccessRequest.getHiveAccessType() == HiveAccessType.USE && hiveResource.getObjectType() == HiveObjectType.DATABASE && StringUtils.isBlank(hiveResource.getDatabase())) {
 				// this should happen only for SHOWDATABASES
 				auditEvent.setTags(null);
+			}
+
+			if ( hiveAccessRequest.getHiveAccessType() == HiveAccessType.REPLADMIN ) {
+				// In case of REPL commands Audit should show what REPL Command instead of REPLADMIN access type
+				String context = request.getRequestData();
+					String replAccessType = getReplCmd(context);
+					auditEvent.setAccessType(replAccessType);
 			}
 		}
 
@@ -213,4 +221,15 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
     		}
     	}
     }
+
+    private String getReplCmd(String cmdString) {
+		String ret = "REPL";
+		if (cmdString != null) {
+			String[] cmd = cmdString.trim().split("\\s+");
+			if (!ArrayUtils.isEmpty(cmd) && cmd.length > 2) {
+				ret = cmd[0] + " " + cmd[1];
+			}
+		}
+		return ret;
+	}
 }

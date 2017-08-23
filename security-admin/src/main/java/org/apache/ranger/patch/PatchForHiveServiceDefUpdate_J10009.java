@@ -177,7 +177,7 @@ public class PatchForHiveServiceDefUpdate_J10009 extends BaseLoader {
 	private boolean checkHiveAccessType(List<RangerServiceDef.RangerAccessTypeDef> embeddedHiveAccessTypes) {
 		boolean ret = false;
 		for (RangerServiceDef.RangerAccessTypeDef embeddedHiveAccessType : embeddedHiveAccessTypes) {
-			if ( embeddedHiveAccessType.getName().equals("admin") ) {
+			if ( embeddedHiveAccessType.getName().equals("repladmin") ) {
 				ret = true;
 				break;
 			}

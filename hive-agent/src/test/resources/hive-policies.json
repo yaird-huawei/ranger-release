@@ -648,7 +648,7 @@
               "isAllowed": true
             },
             {
-              "type": "admin",
+              "type": "repladmin",
               "isAllowed": true
             },
             {
@@ -890,7 +890,7 @@
           "alter",
           "index",
           "lock",
-          "admin"
+          "repladmin"
         ]
       },
       {
@@ -907,8 +907,8 @@
       },
       {
         "itemId": 11,
-        "name": "admin",
-        "label": "Admin",
+        "name": "repladmin",
+        "label": "ReplAdmin",
         "impliedGrants": []
       }
     ],
