@@ -162,7 +162,7 @@
 				"lock",
 				"read",
 				"write",
-				"admin"
+				"repladmin"
 			]
 		},
 
@@ -180,8 +180,8 @@
 
 		{
 			"itemId": 11,
-			"name": "admin",
-			"label": "Admin"
+			"name": "repladmin",
+			"label": "ReplAdmin"
 		}
 	],
 
