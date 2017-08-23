@@ -68,3 +68,4 @@ BUG
 	RANGER-1434 - BUG-76701: Enable Group Search First causes issues
 	RANGER-1435 - BUG-76703: Allow different files to be specified for unix based usersync
 	RANGER-1499 - BUG-78284: Ranger - Upgrade Tomcat version
+	RANGER-1747 - BUG-86736: LDAP paged results resets to 500 after fetching first page of results
