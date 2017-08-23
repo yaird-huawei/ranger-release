@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -309,7 +310,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						resource = new RangerHiveResource(HiveObjectType.DATABASE, dbName, null);
 					}
 					//
-					RangerHiveAccessRequest request = new RangerHiveAccessRequest(resource, user, groups, hiveOpType.name(), HiveAccessType.ADMIN, context, sessionContext, clusterName);
+					RangerHiveAccessRequest request = new RangerHiveAccessRequest(resource, user, groups, hiveOpType.name(), HiveAccessType.REPLADMIN, context, sessionContext, clusterName);
 					requests.add(request);
 				} else {
 					if (LOG.isDebugEnabled()) {
@@ -365,8 +366,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					} else {
 						resource = new RangerHiveResource(HiveObjectType.DATABASE, dbName, null);
 					}
-					//
-					RangerHiveAccessRequest request = new RangerHiveAccessRequest(resource, user, groups, hiveOpType.name(), HiveAccessType.ADMIN, context, sessionContext, clusterName);
+					RangerHiveAccessRequest request = new RangerHiveAccessRequest(resource, user, groups, hiveOpType.name(), HiveAccessType.REPLADMIN, context, sessionContext, clusterName);
 					requests.add(request);
 				}
 			}
@@ -1095,11 +1095,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 				case REPLDUMP:
 				case REPLLOAD:
-					accessType = HiveAccessType.ADMIN;
-				break;
-
 				case REPLSTATUS:
-					accessType = HiveAccessType.SELECT;
+					accessType = HiveAccessType.REPLADMIN;
 				break;
 
 				case ADD:
@@ -1732,7 +1729,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 }
 
 enum HiveObjectType { NONE, DATABASE, TABLE, VIEW, PARTITION, INDEX, COLUMN, FUNCTION, URI };
-enum HiveAccessType { NONE, CREATE, ALTER, DROP, INDEX, LOCK, SELECT, UPDATE, USE, READ, WRITE, ALL, ADMIN };
+enum HiveAccessType { NONE, CREATE, ALTER, DROP, INDEX, LOCK, SELECT, UPDATE, USE, READ, WRITE, ALL, REPLADMIN };
 
 class HiveObj {
 	String databaseName;
@@ -1755,14 +1752,16 @@ class HiveObj {
 			String cmdString = context.getCommandString();
 			if (cmdString != null) {
 				String[] cmd = cmdString.trim().split("\\s+");
-				String dbName = cmd[2];
-				if (dbName.contains("\\.")) {
-					String[] result = splitDBName(dbName);
-					databaseName = result[0];
-					tableName = result[1];
-				} else {
-					databaseName = dbName;
-					tableName = null;
+				if (!ArrayUtils.isEmpty(cmd) && cmd.length > 2) {
+					String dbName = cmd[2];
+					if (dbName.contains("\\.")) {
+						String[] result = splitDBName(dbName);
+						databaseName = result[0];
+						tableName = result[1];
+					} else {
+						databaseName = dbName;
+						tableName = null;
+					}
 				}
 			}
 		}
