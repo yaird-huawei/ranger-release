@@ -63,3 +63,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1414] : RangerHiveAuthorizer.applyRowFilterAndColumnMasking should only return tables if they need masking/filtering
 [RANGER-1383] : Use resource matchers for filtering service policies
 
+[RANGER-1446] : RANGER-1658: Ranger Solr Plugin does not work when the collection list in the request is empty
