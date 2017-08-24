@@ -1026,6 +1026,7 @@ public class XUserREST {
 		return vXStringList;
 	}
 
+
 	@DELETE
 	@Path("/secure/users/delete")
 	@Produces({ "application/xml", "application/json" })
@@ -1046,6 +1047,7 @@ public class XUserREST {
 		}
 	}
 
+
 	@DELETE
 	@Path("/secure/groups/delete")
 	@Produces({ "application/xml", "application/json" })
@@ -1064,6 +1066,39 @@ public class XUserREST {
 					xUserMgr.deleteXGroup(vxGroup.getId(), forceDelete);
 				}
 			}
+		}
+	}
+
+	@DELETE
+	@Path("/secure/users/{userName}")
+	@Produces({ "application/xml", "application/json" })
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
+	public void deleteSingleUserByUserName(@Context HttpServletRequest request, @PathParam("userName") String userName) {
+		String forceDeleteStr = request.getParameter("forceDelete");
+		boolean forceDelete = false;
+		if (StringUtils.isNotEmpty(forceDeleteStr) && "true".equalsIgnoreCase(forceDeleteStr)) {
+			forceDelete = true;
+		}
+
+		if (StringUtils.isNotEmpty(userName)) {
+			VXUser vxUser = xUserService.getXUserByUserName(userName);
+			xUserMgr.deleteXUser(vxUser.getId(), forceDelete);
+		}
+	}
+
+	@DELETE
+	@Path("/secure/groups/{groupName}")
+	@Produces({ "application/xml", "application/json" })
+	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
+	public void deleteSingleGroupByGroupName(@Context HttpServletRequest request, @PathParam("groupName") String groupName) {
+		String forceDeleteStr = request.getParameter("forceDelete");
+		boolean forceDelete = false;
+		if (StringUtils.isNotEmpty(forceDeleteStr) && "true".equalsIgnoreCase(forceDeleteStr)) {
+			forceDelete = true;
+		}
+		if (StringUtils.isNotEmpty(groupName)) {
+			VXGroup vxGroup = xGroupService.getGroupByGroupName(groupName.trim());
+			xUserMgr.deleteXGroup(vxGroup.getId(), forceDelete);
 		}
 	}
 }
