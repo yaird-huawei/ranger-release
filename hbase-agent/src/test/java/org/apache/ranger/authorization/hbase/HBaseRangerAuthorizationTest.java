@@ -41,7 +41,7 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.protobuf.generated.SnapshotProtos;
+import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.Assert;
@@ -622,7 +622,7 @@ public class HBaseRangerAuthorizationTest {
         Connection conn = ConnectionFactory.createConnection(conf);
         Admin admin = conn.getAdmin();
 
-        List<SnapshotProtos.SnapshotDescription> snapshots = admin.listSnapshots("test_snapshot");
+        List<HBaseProtos.SnapshotDescription> snapshots = admin.listSnapshots("test_snapshot");
         if (CollectionUtils.isNotEmpty(snapshots)) {
             admin.deleteSnapshot("test_snapshot");
         }
@@ -675,7 +675,7 @@ public class HBaseRangerAuthorizationTest {
         admin.disableTable(tableName);
 
         // Create a snapshot
-        List<SnapshotProtos.SnapshotDescription> snapshots = admin.listSnapshots("test_snapshot");
+        List<HBaseProtos.SnapshotDescription> snapshots = admin.listSnapshots("test_snapshot");
         if (CollectionUtils.isEmpty(snapshots)) {
             admin.snapshot("test_snapshot", tableName);
         }
