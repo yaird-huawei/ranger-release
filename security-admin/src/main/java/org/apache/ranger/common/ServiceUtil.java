@@ -126,6 +126,7 @@ public class ServiceUtil {
 		mapAccessTypeToPermType.put("getUserTopology", 29);
 		mapAccessTypeToPermType.put("getTopologyInfo", 30);
 		mapAccessTypeToPermType.put("uploadNewCredentials", 31);
+		mapAccessTypeToPermType.put("repladmin",32);
 
 		version = "0";
 	}

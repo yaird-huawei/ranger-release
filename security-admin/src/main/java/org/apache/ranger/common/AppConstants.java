@@ -343,11 +343,15 @@ public class AppConstants extends RangerCommonEnums {
 	 * XA_PERM_TYPE_UPLOAD_NEW_CREDENTIAL is an element of enum XAPermType. Its value is "XA_PERM_TYPE_UPLOAD_NEW_CREDENTIAL".
 	 */
 	public static final int XA_PERM_TYPE_UPLOAD_NEW_CREDENTIAL = 31;
+	/**
+	* XA_PERM_TYPE_REPLADMIN is an element of enum XAPermType. Its value is "XA_PERM_TYPE_REPLADMIN".
+	*/
+	public static final int XA_PERM_TYPE_REPLADMIN = 32;
 
 	/**
 	 * Max value for enum XAPermType_MAX
 	 */
-	public static final int XAPermType_MAX = 31;
+	public static final int XAPermType_MAX = 32;
 
 	/***************************************************************
 	 * Enum values for DatabaseFavor
@@ -853,6 +857,10 @@ public class AppConstants extends RangerCommonEnums {
 			// return "Upload New Credential"; //XA_PERM_TYPE_UPLOAD_NEW_CREDENTIAL
 			return "uploadNewCredentials";
 		}
+		if( elementValue == 32 ) {
+			// return "Repl Admin"; //XA_PERM_TYPE_REPL_ADMIN
+			return "repladmin";
+		}
 		return null;
 	}
 
@@ -1154,6 +1162,10 @@ public class AppConstants extends RangerCommonEnums {
 		if(label.equalsIgnoreCase("uploadNewCredentials")) {
 			return AppConstants.XA_PERM_TYPE_UPLOAD_NEW_CREDENTIAL; //XA_PERM_TYPE_UPLOAD_NEW_CREDENTIAL
 		}
+		if(label.equalsIgnoreCase("repladmin")) {
+			return AppConstants.XA_PERM_TYPE_REPLADMIN; //XA_PERM_TYPE_REPLADMIN
+		}
+
 		return 0;
 	}
 
