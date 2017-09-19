@@ -58,17 +58,31 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 		if (request instanceof RangerHiveAccessRequest && resource instanceof RangerHiveResource) {
 			RangerHiveAccessRequest hiveAccessRequest = (RangerHiveAccessRequest) request;
 			RangerHiveResource hiveResource = (RangerHiveResource) resource;
+			HiveAccessType hiveAccessType = hiveAccessRequest.getHiveAccessType();
 
-			if (hiveAccessRequest.getHiveAccessType() == HiveAccessType.USE && hiveResource.getObjectType() == HiveObjectType.DATABASE && StringUtils.isBlank(hiveResource.getDatabase())) {
+			if (hiveAccessType == HiveAccessType.USE && hiveResource.getObjectType() == HiveObjectType.DATABASE && StringUtils.isBlank(hiveResource.getDatabase())) {
 				// this should happen only for SHOWDATABASES
 				auditEvent.setTags(null);
 			}
 
-			if ( hiveAccessRequest.getHiveAccessType() == HiveAccessType.REPLADMIN ) {
+			if (hiveAccessType == HiveAccessType.REPLADMIN ) {
 				// In case of REPL commands Audit should show what REPL Command instead of REPLADMIN access type
 				String context = request.getRequestData();
 					String replAccessType = getReplCmd(context);
 					auditEvent.setAccessType(replAccessType);
+			}
+
+			if (hiveAccessType == HiveAccessType.SERVICEADMIN) {
+				String commandStr = request.getRequestData();
+				String queryId	  = getServiceAdminQueryId(commandStr);
+				if (!StringUtils.isEmpty(queryId)) {
+					auditEvent.setRequestData(queryId);
+				}
+				commandStr = getServiceAdminCmd(commandStr);
+				if (StringUtils.isEmpty(commandStr)) {
+					commandStr = hiveAccessType.name();
+				}
+				auditEvent.setAccessType(commandStr);
 			}
 		}
 
@@ -228,6 +242,29 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 			String[] cmd = cmdString.trim().split("\\s+");
 			if (!ArrayUtils.isEmpty(cmd) && cmd.length > 2) {
 				ret = cmd[0] + " " + cmd[1];
+			}
+		}
+		return ret;
+	}
+
+	private String getServiceAdminCmd(String cmdString) {
+		String ret = "SERVICE ADMIN";
+		if (cmdString != null) {
+			String[] cmd = cmdString.trim().split("\\s+");
+			if (!ArrayUtils.isEmpty(cmd) && cmd.length > 1) {
+				ret = cmd[0] + " " + cmd[1];
+			}
+		}
+		return ret;
+	}
+
+	private String getServiceAdminQueryId(String cmdString) {
+		String ret = "QUERY ID = ";
+		if (cmdString != null) {
+			String[] cmd = cmdString.trim().split("\\s+");
+			String reqData = null;
+			if (!ArrayUtils.isEmpty(cmd) && cmd.length > 2) {
+				ret = ret + cmd[2];
 			}
 		}
 		return ret;

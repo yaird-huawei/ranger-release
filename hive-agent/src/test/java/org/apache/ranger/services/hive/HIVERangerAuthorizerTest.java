@@ -758,4 +758,31 @@ public class HIVERangerAuthorizerTest {
             statement.close();
             connection.close();
         }
+
+    @Test
+    public void testKillQuery() throws Exception {
+
+        String url = "jdbc:hive2://localhost:" + port + "/rangerauthz";
+        Connection connection = DriverManager.getConnection(url, "da_test_user", "da_test_user");
+
+        Statement statement = connection.createStatement();
+        try {
+            statement.execute("kill query 'dummyQueryId'");
+        } catch (SQLException ex) {
+            Assert.fail("access should have been granted to da_test_user");
+        }
+        statement.close();
+        connection.close();
+
+        connection = DriverManager.getConnection(url, "bob", "bob");
+        statement = connection.createStatement();
+        try {
+            statement.execute("kill query 'dummyQueryId'");
+            Assert.fail("Failure expected on an unauthorized call");
+        } catch (SQLException ex) {
+            //Excepted
+        }
+        statement.close();
+        connection.close();
+    }
 }

@@ -139,7 +139,8 @@ public enum RangerHiveOperationType {
     START_TRANSACTION,
     REPLDUMP,
     REPLLOAD,
-    REPLSTATUS;
+    REPLSTATUS,
+    KILL_QUERY;
 
     private RangerHiveOperationType() {
     }
