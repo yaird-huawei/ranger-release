@@ -855,6 +855,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			break;
 
             case URI:
+			case SERVICE_NAME:
 				ret = new RangerHiveResource(objectType, hiveObj.getObjectName());
             break;
 
@@ -908,6 +909,10 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 			case COMMAND_PARAMS:
 			case GLOBAL:
+			break;
+
+			case SERVICE_NAME:
+				objType = HiveObjectType.SERVICE_NAME;
 			break;
 
 			case COLUMN:
@@ -1099,6 +1104,10 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					accessType = HiveAccessType.REPLADMIN;
 				break;
 
+				case KILL_QUERY:
+					accessType = HiveAccessType.SERVICEADMIN;
+				break;
+
 				case ADD:
 				case DELETE:
 				case COMPILE:
@@ -1262,6 +1271,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case REPLDUMP:
 			case REPLLOAD:
 			case REPLSTATUS:
+			case KILL_QUERY:
 				break;
 		}
 
@@ -1728,8 +1738,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 	}
 }
 
-enum HiveObjectType { NONE, DATABASE, TABLE, VIEW, PARTITION, INDEX, COLUMN, FUNCTION, URI };
-enum HiveAccessType { NONE, CREATE, ALTER, DROP, INDEX, LOCK, SELECT, UPDATE, USE, READ, WRITE, ALL, REPLADMIN };
+enum HiveObjectType { NONE, DATABASE, TABLE, VIEW, PARTITION, INDEX, COLUMN, FUNCTION, URI, SERVICE_NAME };
+enum HiveAccessType { NONE, CREATE, ALTER, DROP, INDEX, LOCK, SELECT, UPDATE, USE, READ, WRITE, ALL, REPLADMIN, SERVICEADMIN };
 
 class HiveObj {
 	String databaseName;

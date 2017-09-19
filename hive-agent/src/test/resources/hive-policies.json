@@ -801,6 +801,45 @@
       "id": 16,
       "isEnabled": true,
       "version": 1
+    },
+    {
+      "service": "HIVETest",
+      "name": "Test KILL QUERY command",
+      "policyType": 0,
+      "isAuditEnabled": true,
+      "resources": {
+        "hiveservice": {
+          "values": [
+            "*"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        }
+      },
+      "policyItems": [
+        {
+          "accesses": [
+            {
+              "type": "serviceadmin",
+              "isAllowed": true
+            }
+          ],
+          "users": [
+            "da_test_user"
+          ],
+          "groups": [],
+          "conditions": [],
+          "delegateAdmin": true
+        }
+      ],
+      "denyPolicyItems": [],
+      "allowExceptions": [],
+      "denyExceptions": [],
+      "dataMaskPolicyItems": [],
+      "rowFilterPolicyItems": [],
+      "id": 16,
+      "isEnabled": true,
+      "version": 1
     }
   ],
   "serviceDef": {
