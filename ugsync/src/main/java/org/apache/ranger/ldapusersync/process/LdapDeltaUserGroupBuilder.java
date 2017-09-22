@@ -83,7 +83,7 @@ public class LdapDeltaUserGroupBuilder extends AbstractUserGroupSource {
   private Set<String> userGroupNameAttributeSet;
 
   private boolean pagedResultsEnabled = true;
-  private int pagedResultsSize = 500;
+  private int pagedResultsSize = PAGE_SIZE;
 
   private boolean groupSearchFirstEnabled = false;
   private boolean userSearchEnabled = false;
@@ -372,6 +372,7 @@ public class LdapDeltaUserGroupBuilder extends AbstractUserGroupSource {
 				byte[] cookie = null;
 				int counter = 0;
 				try {
+				int paged = 0;
 				do {
 					userSearchResultEnum = ldapContext
 							.search(userSearchBase[ou], extendedUserSearchFilter,
@@ -531,8 +532,9 @@ public class LdapDeltaUserGroupBuilder extends AbstractUserGroupSource {
 					}
 					// Re-activate paged results
 					if (pagedResultsEnabled)   {
+						LOG.debug(String.format("Fetched paged results round: %s", ++paged));
 						ldapContext.setRequestControls(new Control[]{
-								new PagedResultsControl(PAGE_SIZE, cookie, Control.CRITICAL) });
+								new PagedResultsControl(pagedResultsSize, cookie, Control.CRITICAL) });
 					}
 				} while (cookie != null);
 				LOG.info("LdapDeltaUserGroupBuilder.getUsers() completed with user count: "
@@ -588,6 +590,7 @@ public class LdapDeltaUserGroupBuilder extends AbstractUserGroupSource {
 				byte[] cookie = null;
 				int counter = 0;
 				try {
+					int paged = 0;
 					do {
 						groupSearchResultEnum = ldapContext
 								.search(groupSearchBase[ou], extendedAllGroupsSearchFilter,
@@ -687,8 +690,9 @@ public class LdapDeltaUserGroupBuilder extends AbstractUserGroupSource {
 						}
 						// Re-activate paged results
 						if (pagedResultsEnabled)   {
+							LOG.debug(String.format("Fetched paged results round: %s", ++paged));
 							ldapContext.setRequestControls(new Control[]{
-									new PagedResultsControl(PAGE_SIZE, cookie, Control.CRITICAL) });
+									new PagedResultsControl(pagedResultsSize, cookie, Control.CRITICAL) });
 						}
 					} while (cookie != null);
 					LOG.info("LdapDeltaUserGroupBuilder.getGroups() completed with group count: "
