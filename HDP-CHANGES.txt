@@ -48,3 +48,4 @@ BUG
 	[RANGER-1094] - One way SSL (when Kerberos is enabled) for Ranger and its plugins
 	[RANGER-1097] - Ranger KMS Plugin should not fails to download policy when UGI ticket expires
 	[RANGER-1180] - Add HBase Authorization tests
+	[RANGER-1314] - updated HBase plugin to support authorization of namespace operations
