@@ -246,8 +246,10 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						continue;
 					}
 
-					if(resource.getObjectType() == HiveObjectType.URI) {
-						String   path       = hiveObj.getObjectName();
+					String 	path         		= hiveObj.getObjectName();
+					HiveObjectType hiveObjType  = resource.getObjectType();
+
+					if(hiveObjType == HiveObjectType.URI && isPathInFSScheme(path)) {
 						FsAction permission = FsAction.READ;
 
 						if(!isURIAccessAllowed(user, permission, path, getHiveConf())) {
@@ -290,8 +292,10 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						continue;
 					}
 
-					if(resource.getObjectType() == HiveObjectType.URI) {
-						String   path       = hiveObj.getObjectName();
+					String 	path         		= hiveObj.getObjectName();
+					HiveObjectType hiveObjType  = resource.getObjectType();
+
+					if(resource.getObjectType() == HiveObjectType.URI && isPathInFSScheme(path)) {
 						FsAction permission = FsAction.WRITE;
 
 		                if(!isURIAccessAllowed(user, permission, path, getHiveConf())) {
@@ -1044,6 +1048,22 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
         return ret;
     }
 
+	private boolean isPathInFSScheme(String uri) {
+		// This is to find if HIVE URI operation done is for hdfs,file scheme
+		// else it may be for s3 which needs another set of authorization calls.
+		boolean ret = false;
+		String[] fsScheme = hivePlugin.getFSScheme();
+		if (fsScheme != null) {
+			for (int i = 0; i < fsScheme.length; i++) {
+				if (!uri.isEmpty() && uri.startsWith(fsScheme[i])) {
+					ret = true;
+					break;
+				}
+			}
+		}
+		return ret;
+	}
+
 	private void handleDfsCommand(HiveOperationType         hiveOpType,
 								  List<HivePrivilegeObject> inputHObjs,
 								  String                    user,
@@ -1328,6 +1348,11 @@ class RangerHivePlugin extends RangerBasePlugin {
 	public static boolean UpdateXaPoliciesOnGrantRevoke             = RangerHadoopConstants.HIVE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_DEFAULT_VALUE;
 	public static boolean BlockUpdateIfRowfilterColumnMaskSpecified = RangerHadoopConstants.HIVE_BLOCK_UPDATE_IF_ROWFILTER_COLUMNMASK_SPECIFIED_DEFAULT_VALUE;
 
+	private static String RANGER_PLUGIN_HIVE_ULRAUTH_FILESYSTEM_SCHEMES = "ranger.plugin.hive.urlauth.filesystem.schemes";
+	private static String RANGER_PLUGIN_HIVE_ULRAUTH_FILESYSTEM_SCHEMES_DEFAULT = "hdfs:,file:";
+	private static String FILESYSTEM_SCHEMES_SEPARATOR_CHAR = ",";
+	private String[] fsScheme = null;
+
 	public RangerHivePlugin(String appType) {
 		super("hive", appType);
 	}
@@ -1338,6 +1363,19 @@ class RangerHivePlugin extends RangerBasePlugin {
 
 		RangerHivePlugin.UpdateXaPoliciesOnGrantRevoke             = RangerConfiguration.getInstance().getBoolean(RangerHadoopConstants.HIVE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_PROP, RangerHadoopConstants.HIVE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_DEFAULT_VALUE);
 		RangerHivePlugin.BlockUpdateIfRowfilterColumnMaskSpecified = RangerConfiguration.getInstance().getBoolean(RangerHadoopConstants.HIVE_BLOCK_UPDATE_IF_ROWFILTER_COLUMNMASK_SPECIFIED_PROP, RangerHadoopConstants.HIVE_BLOCK_UPDATE_IF_ROWFILTER_COLUMNMASK_SPECIFIED_DEFAULT_VALUE);
+
+		String fsSchemesString = RangerConfiguration.getInstance().get(RANGER_PLUGIN_HIVE_ULRAUTH_FILESYSTEM_SCHEMES, RANGER_PLUGIN_HIVE_ULRAUTH_FILESYSTEM_SCHEMES_DEFAULT);
+		fsScheme = StringUtils.split(fsSchemesString, FILESYSTEM_SCHEMES_SEPARATOR_CHAR);
+
+		if (fsScheme != null) {
+			for (int i = 0; i < fsScheme.length; i++) {
+				fsScheme[i] = fsScheme[i].trim();
+			}
+		}
+	}
+
+	public String[] getFSScheme() {
+		return fsScheme;
 	}
 }
 
