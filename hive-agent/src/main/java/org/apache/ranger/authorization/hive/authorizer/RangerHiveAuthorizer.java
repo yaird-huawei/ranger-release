@@ -293,7 +293,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					String 	path         		= hiveObj.getObjectName();
 					HiveObjectType hiveObjType  = resource.getObjectType();
 
-					if(resource.getObjectType() == HiveObjectType.URI && isPathInFSScheme(path)) {
+					if(hiveObjType == HiveObjectType.URI && isPathInFSScheme(path)) {
 						FsAction permission = getURIAccessType(hiveOpType);
 
 		                if(!isURIAccessAllowed(user, permission, path, getHiveConf())) {
