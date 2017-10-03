@@ -1764,7 +1764,7 @@ class HiveObj {
 				String[] cmd = cmdString.trim().split("\\s+");
 				if (!ArrayUtils.isEmpty(cmd) && cmd.length > 2) {
 					String dbName = cmd[2];
-					if (dbName.contains("\\.")) {
+					if (dbName.contains(".")) {
 						String[] result = splitDBName(dbName);
 						databaseName = result[0];
 						tableName = result[1];
