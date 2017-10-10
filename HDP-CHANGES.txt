@@ -1,4 +1,5 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
+[RANGER-1176] : RANGER-1176: Ranger admin does not allow to create / update a policy with only delegate admin permission.
 [RANGER-1737] : Fixed RANGER-1181 by providing correct set of parameters to Hdfs Native Authorizer in case of fall-back
 [RANGER-1715] : Enhance Ranger Hive Plugin to support authorization on Hive replication Tasks
 [RANGER-1491] : Add Ability in Usersync to automatically assign ADMIN/KEYADMIN role in Ranger for external users
