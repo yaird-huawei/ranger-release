@@ -31,7 +31,7 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-kms</artifactId>
             <version>${hadoop.version}</version>
-            <type>war</type>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>

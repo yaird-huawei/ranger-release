@@ -162,7 +162,7 @@ public final class InMemoryJAASConfiguration extends Configuration {
     }
 
     @SuppressWarnings("unchecked")
-	public static void init(org.apache.commons.configuration.Configuration configuration) throws Exception {
+	public static void init(org.apache.commons.configuration2.Configuration configuration) throws Exception {
      	LOG.debug("==> InMemoryJAASConfiguration.init()");
 
         if (configuration != null && !configuration.isEmpty()) {

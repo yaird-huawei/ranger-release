@@ -22,7 +22,9 @@ package org.apache.ranger.authorization.yarn.authorizer;
 
 import java.net.InetAddress;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -62,7 +64,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 	private static volatile RangerYarnPlugin yarnPlugin = null;
 
 	private AccessControlList admins = null;
-	private Map<PrivilegedEntity, Map<AccessType, AccessControlList>> yarnAcl = new HashMap<PrivilegedEntity, Map<AccessType, AccessControlList>>();
+	private final ConcurrentMap<PrivilegedEntity, Map<AccessType, AccessControlList>> yarnAcl = new ConcurrentHashMap<PrivilegedEntity, Map<AccessType, AccessControlList>>();
 
 	@Override
 	public void init(Configuration conf) {
@@ -93,9 +95,9 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 	}
 
 	@Override
-	public boolean checkPermission(AccessType accessType, PrivilegedEntity entity, UserGroupInformation ugi) {
+	public boolean checkPermission(AccessRequest accessRequest) {
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> RangerYarnAuthorizer.checkPermission(" + accessType + ", " + toString(entity) + ", " + ugi + ")");
+			LOG.debug("==> RangerYarnAuthorizer.checkPermission(" + accessRequest + ")");
 		}
 
 		boolean                ret          = false;
@@ -108,13 +110,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 		RangerPerfTracer yarnAclPerf = null;
 
 		if(plugin != null) {
-
-			if(RangerPerfTracer.isPerfTraceEnabled(PERF_YARNAUTH_REQUEST_LOG)) {
-				perf = RangerPerfTracer.getPerfTracer(PERF_YARNAUTH_REQUEST_LOG, "RangerYarnAuthorizer.checkPermission(entity=" + entity + ")");
-			}
-
-			RangerYarnAccessRequest request = new RangerYarnAccessRequest(entity, getRangerAccessType(accessType), accessType.name(), ugi, clusterName);
-
+			RangerYarnAccessRequest request = new RangerYarnAccessRequest(accessRequest);
 			auditHandler = new RangerYarnAuditHandler();
 
 			result = plugin.isAccessAllowed(request, auditHandler);
@@ -122,11 +118,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 
 		if(RangerYarnAuthorizer.yarnAuthEnabled && (result == null || !result.getIsAccessDetermined())) {
 
-			if(RangerPerfTracer.isPerfTraceEnabled(PERF_YARNAUTH_REQUEST_LOG)) {
-				yarnAclPerf = RangerPerfTracer.getPerfTracer(PERF_YARNAUTH_REQUEST_LOG, "RangerYarnNativeAuthorizer.isAllowedByYarnAcl(entity=" + entity + ")");
-			}
-
-			ret = isAllowedByYarnAcl(accessType, entity, ugi, auditHandler);
+			ret = isAllowedByYarnAcl(accessRequest, auditHandler);
 		} else {
 			ret = result != null && result.getIsAllowed();
 		}
@@ -140,7 +132,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 		RangerPerfTracer.log(perf);
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerYarnAuthorizer.checkPermission(" + accessType + ", " + toString(entity) + ", " + ugi + "): " + ret);
+			LOG.debug("<== RangerYarnAuthorizer.checkPermission(" + accessRequest + "): " + ret);
 		}
 
 		return ret;
@@ -181,24 +173,30 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 	}
 
 	@Override
-	public void setPermission(PrivilegedEntity entity, Map<AccessType, AccessControlList> permission, UserGroupInformation ugi) {
+	public void setPermission(List<Permission> permissions, UserGroupInformation ugi) {
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> RangerYarnAuthorizer.setPermission(" + toString(entity) + ", " + permission + ", " + ugi + ")");
+			LOG.debug("==> RangerYarnAuthorizer.setPermission(" + permissions + ", " + ugi + ")");
 		}
 
-		yarnAcl.put(entity, permission);
+		for(Permission permission : permissions) {
+			yarnAcl.put(permission.getTarget(), permission.getAcls());
+		}
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerYarnAuthorizer.setPermission(" + toString(entity) + ", " + permission + ", " + ugi + ")");
+			LOG.debug("<== RangerYarnAuthorizer.setPermission(" + permissions + ", " + ugi + ")");
 		}
 	}
 
-	public boolean isAllowedByYarnAcl(AccessType accessType, PrivilegedEntity entity, UserGroupInformation ugi, RangerYarnAuditHandler auditHandler) {
+	public boolean isAllowedByYarnAcl(AccessRequest accessRequest, RangerYarnAuditHandler auditHandler) {
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> RangerYarnAuthorizer.isAllowedByYarnAcl(" + accessType + ", " + toString(entity) + ", " + ugi + ")");
+			LOG.debug("==> RangerYarnAuthorizer.isAllowedByYarnAcl(" + accessRequest + ")");
 		}
 
 		boolean ret = false;
+
+		AccessType           accessType = accessRequest.getAccessType();
+		PrivilegedEntity     entity     = accessRequest.getEntity();
+		UserGroupInformation ugi        = accessRequest.getUser();
 
 		for(Map.Entry<PrivilegedEntity, Map<AccessType, AccessControlList>> e : yarnAcl.entrySet()) {
 			PrivilegedEntity                   aclEntity         = e.getKey();
@@ -217,23 +215,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 		}
 
 		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerYarnAuthorizer.isAllowedByYarnAcl(" + accessType + ", " + toString(entity) + ", " + ugi + "): " + ret);
-		}
-
-		return ret;
-	}
-
-	private static String getRangerAccessType(AccessType accessType) {
-		String ret = null;
-
-		switch(accessType) {
-			case ADMINISTER_QUEUE:
-				ret = RangerYarnAuthorizer.ACCESS_TYPE_ADMIN_QUEUE;
-			break;
-
-			case SUBMIT_APP:
-				ret = RangerYarnAuthorizer.ACCESS_TYPE_SUBMIT_APP;
-			break;
+			LOG.debug("<== RangerYarnAuthorizer.isAllowedByYarnAcl(" + accessRequest + "): " + ret);
 		}
 
 		return ret;
@@ -289,7 +271,13 @@ class RangerYarnResource extends RangerAccessResourceImpl {
 }
 
 class RangerYarnAccessRequest extends RangerAccessRequestImpl {
-	public RangerYarnAccessRequest(PrivilegedEntity entity, String accessType, String action, UserGroupInformation ugi, String clusterName) {
+
+	public RangerYarnAccessRequest(AccessRequest accessRequest) {
+		String               accessType = getRangerAccessType(accessRequest.getAccessType());
+		String               action     = accessRequest.getAccessType().name();
+		PrivilegedEntity     entity     = accessRequest.getEntity();
+		UserGroupInformation ugi        = accessRequest.getUser();
+
 		super.setResource(new RangerYarnResource(entity));
 		super.setAccessType(accessType);
 		super.setUser(ugi.getShortUserName());
@@ -297,7 +285,8 @@ class RangerYarnAccessRequest extends RangerAccessRequestImpl {
 		super.setAccessTime(new Date());
 		super.setClientIPAddress(getRemoteIp());
 		super.setAction(action);
-		super.setClusterName(clusterName);
+
+		super.setRequestData(accessRequest.getAppName());
 	}
 	
 	private static String getRemoteIp() {
@@ -306,6 +295,22 @@ class RangerYarnAccessRequest extends RangerAccessRequestImpl {
 		if (ip != null) {
 			ret = ip.getHostAddress();
 		}
+		return ret;
+	}
+
+	private static String getRangerAccessType(AccessType accessType) {
+		String ret = null;
+
+		switch(accessType) {
+			case ADMINISTER_QUEUE:
+				ret = RangerYarnAuthorizer.ACCESS_TYPE_ADMIN_QUEUE;
+			break;
+
+			case SUBMIT_APP:
+				ret = RangerYarnAuthorizer.ACCESS_TYPE_SUBMIT_APP;
+			break;
+		}
+
 		return ret;
 	}
 }

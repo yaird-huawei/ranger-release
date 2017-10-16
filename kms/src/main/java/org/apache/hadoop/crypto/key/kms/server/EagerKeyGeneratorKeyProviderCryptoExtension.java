@@ -135,6 +135,19 @@ public class EagerKeyGeneratorKeyProviderCryptoExtension
       return keyProviderCryptoExtension.decryptEncryptedKey(
           encryptedKeyVersion);
     }
+
+      @Override
+      public KeyProviderCryptoExtension.EncryptedKeyVersion reencryptEncryptedKey(EncryptedKeyVersion encryptedKeyVersion)
+              throws IOException, GeneralSecurityException {
+          return keyProviderCryptoExtension.reencryptEncryptedKey(encryptedKeyVersion);
+      }
+
+      @Override
+      public void reencryptEncryptedKeys(List<EncryptedKeyVersion> encryptedKeyVersionList)
+              throws IOException, GeneralSecurityException {
+          keyProviderCryptoExtension.reencryptEncryptedKeys(encryptedKeyVersionList);
+          return;
+      }
   }
 
   /**
