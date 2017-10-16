@@ -60,8 +60,8 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 			RangerHiveResource hiveResource = (RangerHiveResource) resource;
 			HiveAccessType hiveAccessType = hiveAccessRequest.getHiveAccessType();
 
-			if (hiveAccessType == HiveAccessType.USE && hiveResource.getObjectType() == HiveObjectType.DATABASE && StringUtils.isBlank(hiveResource.getDatabase())) {
-				// this should happen only for SHOWDATABASES
+			if (hiveAccessType == HiveAccessType.USE && hiveResource.getObjectType() == HiveObjectType.DATABASE) {
+				// this should happen only for SHOWDATABASES and USE <db-name> commands
 				auditEvent.setTags(null);
 			}
 
