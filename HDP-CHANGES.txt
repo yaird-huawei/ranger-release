@@ -1,4 +1,58 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
+[RANGER-1843] : Tag enricher performance improvement in identifying tags for resource being accessed
+[RANGER-1820] : Address Ranger DB consolidated SQL script inconsistency
+[RANGER-1841] : Audit log record for 'use dbName' hive command contains large number of tags
+[RANGER-1795] : Service should not be renamed if tagged service resources exist for it unless 'forceRename=true' option is specified
+[RANGER-1838] : Refactor Jisql dependencies
+[RANGER-1832] : Export REST API should return exact matching results if polResource param is provided
+[RANGER-1834] : row filter policies are not being returned by policy search
+[RANGER-1176] : Ranger admin does not allow to create / update a policy with only delegate admin permission.
+[RANGER-1826] : Import of bulk policies is causing OOM and Apparent Deadlock
+[RANGER-1797] : Ranger - Upgrade Tomcat version
+[RANGER-1825] : Ranger Tagsync start is failing
+[RANGER-1715] : 'repl dump <database>.<table>' failed to authorize in Ranger
+[RANGER-1819] : Not able to delete group that is having special character(ampersand) from ranger admin
+[RANGER-1817] : Audit to Solr fails to log when the number of columns are in large number
+[RANGER-1818] : Good coding practice in Ranger recommended by static code analysis
+[RANGER-1820] : Duplicate entries should be deleted before creation of unique index on x_group and x_group_users table
+[RANGER-1427] : Remove a lot of not used code - found because Boolean.getBoolean must be wrong
+[RANGER-1851] : Providing authorization for Hive query kill API (RMP-9474)
+[RANGER-1756] : Handle role related restrictions for users having User role
+[RANGER-1783] : Update XUserREST for listing users
+[BUG-89077]   : 2.6-maint Ranger Compilation Failure
+[RANGER-1779] : last resource gets duplicated during update policy if policy is created through public api rest call
+[RANGER-1727] : Ranger allows user to change an external user's password with 'null' old password
+[RANGER-1806] : Good coding practice in Ranger recommended by static code analysis
+[RANGER-1748] : User is unable to update existing policy while importing policy from file
+[RANGER-1800] : Usersync fails to update users and groups during incremental sync with nested groups and group first search enabled
+[RANGER-1801] : group user mapping updates to ranger admin fail when the mapping is already existed in ranger DB
+[RANGER-1788] : Install Ranger admin failure.
+[RANGER-1787] : User has to fill up all the allow and deny conditions items to create a knox policy.
+[RANGER-1786] : Need warning on external user role change
+[RANGER-1682] : Clicking on export service after session timeout gets stuck indefinitely.
+[RANGER-1730] : Utility script that will list the users with a given role
+[RANGER-1765] : Add unique key constraint in x_group and x_group_users table
+[RANGER-1771] : Improve performance of merging lists of policyEvaluators returned by Trie
+[BUG-86970]   : service/public/api/policy api returns 404 Not Found if REPLADMIN permission present in a policy
+[RANGER-1697] : Update NiFi service def + handle upgrade scenario for the same
+[RANGER-1735] : Support representing nested group memberships in Ranger Admin
+[RANGER-1754] : correcting group deletion message
+[RANGER-1726] : User are not getting deleted when Knox proxy is Enabled
+[RANGER-1717] : User with KEYADMIN role is not able to see Audit => Admin logs
+[RANGER-1736] : Good coding practice in Ranger recommended by static code analysis
+[RANGER-1715] : Enhance Ranger Hive Plugin to support authorization on Hive replication Tasks
+[RANGER-1747] : LDAP paged results resets to 500 after fetching first page of results
+[RANGER-1705] : Good coding practice in Ranger recommended by static code analysis
+[RANGER-1632] : Users are not sync'd when sAMAccountName is different than CN associated with groups
+[RANGER-1676] : Policy Details popup from Access audit page not displaying details of masking policy.
+[RANGER-1724] : On Report listing page for masking/row filter policies show only mask/row filter conditions.
+[RANGER-1403] : There is a problem in buildks class when delete invalid keystore file.
+[RANGER-1402] : NPE if there is a problem with the HiveClient driverClassName
+[RANGER-1505] : Remove KeyProtector code in KMS
+[RANGER-1408] : When the error occurs, the system does not record the error message in RangerServiceService class
+[INTERNAL]    : (RangerUI) Recursive flag toggle is overlapping the relative path input textbox.
+[RANGER-1415] : The ranger can be opened when the user enters http://localhost:6080/ in the browser address bar....
+[RANGER-1674] : IMPORT START audit is not appearing on audit page
 [RANGER-1737] : Fixed RANGER-1181 by providing correct set of parameters to Hdfs Native Authorizer in case of fall-back
 [RANGER-1715] : Enhance Ranger Hive Plugin to support authorization on Hive replication Tasks
 [RANGER-1491] : Add Ability in Usersync to automatically assign ADMIN/KEYADMIN role in Ranger for external users
