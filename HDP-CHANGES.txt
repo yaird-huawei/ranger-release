@@ -1,4 +1,5 @@
 Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
+[RANGER-1853] : Masking functions based on custom masking of string types fails to unescape quotes properly
 [RANGER-1843] : Tag enricher performance improvement in identifying tags for resource being accessed
 [RANGER-1820] : Address Ranger DB consolidated SQL script inconsistency
 [RANGER-1841] : Audit log record for 'use dbName' hive command contains large number of tags
