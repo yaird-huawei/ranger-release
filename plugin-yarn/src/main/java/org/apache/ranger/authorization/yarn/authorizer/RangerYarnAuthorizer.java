@@ -59,8 +59,6 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 
 	private static final Log LOG = LogFactory.getLog(RangerYarnAuthorizer.class);
 
-	private static final Log PERF_YARNAUTH_REQUEST_LOG = RangerPerfTracer.getPerfLogger("yarnauth.request");
-
 	private static volatile RangerYarnPlugin yarnPlugin = null;
 
 	private AccessControlList admins = null;
@@ -104,7 +102,6 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 		RangerYarnPlugin       plugin       = yarnPlugin;
 		RangerYarnAuditHandler auditHandler = null;
 		RangerAccessResult     result       = null;
-		String				   clusterName  = yarnPlugin.getClusterName();
 
 		RangerPerfTracer perf = null;
 		RangerPerfTracer yarnAclPerf = null;
@@ -239,14 +236,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 
 		return ret;
 	}
-
-	private String toString(PrivilegedEntity entity) {
-		if(entity != null) {
-			return "{name=" + entity.getName() + "; type=" + entity.getType() + "}";
-		}
-
-		return "null";
-	}
+	
 }
 
 class RangerYarnPlugin extends RangerBasePlugin {

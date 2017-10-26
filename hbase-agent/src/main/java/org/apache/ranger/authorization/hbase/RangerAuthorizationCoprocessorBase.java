@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.net.HostAndPort;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.*;
@@ -34,9 +33,7 @@ import org.apache.hadoop.hbase.protobuf.generated.QuotaProtos.Quotas;
 import org.apache.hadoop.hbase.regionserver.Region;
 import org.apache.hadoop.hbase.replication.ReplicationEndpoint;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.WALEntry;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.HBaseProtos.RegionInfo;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.SnapshotProtos.SnapshotDescription;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.WALEdit;
 
 
 /**
@@ -103,7 +100,7 @@ public abstract class RangerAuthorizationCoprocessorBase
 	@Override
 	public void postCompletedDeleteTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			org.apache.hadoop.hbase.TableName tableName) throws IOException {
+			TableName tableName) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 

@@ -69,7 +69,6 @@ import org.apache.hadoop.hbase.regionserver.Region.Operation;
 import org.apache.hadoop.hbase.replication.ReplicationEndpoint;
 import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.hbase.wal.WALEdit;
-import org.apache.hadoop.hbase.wal.WALKey;
 import org.apache.ranger.plugin.classloader.RangerPluginClassLoader;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;

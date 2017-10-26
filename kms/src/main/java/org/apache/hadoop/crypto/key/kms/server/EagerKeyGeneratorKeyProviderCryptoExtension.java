@@ -146,7 +146,6 @@ public class EagerKeyGeneratorKeyProviderCryptoExtension
       public void reencryptEncryptedKeys(List<EncryptedKeyVersion> encryptedKeyVersionList)
               throws IOException, GeneralSecurityException {
           keyProviderCryptoExtension.reencryptEncryptedKeys(encryptedKeyVersionList);
-          return;
       }
   }
 
