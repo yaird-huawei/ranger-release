@@ -18,6 +18,7 @@ package org.apache.ranger.services.hive;
  */
 
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import java.util.List;
 
 import static org.junit.Assert.fail;
 
-public class TestAllHiveOperationInRanger{
+@Ignore public class TestAllHiveOperationInRanger{
 
     /**
      * test that all enums in {@link HiveOperationType} match one map entry in

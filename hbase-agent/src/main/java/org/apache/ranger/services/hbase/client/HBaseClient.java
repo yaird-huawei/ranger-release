@@ -29,12 +29,8 @@ import javax.security.auth.Subject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.MasterNotRunningException;
-import org.apache.hadoop.hbase.ZooKeeperConnectionException;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.ranger.plugin.client.BaseClient;
 import org.apache.ranger.plugin.client.HadoopException;
 
@@ -239,22 +235,23 @@ public class HBaseClient extends BaseClient {
 				public List<String> run() {
 
 					List<String> tableList = new ArrayList<String>();
-					HBaseAdmin admin = null;
+					Admin admin = null;
 					try {
 						LOG.info("getTableList: setting config values from client");
 						setClientConfigValues(conf);						
 						LOG.info("getTableList: checking HbaseAvailability with the new config");
-						HBaseAdmin.checkHBaseAvailable(conf);					
+						Connection conn = ConnectionFactory.createConnection(conf);
+						//HBaseAdmin.checkHBaseAvailable(conf);
 						LOG.info("getTableList: no exception: HbaseAvailability true");
-						admin = new HBaseAdmin(conf);
-						HTableDescriptor [] htds = admin.listTables(tableNameMatching);
+						admin = conn.getAdmin();
+						List<TableDescriptor> htds = admin.listTableDescriptors(tableNameMatching);
 						if (htds != null) {
-							for (HTableDescriptor htd : htds) {
-								String tableName = htd.getNameAsString();
+							for (TableDescriptor htd : htds) {
+								String tableName = htd.getTableName().getNameAsString();
 								if (existingTableList != null && existingTableList.contains(tableName)) {
 									continue;
 								} else {
-									tableList.add(htd.getNameAsString());
+									tableList.add(htd.getTableName().getNameAsString());
 								}
 							}
 						} else {
@@ -339,20 +336,21 @@ public class HBaseClient extends BaseClient {
 					@Override
 					public List<String> run() {
 						List<String> colfList = new ArrayList<String>();
-						HBaseAdmin admin = null;
+						Admin admin = null;
 						try {
 							LOG.info("getColumnFamilyList: setting config values from client");
 							setClientConfigValues(conf);						
 							LOG.info("getColumnFamilyList: checking HbaseAvailability with the new config");
-							HBaseAdmin.checkHBaseAvailable(conf);					
+							Connection conn = ConnectionFactory.createConnection(conf);
+							//HBaseAdmin.checkHBaseAvailable(conf);
 							LOG.info("getColumnFamilyList: no exception: HbaseAvailability true");
-							admin = new HBaseAdmin(conf);
+							admin = conn.getAdmin();
 							if (tableList != null) {
 								for (String tableName: tableList) {
 									tblName = tableName;
-									HTableDescriptor htd = admin.getTableDescriptor(tblName.getBytes());
+									TableDescriptor htd = admin.getDescriptor(TableName.valueOf(tableName));
 									if (htd != null) {
-										for (HColumnDescriptor hcd : htd.getColumnFamilies()) {
+										for (ColumnFamilyDescriptor hcd : htd.getColumnFamilies()) {
 											String colf = hcd.getNameAsString();
 											if (colf.matches(columnFamilyMatching)) {
 												if (existingColumnFamilies != null && existingColumnFamilies.contains(colf)) {

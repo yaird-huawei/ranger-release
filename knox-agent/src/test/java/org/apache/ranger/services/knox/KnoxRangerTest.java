@@ -39,10 +39,7 @@ import org.apache.hadoop.gateway.services.DefaultGatewayServices;
 import org.apache.hadoop.gateway.services.ServiceLifecycleException;
 import org.apache.hadoop.test.mock.MockServer;
 import org.apache.http.HttpStatus;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import com.mycila.xmltool.XMLDoc;
 import com.mycila.xmltool.XMLTag;
@@ -53,7 +50,7 @@ import io.restassured.response.ValidatableResponse;
 /**
  * Test Apache Knox secured by Apache Ranger.
  */
-public class KnoxRangerTest {
+@Ignore public class KnoxRangerTest {
 
     private static GatewayTestConfig config;
     private static GatewayServer gateway;

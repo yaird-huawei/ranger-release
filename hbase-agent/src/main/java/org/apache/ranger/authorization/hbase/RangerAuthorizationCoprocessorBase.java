@@ -25,35 +25,18 @@ import java.util.Set;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellScanner;
-import org.apache.hadoop.hbase.CoprocessorEnvironment;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HRegionInfo;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.NamespaceDescriptor;
-import org.apache.hadoop.hbase.ServerName;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.Durability;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Mutation;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.coprocessor.BaseRegionObserver;
-import org.apache.hadoop.hbase.coprocessor.BulkLoadObserver;
-import org.apache.hadoop.hbase.coprocessor.MasterCoprocessorEnvironment;
-import org.apache.hadoop.hbase.coprocessor.MasterObserver;
-import org.apache.hadoop.hbase.coprocessor.ObserverContext;
-import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
-import org.apache.hadoop.hbase.coprocessor.RegionServerCoprocessorEnvironment;
-import org.apache.hadoop.hbase.coprocessor.RegionServerObserver;
+import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.coprocessor.*;
 import org.apache.hadoop.hbase.master.RegionPlan;
-import org.apache.hadoop.hbase.protobuf.generated.AdminProtos.WALEntry;
+import org.apache.hadoop.hbase.net.Address;
 import org.apache.hadoop.hbase.protobuf.generated.QuotaProtos.Quotas;
-import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos.SnapshotDescription;
 import org.apache.hadoop.hbase.regionserver.Region;
-import org.apache.hadoop.hbase.regionserver.wal.WALEdit;
 import org.apache.hadoop.hbase.replication.ReplicationEndpoint;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.WALEntry;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.HBaseProtos.RegionInfo;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.SnapshotProtos.SnapshotDescription;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.WALEdit;
 
 
 /**
@@ -61,8 +44,8 @@ import org.apache.hadoop.hbase.replication.ReplicationEndpoint;
  * @author alal
  *
  */
-public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObserver
-		implements MasterObserver, RegionServerObserver, BulkLoadObserver {
+public abstract class RangerAuthorizationCoprocessorBase
+		implements MasterObserver, RegionServerObserver, BulkLoadObserver, RegionObserver {
 
 	private static final Log LOG = LogFactory.getLog(RangerAuthorizationCoprocessorBase.class.getName());
 
@@ -97,114 +80,114 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 	}
 
 	@Override
-	public void preCreateTableHandler(
+	public void preCreateTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			HTableDescriptor desc, HRegionInfo[] regions) throws IOException {
+			TableDescriptor desc, HRegionInfo[] regions) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void postCreateTableHandler(
+	public void postCompletedCreateTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			HTableDescriptor desc, HRegionInfo[] regions) throws IOException {
+			TableDescriptor desc, HRegionInfo[] regions) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void preDeleteTableHandler(
-			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName) throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void postDeleteTableHandler(
+	public void preDeleteTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void preModifyTableHandler(
+	public void postCompletedDeleteTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, HTableDescriptor htd) throws IOException {
+			org.apache.hadoop.hbase.TableName tableName) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void postModifyTableHandler(
+	public void preModifyTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, HTableDescriptor htd) throws IOException {
+			TableName tableName, TableDescriptor htd) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void preAddColumnHandler(
+	public void postCompletedModifyTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, HColumnDescriptor column) throws IOException {
+			TableName tableName, TableDescriptor htd) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void postAddColumnHandler(
+	public void preAddColumnFamilyAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, HColumnDescriptor column) throws IOException {
+			TableName tableName, ColumnFamilyDescriptor column) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void preModifyColumnHandler(
+	public void postCompletedAddColumnFamilyAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, HColumnDescriptor descriptor)
+			TableName tableName, ColumnFamilyDescriptor column) throws IOException {
+		// Not applicable.  Expected to be empty
+	}
+
+	@Override
+	public void preModifyColumnFamilyAction(
+			ObserverContext<MasterCoprocessorEnvironment> ctx,
+			TableName tableName, ColumnFamilyDescriptor descriptor)
 			throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void postModifyColumnHandler(
+	public void postCompletedModifyColumnFamilyAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, HColumnDescriptor descriptor)
+			TableName tableName, ColumnFamilyDescriptor descriptor)
 			throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void preDeleteColumnHandler(
+	public void preDeleteColumnFamilyAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName, byte[] c) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void postDeleteColumnHandler(
+	public void postCompletedDeleteColumnFamilyAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName, byte[] c) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void preEnableTableHandler(
+	public void preEnableTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void postEnableTableHandler(
+	public void postCompletedEnableTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void preDisableTableHandler(
+	public void preDisableTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
-	public void postDisableTableHandler(
+	public void postCompletedDisableTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName) throws IOException {
 		// Not applicable.  Expected to be empty
@@ -231,27 +214,27 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
     public void postReplicateLogEntries(final ObserverContext<RegionServerCoprocessorEnvironment> ctx, List<WALEntry> entries, CellScanner cells) throws IOException {
     }
 
-	@Override
-	public void preGetTableDescriptors(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableName> tableNamesList,  List<HTableDescriptor> descriptors) throws IOException {
+	/*@Override
+	public void preGetTableDescriptors(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableName> tableNamesList,  List<TableDescriptor> descriptors) throws IOException {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("==> postGetTableDescriptors(count(tableNamesList)=%s, count(descriptors)=%s)", tableNamesList == null ? 0 : tableNamesList.size(),
 					descriptors == null ? 0 : descriptors.size()));
 		}
 
-	}
+	}*/
 	
 	@Override
-	public void preGetTableDescriptors(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableName> tableNamesList, List<HTableDescriptor> descriptors, String regex) throws IOException {
+	public void preGetTableDescriptors(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableName> tableNamesList, List<TableDescriptor> descriptors, String regex) throws IOException {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("==> postGetTableDescriptors(count(tableNamesList)=%s, count(descriptors)=%s, regex=%s)", tableNamesList == null ? 0 : tableNamesList.size(),
 					descriptors == null ? 0 : descriptors.size(), regex));
 		}
 	}
 
-    public  void preGetTableNames(ObserverContext<MasterCoprocessorEnvironment> ctx, List<HTableDescriptor> descriptors, String regex) throws IOException {
+    public  void preGetTableNames(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableDescriptor> descriptors, String regex) throws IOException {
     }
 
-    public  void postGetTableNames(ObserverContext<MasterCoprocessorEnvironment> ctx, List<HTableDescriptor> descriptors, String regex) throws IOException {
+    public  void postGetTableNames(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableDescriptor> descriptors, String regex) throws IOException {
     }
 
     public void preGetNamespaceDescriptor(ObserverContext<MasterCoprocessorEnvironment> ctx, String namespace) throws IOException {
@@ -299,7 +282,7 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 		// Not applicable.  Expected to be empty
 	}
 	@Override
-	public void postAddColumn(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, HColumnDescriptor column) throws IOException {
+	public void postAddColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, ColumnFamilyDescriptor column) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	@Override
@@ -315,19 +298,19 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 		// Not applicable.  Expected to be empty
 	}
 	@Override
-	public void postCloneSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot, HTableDescriptor hTableDescriptor) throws IOException {
+	public void postCloneSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot, TableDescriptor hTableDescriptor) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	@Override
-	public void postCreateTable(ObserverContext<MasterCoprocessorEnvironment> ctx, HTableDescriptor desc, HRegionInfo[] regions) throws IOException {
+	public void postCreateTable(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, HRegionInfo[] regions) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
-	@Override
+	/*@Override
 	public void postDelete(ObserverContext<RegionCoprocessorEnvironment> c, Delete delete, WALEdit edit, Durability durability) throws IOException {
 		// Not applicable.  Expected to be empty
-	}
+	}*/
 	@Override
-	public void postDeleteColumn(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, byte[] col) throws IOException {
+	public void postDeleteColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, byte[] col) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	@Override
@@ -347,11 +330,11 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 		// Not applicable.  Expected to be empty
 	}
 	@Override
-	public void postModifyColumn(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, HColumnDescriptor descriptor) throws IOException {
+	public void postModifyColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, ColumnFamilyDescriptor descriptor) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	@Override
-	public void postModifyTable(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, HTableDescriptor htd) throws IOException {
+	public void postModifyTable(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, TableDescriptor htd) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	@Override
@@ -363,14 +346,14 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 		// Not applicable.  Expected to be empty
 	}
 	@Override
-	public void postRestoreSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot, HTableDescriptor hTableDescriptor) throws IOException {
+	public void postRestoreSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot, TableDescriptor hTableDescriptor) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
-	@Override
+	/*@Override
 	public void postPut(ObserverContext<RegionCoprocessorEnvironment> c, Put put, WALEdit edit, Durability durability) {
 		// Not applicable.  Expected to be empty
-	}
+	}*/
 	
 	@Override
 	public void postGetOp(final ObserverContext<RegionCoprocessorEnvironment> env, final Get get, final List<Cell> results) throws IOException {
@@ -398,7 +381,7 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 	}
 
 	@Override
-	public void postGetTableDescriptors(ObserverContext<MasterCoprocessorEnvironment> ctx, List<HTableDescriptor> descriptors) throws IOException {
+	public void postGetTableDescriptors(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableName> tableName, List<TableDescriptor> descriptors, String regex) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
@@ -408,7 +391,7 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 	}
 
 	@Override
-	public void postSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot, HTableDescriptor hTableDescriptor) throws IOException {
+	public void postSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot, TableDescriptor hTableDescriptor) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
@@ -433,7 +416,7 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 	}
 
 	@Override
-	public void preListProcedures(ObserverContext<MasterCoprocessorEnvironment> observerContext) throws IOException {
+	public void preGetProcedures(ObserverContext<MasterCoprocessorEnvironment> observerContext) throws IOException {
 
 	}
 
@@ -479,8 +462,8 @@ public abstract class RangerAuthorizationCoprocessorBase extends BaseRegionObser
 
   // TODO : need override annotations for all of the following methods
 
-    public void preMoveServers(final ObserverContext<MasterCoprocessorEnvironment> ctx, Set<HostAndPort> servers, String targetGroup) throws IOException {}
-    public void postMoveServers(ObserverContext<MasterCoprocessorEnvironment> ctx, Set<HostAndPort> servers, String targetGroup) throws IOException {}
+    public void preMoveServers(final ObserverContext<MasterCoprocessorEnvironment> ctx, Set<Address> servers, String targetGroup) throws IOException {}
+    public void postMoveServers(ObserverContext<MasterCoprocessorEnvironment> ctx, Set<Address> servers, String targetGroup) throws IOException {}
     public void preMoveTables(final ObserverContext<MasterCoprocessorEnvironment> ctx, Set<TableName> tables, String targetGroup) throws IOException {}
     public void postMoveTables(final ObserverContext<MasterCoprocessorEnvironment> ctx, Set<TableName> tables, String targetGroup) throws IOException {}
     public void preRemoveRSGroup(final ObserverContext<MasterCoprocessorEnvironment> ctx, String name) throws IOException {}

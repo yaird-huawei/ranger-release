@@ -44,6 +44,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kerby.kerberos.kerb.server.SimpleKdcServer;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import kafka.admin.AdminUtils;
@@ -67,7 +68,7 @@ import kafka.utils.ZkUtils;
  *
  * Authentication is done via Kerberos/GSS.
  */
-public class KafkaRangerAuthorizerGSSTest {
+@Ignore public class KafkaRangerAuthorizerGSSTest {
 
     private static KafkaServerStartable kafkaServer;
     private static TestingServer zkServer;

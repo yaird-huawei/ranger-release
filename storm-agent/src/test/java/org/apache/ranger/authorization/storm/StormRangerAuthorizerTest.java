@@ -27,6 +27,7 @@ import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.RebalanceOptions;
 import org.apache.storm.topology.TopologyBuilder;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -38,7 +39,7 @@ import org.junit.Test;
  *
  * a) The tag "StormTopologyTag" is associated with "create/kill" permissions to the "bob" user for the "stormdev" topology.
  */
-public class StormRangerAuthorizerTest {
+@Ignore public class StormRangerAuthorizerTest {
 
     private static LocalCluster cluster;
 
