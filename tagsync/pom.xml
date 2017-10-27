@@ -121,7 +121,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-client</artifactId>
+            <artifactId>atlas-client-v1</artifactId>
             <version>${atlas.version}</version>
         </dependency>
         <dependency>

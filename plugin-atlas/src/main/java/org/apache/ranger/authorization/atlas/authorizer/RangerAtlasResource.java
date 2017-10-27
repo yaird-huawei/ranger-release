@@ -28,8 +28,8 @@ public class RangerAtlasResource extends RangerAccessResourceImpl {
     public static final String KEY_TYPE = "type";
     public static final String KEY_ENTITY = "entity";
     public static final String KEY_OPERATION = "operation";
-    public static final String KEY_TAXONOMY = "taxonomy";
-    public static final String KEY_TERM = "term";
+    //public static final String KEY_TAXONOMY = "taxonomy";
+    //public static final String KEY_TERM = "term";
 
     private static final Logger LOG = LoggerFactory.getLogger(RangerAtlasResource.class);
 
@@ -44,12 +44,12 @@ public class RangerAtlasResource extends RangerAccessResourceImpl {
             case OPERATION:
                 setValue(KEY_OPERATION, atlasResource);
                 break;
-            case TAXONOMY:
+            /*case TAXONOMY:
                 setValue(KEY_TAXONOMY, atlasResource);
                 break;
             case TERM:
                 setValue(KEY_TERM, atlasResource);
-                break;
+                break;*/
             default:
                 LOG.warn("Invalid Resource : " + atlasResource);
                 break;
