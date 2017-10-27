@@ -236,7 +236,7 @@ public class RangerYarnAuthorizer extends YarnAuthorizationProvider {
 
 		return ret;
 	}
-	
+
 }
 
 class RangerYarnPlugin extends RangerBasePlugin {

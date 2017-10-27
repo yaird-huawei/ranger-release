@@ -244,7 +244,7 @@ public class HBaseClient extends BaseClient {
 						//HBaseAdmin.checkHBaseAvailable(conf);
 						LOG.info("getTableList: no exception: HbaseAvailability true");
 						admin = conn.getAdmin();
-						List<TableDescriptor> htds = admin.listTableDescriptors(tableNameMatching);
+						List<TableDescriptor> htds = admin.listTableDescriptorsByNamespace(tableNameMatching.getBytes());
 						if (htds != null) {
 							for (TableDescriptor htd : htds) {
 								String tableName = htd.getTableName().getNameAsString();

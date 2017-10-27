@@ -88,7 +88,7 @@ public class HbaseUserUtilsImpl implements HbaseUserUtils {
 	@Override
 	public User getUser() {
 		// current implementation does not use the request object!
-		User user = RpcServer.getRequestUser();
+		User user = RpcServer.getRequestUser().get();
 		if (user == null) {
 			try {
 				user = User.getCurrent();

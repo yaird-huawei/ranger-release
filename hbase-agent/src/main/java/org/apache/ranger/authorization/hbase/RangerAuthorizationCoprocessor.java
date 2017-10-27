@@ -38,12 +38,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.coprocessor.CoprocessorException;
-import org.apache.hadoop.hbase.coprocessor.CoprocessorService;
-import org.apache.hadoop.hbase.coprocessor.MasterCoprocessorEnvironment;
-import org.apache.hadoop.hbase.coprocessor.ObserverContext;
-import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
-import org.apache.hadoop.hbase.coprocessor.RegionServerCoprocessorEnvironment;
+import org.apache.hadoop.hbase.coprocessor.*;
 import org.apache.hadoop.hbase.filter.ByteArrayComparable;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
@@ -54,13 +49,10 @@ import org.apache.hadoop.hbase.procedure2.ProcedureExecutor;
 import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos;
 import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos.AccessControlService;
 import org.apache.hadoop.hbase.protobuf.generated.QuotaProtos.Quotas;
-import org.apache.hadoop.hbase.regionserver.InternalScanner;
-import org.apache.hadoop.hbase.regionserver.Region;
-import org.apache.hadoop.hbase.regionserver.RegionScanner;
-import org.apache.hadoop.hbase.regionserver.ScanType;
-import org.apache.hadoop.hbase.regionserver.Store;
-import org.apache.hadoop.hbase.regionserver.StoreFile;
+import org.apache.hadoop.hbase.quotas.GlobalQuotaSettings;
+import org.apache.hadoop.hbase.regionserver.*;
 import org.apache.hadoop.hbase.regionserver.compactions.CompactionLifeCycleTracker;
+import org.apache.hadoop.hbase.regionserver.compactions.CompactionRequest;
 import org.apache.hadoop.hbase.security.AccessDeniedException;
 import org.apache.hadoop.hbase.security.User;
 import org.apache.hadoop.hbase.security.access.*;
@@ -68,7 +60,6 @@ import org.apache.hadoop.hbase.security.access.Permission.Action;
 import org.apache.hadoop.hbase.shaded.protobuf.ResponseConverter;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.ClientProtos.CleanupBulkLoadRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.ClientProtos.PrepareBulkLoadRequest;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.SnapshotProtos.SnapshotDescription;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.security.AccessControlException;
@@ -90,7 +81,7 @@ import com.google.protobuf.RpcController;
 import com.google.protobuf.Service;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 
-public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocessorBase implements AccessControlService.Interface, CoprocessorService {
+public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocessorBase implements AccessControlService.Interface {
 	private static final Log LOG = LogFactory.getLog(RangerAuthorizationCoprocessor.class.getName());
 	private static final Log PERF_HBASEAUTH_REQUEST_LOG = RangerPerfTracer.getPerfLogger("hbaseauth.request");
 	private static boolean UpdateRangerPoliciesOnGrantRevoke = RangerHadoopConstants.HBASE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_DEFAULT_VALUE;
@@ -152,7 +143,7 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 	protected boolean isAccessForMetaTables(RegionCoprocessorEnvironment env) {
 		RegionInfo hri = env.getRegion().getRegionInfo();
 		
-		if (hri.isMetaTable() || hri.isMetaRegion()) {
+		if (hri.isMetaRegion()) {
 			return true;
 		} else {
 			return false;
@@ -160,7 +151,7 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 	}
 
 	private User getActiveUser() {
-		User user = RpcServer.getRequestUser();
+		User user = RpcServer.getRequestUser().get();
 		if (user == null) {
 			// for non-rpc handling, fallback to system user
 			try {
@@ -174,7 +165,7 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 	}
 	
 	private String getRemoteAddress() {
-		InetAddress remoteAddr = RpcServer.getRemoteAddress();
+		InetAddress remoteAddr = RpcServer.getRemoteAddress().get();
 
 		if(remoteAddr == null) {
 			remoteAddr = RpcServer.getRemoteIp();
@@ -191,7 +182,7 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
        return;
      }
 
-     String requestUserName = RpcServer.getRequestUserName();
+     String requestUserName = RpcServer.getRequestUserName().get();
      String owner = scannerOwners.get(s);
      if (owner != null && !owner.equals(requestUserName)) {
        throw new AccessDeniedException("User '"+ requestUserName +"' is not the scanner owner!");
@@ -708,20 +699,20 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 	@Override
 	public void postStartMaster(ObserverContext<MasterCoprocessorEnvironment> ctx) throws IOException {
 		if(UpdateRangerPoliciesOnGrantRevoke) {
-			RangerAccessControlLists.init(ctx.getEnvironment().getMasterServices());
+			RangerAccessControlLists.init(((HasMasterServices)ctx.getEnvironment()).getMasterServices());
 		}
 	}
-	@Override
+	/*@Override
 	public void preAddColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, ColumnFamilyDescriptor column) throws IOException {
 		requirePermission("addColumn", tableName.getName(), null, null, Action.CREATE);
-	}
+	}*/
 	@Override
 	public Result preAppend(ObserverContext<RegionCoprocessorEnvironment> c, Append append) throws IOException {
 		requirePermission("append", TablePermission.Action.WRITE, c.getEnvironment(), append.getFamilyCellMap());
 		return null;
 	}
 	@Override
-	public void preAssign(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo) throws IOException {
+	public void preAssign(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo regionInfo) throws IOException {
 		requirePermission("assign", regionInfo.getTable().getName(), null, null, Action.ADMIN);
 	}
 	@Override
@@ -764,27 +755,27 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		requirePermission("close", getTableName(e.getEnvironment()), Permission.Action.ADMIN);
 	}
 	@Override
-	public InternalScanner preCompact(ObserverContext<RegionCoprocessorEnvironment> e, Store store, InternalScanner scanner,ScanType scanType, CompactionLifeCycleTracker tracker) throws IOException {
+	public InternalScanner preCompact(ObserverContext<RegionCoprocessorEnvironment> e, Store store, InternalScanner scanner,ScanType scanType, CompactionLifeCycleTracker tracker, CompactionRequest request) throws IOException {
 		requirePermission("compact", getTableName(e.getEnvironment()), null, null, Action.CREATE);
 		return scanner;
 	}
 	@Override
-	public void preCompactSelection(ObserverContext<RegionCoprocessorEnvironment> e, Store store, List<StoreFile> candidates, CompactionLifeCycleTracker tracker) throws IOException {
+	public void preCompactSelection(ObserverContext<RegionCoprocessorEnvironment> e, Store store, List<? extends StoreFile> candidates, CompactionLifeCycleTracker tracker) throws IOException {
 		requirePermission("compactSelection", getTableName(e.getEnvironment()), null, null, Action.CREATE);
 	}
 
 	@Override
-	public void preCreateTable(ObserverContext<MasterCoprocessorEnvironment> c, TableDescriptor desc, HRegionInfo[] regions) throws IOException {
+	public void preCreateTable(ObserverContext<MasterCoprocessorEnvironment> c, TableDescriptor desc, RegionInfo[] regions) throws IOException {
 		requirePermission("createTable", desc.getTableName().getName(), Permission.Action.CREATE);
 	}
 	/*@Override
 	public void preDelete(ObserverContext<RegionCoprocessorEnvironment> c, Delete delete, WALEdit edit, Durability durability) throws IOException {
 		requirePermission("delete", TablePermission.Action.WRITE, c.getEnvironment(), delete.getFamilyCellMap());
 	}*/
-	@Override
+	/*@Override
 	public void preDeleteColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, byte[] col) throws IOException {
 		requirePermission("deleteColumn", tableName.getName(), null, null, Action.CREATE);
-	}
+	}*/
 	@Override
 	public void preDeleteSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot) throws IOException {
 		requirePermission("deleteSnapshot", Permission.Action.ADMIN);
@@ -807,7 +798,7 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		return exists;
 	}
 	@Override
-	public void preFlush(ObserverContext<RegionCoprocessorEnvironment> e) throws IOException {
+	public void preFlush(ObserverContext<RegionCoprocessorEnvironment> e, FlushLifeCycleTracker tracker) throws IOException {
 		requirePermission("flush", getTableName(e.getEnvironment()), null, null, Action.CREATE);
 	}
 	/*@Override
@@ -825,30 +816,30 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		requirePermission("incrementColumnValue", TablePermission.Action.READ, c.getEnvironment(), Arrays.asList(new byte[][] { family }));
 		requirePermission("incrementColumnValue", TablePermission.Action.WRITE, c.getEnvironment(), Arrays.asList(new byte[][] { family }));
 		return -1;
-	}*/
+	}
 	@Override
 	public void preModifyColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, ColumnFamilyDescriptor descriptor) throws IOException {
 		requirePermission("modifyColumn", tableName.getName(), null, null, Action.CREATE);
-	}
+	}*/
 	@Override
 	public void preModifyTable(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, TableDescriptor htd) throws IOException {
 		requirePermission("modifyTable", tableName.getName(), null, null, Action.CREATE);
 	}
 	@Override
-	public void preMove(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo region, ServerName srcServer, ServerName destServer) throws IOException {
+	public void preMove(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo region, ServerName srcServer, ServerName destServer) throws IOException {
 		requirePermission("move", region.getTable().getName() , null, null, Action.ADMIN);
 	}
 
 	@Override
-	public void preAbortProcedure(ObserverContext<MasterCoprocessorEnvironment> observerContext, ProcedureExecutor<MasterProcedureEnv> procEnv, long procId) throws IOException {
-		if(!procEnv.isProcedureOwner(procId, this.getActiveUser())) {
+	public void preAbortProcedure(ObserverContext<MasterCoprocessorEnvironment> observerContext, long procId) throws IOException {
+		//if(!procEnv.isProcedureOwner(procId, this.getActiveUser())) {
 			requirePermission("abortProcedure", Action.ADMIN);
-		}
+		//}
 	}
 
 	@Override
-	public void postGetProcedures(ObserverContext<MasterCoprocessorEnvironment> observerContext, List<Procedure<?>> procInfoList) throws IOException {
-		if(!procInfoList.isEmpty()) {
+	public void postGetProcedures(ObserverContext<MasterCoprocessorEnvironment> observerContext) throws IOException {
+		/*if(!procInfoList.isEmpty()) {
 			Iterator<Procedure<?>> itr = procInfoList.iterator();
 			User user = this.getActiveUser();
 
@@ -864,7 +855,8 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 				}
 			}
 
-		}
+		}*/
+		requirePermission("getProcedures", Action.ADMIN);
 	}
 
 	@Override
@@ -948,37 +940,37 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		requirePermission("stop", Permission.Action.ADMIN);
 	}
 	@Override
-	public void preUnassign(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo, boolean force) throws IOException {
+	public void preUnassign(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo regionInfo, boolean force) throws IOException {
 		requirePermission("unassign", regionInfo.getTable().getName(), null, null, Action.ADMIN);
 	}
 
   @Override
   public void preSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final Quotas quotas) throws IOException {
+      final String userName, final GlobalQuotaSettings quotas) throws IOException {
     requireGlobalPermission("setUserQuota", null, Action.ADMIN);
   }
 
   @Override
   public void preSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final TableName tableName, final Quotas quotas) throws IOException {
+      final String userName, final TableName tableName, final GlobalQuotaSettings quotas) throws IOException {
     requirePermission("setUserTableQuota", tableName.getName(), null, null, Action.ADMIN);
   }
 
   @Override
   public void preSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final String namespace, final Quotas quotas) throws IOException {
+      final String userName, final String namespace, final GlobalQuotaSettings quotas) throws IOException {
     requireGlobalPermission("setUserNamespaceQuota", namespace, Action.ADMIN);
   }
 
   @Override
   public void preSetTableQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final TableName tableName, final Quotas quotas) throws IOException {
+      final TableName tableName, final GlobalQuotaSettings quotas) throws IOException {
     requirePermission("setTableQuota", tableName.getName(), null, null, Action.ADMIN);
   }
 
   @Override
   public void preSetNamespaceQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String namespace, final Quotas quotas) throws IOException {
+      final String namespace, final GlobalQuotaSettings quotas) throws IOException {
     requireGlobalPermission("setNamespaceQuota", namespace, Action.ADMIN);
   }
 
@@ -987,7 +979,6 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 	private static final String REGIONAL_COPROCESSOR_TYPE = "regional";
 	private static final String REGIONAL_SERVER_COPROCESSOR_TYPE = "regionalServer";
 
-	@Override
 	public void start(CoprocessorEnvironment env) throws IOException {
 		String appType = "unknown";
 
@@ -1064,7 +1055,7 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		}
 	}
 	@Override
-	public void preRegionOffline(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo) throws IOException {
+	public void preRegionOffline(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo regionInfo) throws IOException {
 	    requirePermission("regionOffline", regionInfo.getTable().getName(), null, null, Action.ADMIN);
 	}
 	@Override
@@ -1128,10 +1119,10 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		}
 	}
 
-    @Override
+   /* @Override
 	public void preMerge(ObserverContext<RegionServerCoprocessorEnvironment> ctx, Region regionA, Region regionB) throws IOException {
 		requirePermission("mergeRegions", regionA.getTableDescriptor().getTableName().getName(), null, null, Action.ADMIN);
-	}
+	}*/
 
 	public void prePrepareBulkLoad(ObserverContext<RegionCoprocessorEnvironment> ctx, PrepareBulkLoadRequest request) throws IOException {
 		List<byte[]> cfs = null;
@@ -1240,7 +1231,6 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		LOG.debug("getUserPermissions(): ");
 	}
 
-	@Override
 	public Service getService() {
 	    return AccessControlProtos.AccessControlService.newReflectiveService(this);
 	}

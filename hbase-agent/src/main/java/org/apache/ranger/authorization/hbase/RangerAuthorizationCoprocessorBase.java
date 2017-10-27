@@ -29,11 +29,11 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.coprocessor.*;
 import org.apache.hadoop.hbase.master.RegionPlan;
 import org.apache.hadoop.hbase.net.Address;
-import org.apache.hadoop.hbase.protobuf.generated.QuotaProtos.Quotas;
+import org.apache.hadoop.hbase.quotas.GlobalQuotaSettings;
 import org.apache.hadoop.hbase.regionserver.Region;
 import org.apache.hadoop.hbase.replication.ReplicationEndpoint;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.WALEntry;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.SnapshotProtos.SnapshotDescription;
+import org.apache.hadoop.hbase.wal.WALEdit;
 
 
 /**
@@ -46,7 +46,7 @@ public abstract class RangerAuthorizationCoprocessorBase
 
 	private static final Log LOG = LogFactory.getLog(RangerAuthorizationCoprocessorBase.class.getName());
 
-	@Override
+	/*@Override
 	public void preMergeCommit(
 			ObserverContext<RegionServerCoprocessorEnvironment> ctx,
 			Region regionA, Region regionB, List<Mutation> metaEntries)
@@ -74,19 +74,19 @@ public abstract class RangerAuthorizationCoprocessorBase
 			ObserverContext<RegionServerCoprocessorEnvironment> ctx,
 			Region regionA, Region regionB) throws IOException {
 		// Not applicable.  Expected to be empty
-	}
+	} */
 
 	@Override
 	public void preCreateTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableDescriptor desc, HRegionInfo[] regions) throws IOException {
+			TableDescriptor desc, RegionInfo[] regions) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
 	@Override
 	public void postCompletedCreateTableAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableDescriptor desc, HRegionInfo[] regions) throws IOException {
+			TableDescriptor desc, RegionInfo[] regions) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
@@ -118,7 +118,7 @@ public abstract class RangerAuthorizationCoprocessorBase
 		// Not applicable.  Expected to be empty
 	}
 
-	@Override
+	/*@Override
 	public void preAddColumnFamilyAction(
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName, ColumnFamilyDescriptor column) throws IOException {
@@ -160,7 +160,7 @@ public abstract class RangerAuthorizationCoprocessorBase
 			ObserverContext<MasterCoprocessorEnvironment> ctx,
 			TableName tableName, byte[] c) throws IOException {
 		// Not applicable.  Expected to be empty
-	}
+	} */
 
 	@Override
 	public void preEnableTableAction(
@@ -274,7 +274,7 @@ public abstract class RangerAuthorizationCoprocessorBase
 		return endpoint;
 	}
 
-	@Override
+	/*@Override
 	public void stop(CoprocessorEnvironment env) {
 		// Not applicable.  Expected to be empty
 	}
@@ -285,7 +285,7 @@ public abstract class RangerAuthorizationCoprocessorBase
 	@Override
 	public void postAssign(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo) throws IOException {
 		// Not applicable.  Expected to be empty
-	}
+	}*/
 	@Override
 	public void postBalance(ObserverContext<MasterCoprocessorEnvironment> c,List<RegionPlan> aRegPlanList) throws IOException {
 		// Not applicable.  Expected to be empty
@@ -294,22 +294,23 @@ public abstract class RangerAuthorizationCoprocessorBase
 	public void postBalanceSwitch(ObserverContext<MasterCoprocessorEnvironment> c, boolean oldValue, boolean newValue) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
+
 	@Override
 	public void postCloneSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot, TableDescriptor hTableDescriptor) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	@Override
-	public void postCreateTable(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, HRegionInfo[] regions) throws IOException {
+	public void postCreateTable(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, RegionInfo[] regions) throws IOException {
+		// Not applicable.  Expected to be empty
+	}
+	@Override
+	public void postDelete(ObserverContext<RegionCoprocessorEnvironment> c, Delete delete, WALEdit edit, Durability durability) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	/*@Override
-	public void postDelete(ObserverContext<RegionCoprocessorEnvironment> c, Delete delete, WALEdit edit, Durability durability) throws IOException {
-		// Not applicable.  Expected to be empty
-	}*/
-	@Override
 	public void postDeleteColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, byte[] col) throws IOException {
 		// Not applicable.  Expected to be empty
-	}
+	}*/
 	@Override
 	public void postDeleteSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot) throws IOException {
 		// Not applicable.  Expected to be empty
@@ -326,16 +327,16 @@ public abstract class RangerAuthorizationCoprocessorBase
 	public void postEnableTable(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
-	@Override
+	/*@Override
 	public void postModifyColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, ColumnFamilyDescriptor descriptor) throws IOException {
 		// Not applicable.  Expected to be empty
-	}
+	}*/
 	@Override
 	public void postModifyTable(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, TableDescriptor htd) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	@Override
-	public void postMove(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo region, ServerName srcServer, ServerName destServer) throws IOException {
+	public void postMove(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo region, ServerName srcServer, ServerName destServer) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 	@Override
@@ -347,10 +348,10 @@ public abstract class RangerAuthorizationCoprocessorBase
 		// Not applicable.  Expected to be empty
 	}
 
-	/*@Override
+	@Override
 	public void postPut(ObserverContext<RegionCoprocessorEnvironment> c, Put put, WALEdit edit, Durability durability) {
 		// Not applicable.  Expected to be empty
-	}*/
+	}
 	
 	@Override
 	public void postGetOp(final ObserverContext<RegionCoprocessorEnvironment> env, final Get get, final List<Cell> results) throws IOException {
@@ -358,7 +359,7 @@ public abstract class RangerAuthorizationCoprocessorBase
 	}
 
 	@Override
-	public void postRegionOffline(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo) throws IOException {
+	public void postRegionOffline(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo regionInfo) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
@@ -382,10 +383,10 @@ public abstract class RangerAuthorizationCoprocessorBase
 		// Not applicable.  Expected to be empty
 	}
 
-	@Override
+	/*@Override
 	public void postMerge(ObserverContext<RegionServerCoprocessorEnvironment> c, Region regionA, Region regionB, Region mergedRegion) throws IOException {
 		// Not applicable.  Expected to be empty
-	}
+	}*/
 
 	@Override
 	public void postSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot, TableDescriptor hTableDescriptor) throws IOException {
@@ -393,7 +394,7 @@ public abstract class RangerAuthorizationCoprocessorBase
 	}
 
 	@Override
-	public void postUnassign(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo, boolean force) throws IOException {
+	public void postUnassign(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo regionInfo, boolean force) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
 
@@ -418,43 +419,43 @@ public abstract class RangerAuthorizationCoprocessorBase
 	}
 
 	public void preSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final Quotas quotas) throws IOException {
+      final String userName, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void postSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final Quotas quotas) throws IOException {
+      final String userName, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void preSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final TableName tableName, final Quotas quotas) throws IOException {
+      final String userName, final TableName tableName, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void postSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final TableName tableName, final Quotas quotas) throws IOException {
+      final String userName, final TableName tableName, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void preSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final String namespace, final Quotas quotas) throws IOException {
+      final String userName, final String namespace, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void postSetUserQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String userName, final String namespace, final Quotas quotas) throws IOException {
+      final String userName, final String namespace, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void preSetTableQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final TableName tableName, final Quotas quotas) throws IOException {
+      final TableName tableName, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void postSetTableQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final TableName tableName, final Quotas quotas) throws IOException {
+      final TableName tableName, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void preSetNamespaceQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String namespace, final Quotas quotas) throws IOException {
+      final String namespace, final GlobalQuotaSettings quotas) throws IOException {
   }
 
   public void postSetNamespaceQuota(final ObserverContext<MasterCoprocessorEnvironment> ctx,
-      final String namespace, final Quotas quotas) throws IOException{
+      final String namespace, final GlobalQuotaSettings quotas) throws IOException{
   }
 
   // TODO : need override annotations for all of the following methods

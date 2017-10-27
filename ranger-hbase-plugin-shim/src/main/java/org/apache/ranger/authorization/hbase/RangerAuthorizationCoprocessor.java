@@ -21,32 +21,22 @@ package org.apache.ranger.authorization.hbase;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableSet;
 
+import com.google.protobuf.Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.coprocessor.BulkLoadObserver;
-import org.apache.hadoop.hbase.coprocessor.CoprocessorService;
-import org.apache.hadoop.hbase.coprocessor.MasterCoprocessorEnvironment;
-import org.apache.hadoop.hbase.coprocessor.MasterObserver;
-import org.apache.hadoop.hbase.coprocessor.ObserverContext;
-import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
-import org.apache.hadoop.hbase.coprocessor.RegionObserver;
-import org.apache.hadoop.hbase.coprocessor.RegionServerCoprocessorEnvironment;
-import org.apache.hadoop.hbase.coprocessor.RegionServerObserver;
+import org.apache.hadoop.hbase.coprocessor.*;
 import org.apache.hadoop.hbase.filter.ByteArrayComparable;
 import org.apache.hadoop.hbase.io.FSDataInputStreamWrapper;
 import org.apache.hadoop.hbase.io.Reference;
 import org.apache.hadoop.hbase.io.hfile.CacheConfig;
+import org.apache.hadoop.hbase.master.MasterCoprocessorHost;
 import org.apache.hadoop.hbase.master.RegionPlan;
-import org.apache.hadoop.hbase.master.procedure.MasterProcedureEnv;
 import org.apache.hadoop.hbase.net.Address;
-import org.apache.hadoop.hbase.procedure2.Procedure;
-import org.apache.hadoop.hbase.procedure2.ProcedureExecutor;
 import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos;
 import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos.CheckPermissionsRequest;
 import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos.CheckPermissionsResponse;
@@ -56,15 +46,11 @@ import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos.GrantReque
 import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos.GrantResponse;
 import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos.RevokeRequest;
 import org.apache.hadoop.hbase.protobuf.generated.AccessControlProtos.RevokeResponse;
+import org.apache.hadoop.hbase.quotas.GlobalQuotaSettings;
 import org.apache.hadoop.hbase.regionserver.*;
 import org.apache.hadoop.hbase.regionserver.compactions.CompactionLifeCycleTracker;
+import org.apache.hadoop.hbase.regionserver.compactions.CompactionRequest;
 import org.apache.hadoop.hbase.regionserver.querymatcher.DeleteTracker;
-import org.apache.hadoop.hbase.shaded.com.google.common.collect.ImmutableList;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.WALEntry;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.SnapshotProtos.SnapshotDescription;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.QuotaProtos.Quotas;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.ClientProtos.CleanupBulkLoadRequest;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.ClientProtos.PrepareBulkLoadRequest;
 import org.apache.hadoop.hbase.regionserver.Region.Operation;
 import org.apache.hadoop.hbase.replication.ReplicationEndpoint;
 import org.apache.hadoop.hbase.util.Pair;
@@ -72,10 +58,9 @@ import org.apache.hadoop.hbase.wal.WALEdit;
 import org.apache.ranger.plugin.classloader.RangerPluginClassLoader;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
-import com.google.protobuf.Service;
 import java.util.Set;
 
-public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObserver, RegionServerObserver, BulkLoadObserver, AccessControlProtos.AccessControlService.Interface, CoprocessorService, Coprocessor {
+public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObserver, RegionServerObserver, BulkLoadObserver, AccessControlProtos.AccessControlService.Interface, Coprocessor, CoprocessorService {
 
 	public static final Log LOG = LogFactory.getLog(RangerAuthorizationCoprocessor.class);
 	private static final String   RANGER_PLUGIN_TYPE                      = "hbase";
@@ -89,7 +74,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	private RegionServerObserver 							    implRegionServerObserver = null;
 	private BulkLoadObserver                                    implBulkLoadObserver     = null;
 	private AccessControlProtos.AccessControlService.Interface  implAccessControlService = null;
-	private CoprocessorService   							    implCoprocessorService   = null;
+	private CoprocessorService									implCoprocessorService = null;
 
 	public RangerAuthorizationCoprocessor() {
 		if(LOG.isDebugEnabled()) {
@@ -123,7 +108,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 			implRegionServerObserver = (RegionServerObserver)impl;
 			implBulkLoadObserver     = (BulkLoadObserver)impl;
 			implAccessControlService = (AccessControlProtos.AccessControlService.Interface)impl;
-			implCoprocessorService   = (CoprocessorService)impl;
+			implCoprocessorService 	 = (CoprocessorService)impl;
 			
 		} catch (Exception e) {
 			// check what need to be done
@@ -218,7 +203,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		
 	}
 
-	@Override
+	/*@Override
 	public void preAddColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c,TableName tableName, ColumnFamilyDescriptor column) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preAddColumn()");
@@ -226,7 +211,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		
 		try {
 			activatePluginClassLoader();
-			implMasterObserver.preAddColumnFamily(c, tableName, column);
+			implMasterObserver.preAddColumnFamily(c);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -234,7 +219,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.preAddColumn()");
 		}
-	}
+	}*/
 
 	@Override
 	public Result preAppend(ObserverContext<RegionCoprocessorEnvironment> c, Append append) throws IOException {
@@ -259,7 +244,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preAssign(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo) throws IOException {
+	public void preAssign(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo regionInfo) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preAssign()");
 		}
@@ -345,7 +330,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	
 		try {
 			activatePluginClassLoader();
-			ret = implRegionObserver.preCheckAndDelete(c, row, family, qualifier, compareOp,comparator, delete, result);
+			ret = implRegionObserver.preCheckAndDelete(c, row, family, qualifier, compareOp, comparator, delete, result);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -367,7 +352,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	
 		try {
 			activatePluginClassLoader();
-			ret = implRegionObserver.preCheckAndPut(c, row, family, qualifier, compareOp, comparator,put, result);
+			ret = implRegionObserver.preCheckAndPut(c, row, family, qualifier, compareOp, comparator, put, result);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -457,7 +442,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}*/
 
 	@Override
-	public void preCreateTable(ObserverContext<MasterCoprocessorEnvironment> c, TableDescriptor desc, HRegionInfo[] regions) throws IOException {
+	public void preCreateTable(ObserverContext<MasterCoprocessorEnvironment> c, TableDescriptor desc, RegionInfo[] regions) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preCreateTable()");
 		}
@@ -492,7 +477,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 	}
 
-	@Override
+	/*@Override
 	public void preDeleteColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c,TableName tableName, byte[] col) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preDeleteColumn()");
@@ -508,7 +493,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.preDeleteColumn()");
 		}
-	}
+	}*/
 
 	@Override
 	public void preDeleteSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot) throws IOException {
@@ -605,14 +590,14 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preFlush(ObserverContext<RegionCoprocessorEnvironment> e) throws IOException {
+	public void preFlush(ObserverContext<RegionCoprocessorEnvironment> e, FlushLifeCycleTracker tracker) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preFlush()");
 		}
 	
 		try {
 			activatePluginClassLoader();
-			implRegionObserver.preFlush(e);
+			implRegionObserver.preFlush(e, tracker);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -682,7 +667,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 		
 		return ret;
-	}*/
+	}
 
 	@Override
 	public void preModifyColumnFamily( ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, ColumnFamilyDescriptor descriptor) throws IOException {
@@ -700,7 +685,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.preModifyColumn()");
 		}
-	}
+	}*/
 
 	@Override
 	public void preModifyTable(ObserverContext<MasterCoprocessorEnvironment> c,	TableName tableName, TableDescriptor htd) throws IOException {
@@ -721,7 +706,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preMove(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo region, ServerName srcServer, ServerName destServer) throws IOException {
+	public void preMove(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo region, ServerName srcServer, ServerName destServer) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preMove()");
 		}
@@ -927,7 +912,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preUnassign(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo, boolean force) throws IOException {
+	public void preUnassign(ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo regionInfo, boolean force) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preUnassign()");
 		}
@@ -945,7 +930,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName,	Quotas quotas) throws IOException {
+	public void preSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName,	GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preSetUserQuota()");
 		}
@@ -963,7 +948,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
  	}
 
 	@Override
-	public void preSetUserQuota( ObserverContext<MasterCoprocessorEnvironment> ctx, String userName, TableName tableName, Quotas quotas) throws IOException {
+	public void preSetUserQuota( ObserverContext<MasterCoprocessorEnvironment> ctx, String userName, TableName tableName, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preSetUserQuota()");
 		}
@@ -981,7 +966,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName,	String namespace, Quotas quotas) throws IOException {
+	public void preSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName,	String namespace, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preSetUserQuota()");
 		}
@@ -999,7 +984,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preSetTableQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, TableName tableName, Quotas quotas) throws IOException {
+	public void preSetTableQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, TableName tableName, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preSetTableQuota()");
 		}
@@ -1017,7 +1002,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preSetNamespaceQuota(ObserverContext<MasterCoprocessorEnvironment> ctx,	String namespace, Quotas quotas) throws IOException {
+	public void preSetNamespaceQuota(ObserverContext<MasterCoprocessorEnvironment> ctx,	String namespace, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preSetNamespaceQuota()");
 		}
@@ -1034,7 +1019,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 	}
 
-	@Override
+	/*@Override
 	public void start(CoprocessorEnvironment env) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.start()");
@@ -1050,7 +1035,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.start()");
 		}
-	}
+	}*/
 
 	@Override
 	public void prePut(ObserverContext<RegionCoprocessorEnvironment> c,	Put put, WALEdit edit, Durability durability) throws IOException {
@@ -1089,7 +1074,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preRegionOffline( ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo) throws IOException {
+	public void preRegionOffline( ObserverContext<MasterCoprocessorEnvironment> c, RegionInfo regionInfo) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preRegionOffline()");
 		}
@@ -1178,7 +1163,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 	}
 
-	@Override
+	/*@Override
 	public void preMerge(ObserverContext<RegionServerCoprocessorEnvironment> ctx, Region regionA, Region regionB) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preMerge()");
@@ -1194,17 +1179,17 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.preMerge()");
 		}
-	}
+	}*/
 
 	@Override
-	public void prePrepareBulkLoad(ObserverContext<RegionCoprocessorEnvironment> ctx, PrepareBulkLoadRequest request) throws IOException {
+	public void prePrepareBulkLoad(ObserverContext<RegionCoprocessorEnvironment> ctx) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.prePrepareBulkLoad()");
 		}
 	
 		try {
 			activatePluginClassLoader();
-			implBulkLoadObserver.prePrepareBulkLoad(ctx, request);
+			implBulkLoadObserver.prePrepareBulkLoad(ctx);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1215,14 +1200,14 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preCleanupBulkLoad(ObserverContext<RegionCoprocessorEnvironment> ctx, CleanupBulkLoadRequest request) throws IOException {
+	public void preCleanupBulkLoad(ObserverContext<RegionCoprocessorEnvironment> ctx) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preCleanupBulkLoad()");
 		}
 	
 		try {
 			activatePluginClassLoader();
-			implBulkLoadObserver.preCleanupBulkLoad(ctx, request);
+			implBulkLoadObserver.preCleanupBulkLoad(ctx);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1305,7 +1290,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 	}
 	
-	@Override
+	/*@Override
 	public void stop(CoprocessorEnvironment env) throws IOException {
 		
 		if(LOG.isDebugEnabled()) {
@@ -1412,7 +1397,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.postRollBackMerge()");
 		}	
-	}
+	}*/
 
 	@Override
 	public void preRollWALWriterRequest(ObserverContext<RegionServerCoprocessorEnvironment> ctx) throws IOException {
@@ -1461,7 +1446,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	
 		try {
 			activatePluginClassLoader();
-			ret = implRegionServerObserver.postCreateReplicationEndPoint(ctx,endpoint);
+			ret = implRegionServerObserver.postCreateReplicationEndPoint(ctx, endpoint);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1473,7 +1458,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		return ret;
 	}
 
-	@Override
+	/*@Override
 	public void preReplicateLogEntries(ObserverContext<RegionServerCoprocessorEnvironment> ctx,	List<WALEntry> entries, CellScanner cells) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preReplicateLogEntries()");
@@ -1507,7 +1492,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.postReplicateLogEntries()");
 		}
-	}
+	}*/
 
 	@Override
 	public void postOpen(ObserverContext<RegionCoprocessorEnvironment> c) {
@@ -1545,7 +1530,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 	}
 
-	@Override
+	/*@Override
 	public InternalScanner preFlushScannerOpen( ObserverContext<RegionCoprocessorEnvironment> c, Store store, List<KeyValueScanner> memstoreScanners, InternalScanner s, long readPoint) throws IOException {
 		
 		final InternalScanner ret;
@@ -1566,10 +1551,10 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 		
 		return ret;
-	}
+	}*/
 
 	@Override
-	public InternalScanner preFlush(ObserverContext<RegionCoprocessorEnvironment> c, Store store, InternalScanner scanner) throws IOException {
+	public InternalScanner preFlush(ObserverContext<RegionCoprocessorEnvironment> c, Store store, InternalScanner scanner, FlushLifeCycleTracker tracker) throws IOException {
 		
 		final InternalScanner ret;
 		
@@ -1579,7 +1564,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	
 		try {
 			activatePluginClassLoader();
-			ret = implRegionObserver.preFlush(c, store, scanner);
+			ret = implRegionObserver.preFlush(c, store, scanner, tracker);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1592,14 +1577,14 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postFlush(ObserverContext<RegionCoprocessorEnvironment> c) throws IOException {
+	public void postFlush(ObserverContext<RegionCoprocessorEnvironment> c, FlushLifeCycleTracker tracker) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postFlush()");
 		}
 	
 		try {
 			activatePluginClassLoader();
-			implRegionObserver.postFlush(c);
+			implRegionObserver.postFlush(c, tracker);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1610,14 +1595,14 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postFlush(ObserverContext<RegionCoprocessorEnvironment> c, Store store, StoreFile resultFile) throws IOException {
+	public void postFlush(ObserverContext<RegionCoprocessorEnvironment> c, Store store, StoreFile resultFile, FlushLifeCycleTracker tracker) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postFlush()");
 		}
 	
 		try {
 			activatePluginClassLoader();
-			implRegionObserver.postFlush(c, store, resultFile);
+			implRegionObserver.postFlush(c, store, resultFile, tracker);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1628,7 +1613,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preCompactSelection(ObserverContext<RegionCoprocessorEnvironment> c, Store store, List<StoreFile> candidates, CompactionLifeCycleTracker request) throws IOException {
+	public void preCompactSelection(ObserverContext<RegionCoprocessorEnvironment> c, Store store, List<? extends StoreFile> candidates, CompactionLifeCycleTracker request) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preCompactSelection()");
 		}
@@ -1646,14 +1631,14 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postCompactSelection(ObserverContext<RegionCoprocessorEnvironment> c, Store store, ImmutableList<StoreFile> selected, CompactionLifeCycleTracker request) {
+	public void postCompactSelection(ObserverContext<RegionCoprocessorEnvironment> c, Store store, List<? extends StoreFile> selected, CompactionLifeCycleTracker tracker, CompactionRequest request) {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postCompactSelection()");
 		}
 	
 		try {
 			activatePluginClassLoader();
-			implRegionObserver.postCompactSelection(c, store, selected, request);
+			implRegionObserver.postCompactSelection(c, store, selected, tracker, request);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1682,7 +1667,8 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}*/
 
 	@Override
-	public InternalScanner preCompact(ObserverContext<RegionCoprocessorEnvironment> c, Store store,	InternalScanner scanner, ScanType scanType,	CompactionLifeCycleTracker request) throws IOException {
+	public InternalScanner preCompact(ObserverContext<RegionCoprocessorEnvironment> c, Store store,	InternalScanner scanner,
+									  ScanType scanType, CompactionLifeCycleTracker tracker, CompactionRequest request) throws IOException {
 		
 		final InternalScanner ret;
 		
@@ -1692,7 +1678,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	
 		try {
 			activatePluginClassLoader();
-			ret = implRegionObserver.preCompact(c, store, scanner, scanType, request);
+			ret = implRegionObserver.preCompact(c, store, scanner, scanType, tracker, request);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1704,7 +1690,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		return ret;
 	}
 
-	@Override
+	/*@Override
 	public InternalScanner preCompactScannerOpen(ObserverContext<RegionCoprocessorEnvironment> c, Store store, List<? extends KeyValueScanner> scanners, ScanType scanType,
 													long earliestPutTs, InternalScanner s, CompactionLifeCycleTracker request, long readPoint) throws IOException {
 		final InternalScanner ret;
@@ -1727,7 +1713,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		return ret;
 	}
 
-	/*@Override
+	@Override
 	public InternalScanner preCompactScannerOpen(ObserverContext<RegionCoprocessorEnvironment> c, Store store, List<? extends KeyValueScanner> scanners, ScanType scanType,
 													long earliestPutTs, InternalScanner s) throws IOException {
 		final InternalScanner ret;
@@ -1751,14 +1737,15 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}*/
 
 	@Override
-	public void postCompact(ObserverContext<RegionCoprocessorEnvironment> c, Store store, StoreFile resultFile, CompactionLifeCycleTracker request) throws IOException {
+	public void postCompact(ObserverContext<RegionCoprocessorEnvironment> c, Store store, StoreFile resultFile,
+							CompactionLifeCycleTracker tracker, CompactionRequest request) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postCompact()");
 		}
 	
 		try {
 			activatePluginClassLoader();
-			implRegionObserver.postCompact(c, store, resultFile, request);
+			implRegionObserver.postCompact(c, store, resultFile, tracker, request);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1920,7 +1907,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 
 		try {
 			activatePluginClassLoader();
-			implRegionObserver.postClose(c,abortRequested);
+			implRegionObserver.postClose(c, abortRequested);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -2317,7 +2304,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 
 		try {
 			activatePluginClassLoader();
-			ret = implRegionObserver.postIncrement(c, increment, result );
+			ret = implRegionObserver.postIncrement(c, increment, result);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -2329,7 +2316,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		return ret;
 	}
 
-	@Override
+	/*@Override
 	public KeyValueScanner preStoreScannerOpen(ObserverContext<RegionCoprocessorEnvironment> c, Store store, Scan scan, NavigableSet<byte[]> targetCols, KeyValueScanner s, long readPoint)	throws IOException {
 		final KeyValueScanner ret;
 
@@ -2349,7 +2336,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 
 		return ret;
-	}
+	}*/
 
 	@Override
 	public boolean postScannerNext(	ObserverContext<RegionCoprocessorEnvironment> c, InternalScanner s,	List<Result> result, int limit, boolean hasNext) throws IOException {
@@ -2546,7 +2533,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postCreateTable(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, HRegionInfo[] regions) throws IOException {
+	public void postCreateTable(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, RegionInfo[] regions) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postCreateTable()");
 		}
@@ -2564,7 +2551,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preCreateTableAction(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, HRegionInfo[] regions) throws IOException {
+	public void preCreateTableAction(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, RegionInfo[] regions) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preCreateTableHandler()");
 		}
@@ -2582,7 +2569,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postCompletedCreateTableAction(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, HRegionInfo[] regions) throws IOException {
+	public void postCompletedCreateTableAction(ObserverContext<MasterCoprocessorEnvironment> ctx, TableDescriptor desc, RegionInfo[] regions) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postCreateTableHandler()");
 		}
@@ -2779,7 +2766,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		}
 	}
 
-	@Override
+	/*@Override
 	public void postAddColumnFamily(ObserverContext<MasterCoprocessorEnvironment> ctx, TableName tableName, ColumnFamilyDescriptor column) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postAddColumn()");
@@ -2939,7 +2926,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.postDeleteColumnHandler()");
 		}
-	}
+	}*/
 
 	@Override
 	public void postEnableTable(ObserverContext<MasterCoprocessorEnvironment> ctx, TableName tableName) throws IOException {
@@ -3050,7 +3037,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postMove(ObserverContext<MasterCoprocessorEnvironment> ctx,	HRegionInfo region, ServerName srcServer, ServerName destServer) throws IOException {
+	public void postMove(ObserverContext<MasterCoprocessorEnvironment> ctx,	RegionInfo region, ServerName srcServer, ServerName destServer) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postMove()");
 		}
@@ -3068,14 +3055,14 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void preAbortProcedure(ObserverContext<MasterCoprocessorEnvironment> observerContext, ProcedureExecutor<MasterProcedureEnv> procEnv, long procId) throws IOException {
+	public void preAbortProcedure(ObserverContext<MasterCoprocessorEnvironment> observerContext, long procId) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preAbortProcedure()");
 		}
 
 		try {
 			activatePluginClassLoader();
-			implMasterObserver.preAbortProcedure(observerContext, procEnv, procId);
+			implMasterObserver.preAbortProcedure(observerContext, procId);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -3122,14 +3109,14 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postGetProcedures(ObserverContext<MasterCoprocessorEnvironment> observerContext, List<Procedure<?>> procInfoList) throws IOException {
+	public void postGetProcedures(ObserverContext<MasterCoprocessorEnvironment> observerContext) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postListProcedures()");
 		}
 
 		try {
 			activatePluginClassLoader();
-			implMasterObserver.postGetProcedures(observerContext, procInfoList);
+			implMasterObserver.postGetProcedures(observerContext);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -3140,7 +3127,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postAssign(ObserverContext<MasterCoprocessorEnvironment> ctx, HRegionInfo regionInfo) throws IOException {
+	public void postAssign(ObserverContext<MasterCoprocessorEnvironment> ctx, RegionInfo regionInfo) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postAssign()");
 		}
@@ -3158,7 +3145,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postUnassign(ObserverContext<MasterCoprocessorEnvironment> ctx,	HRegionInfo regionInfo, boolean force) throws IOException {
+	public void postUnassign(ObserverContext<MasterCoprocessorEnvironment> ctx,	RegionInfo regionInfo, boolean force) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postUnassign()");
 		}
@@ -3176,7 +3163,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postRegionOffline(ObserverContext<MasterCoprocessorEnvironment> ctx, HRegionInfo regionInfo) throws IOException {
+	public void postRegionOffline(ObserverContext<MasterCoprocessorEnvironment> ctx, RegionInfo regionInfo) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postRegionOffline()");
 		}
@@ -3608,7 +3595,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName, Quotas quotas) throws IOException {
+	public void postSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postSetUserQuota()");
 		}
@@ -3626,7 +3613,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName,TableName tableName, Quotas quotas) throws IOException {
+	public void postSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName,TableName tableName, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postSetUserQuota()");
 		}
@@ -3644,7 +3631,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName, String namespace, Quotas quotas) throws IOException {
+	public void postSetUserQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, String userName, String namespace, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postSetUserQuota()");
 		}
@@ -3662,7 +3649,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postSetTableQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, TableName tableName, Quotas quotas) throws IOException {
+	public void postSetTableQuota(ObserverContext<MasterCoprocessorEnvironment> ctx, TableName tableName, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postSetTableQuota()");
 		}
@@ -3680,7 +3667,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public void postSetNamespaceQuota(ObserverContext<MasterCoprocessorEnvironment> ctx,String namespace, Quotas quotas) throws IOException {
+	public void postSetNamespaceQuota(ObserverContext<MasterCoprocessorEnvironment> ctx,String namespace, GlobalQuotaSettings quotas) throws IOException {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postSetNamespaceQuota()");
 		}
