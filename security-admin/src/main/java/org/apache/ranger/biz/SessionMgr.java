@@ -181,11 +181,18 @@ public class SessionMgr {
 
 			Calendar cal = Calendar.getInstance();
 			if (details != null) {
-				logger.info("Login Success: loginId=" + currentLoginId
-						+ ", sessionId=" + gjAuthSession.getId()
-						+ ", sessionId=" + details.getSessionId()
-						+ ", requestId=" + details.getRemoteAddress()
-						+ ", epoch=" + cal.getTimeInMillis());
+				if(logger.isDebugEnabled()){
+					logger.debug("Login Success: loginId=" + currentLoginId
+							+ ", sessionId=" + gjAuthSession.getId()
+							+ ", sessionId=" + details.getSessionId()
+							+ ", requestId=" + details.getRemoteAddress()
+							+ ", epoch=" + cal.getTimeInMillis());
+				}else{
+					logger.info("Login Success: loginId=" + currentLoginId
+							+ ", sessionId=" + gjAuthSession.getId()
+							+ ", requestId=" + details.getRemoteAddress()
+							+ ", epoch=" + cal.getTimeInMillis());
+				}
 			} else {
 				logger.info("Login Success: loginId=" + currentLoginId
 						+ ", sessionId=" + gjAuthSession.getId()
