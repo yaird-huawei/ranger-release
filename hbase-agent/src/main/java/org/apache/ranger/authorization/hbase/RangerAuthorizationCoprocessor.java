@@ -885,7 +885,7 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		return hasNext;
 	}
 	@Override
-	public RegionScanner preScannerOpen(ObserverContext<RegionCoprocessorEnvironment> c, Scan scan, RegionScanner s) throws IOException {
+	public void preScannerOpen(ObserverContext<RegionCoprocessorEnvironment> c, Scan scan) throws IOException {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> preScannerOpen");
 		}
@@ -908,7 +908,6 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 				Filter combinedFilter = combineFilters(filter, existingFilter);
 				scan.setFilter(combinedFilter);
 			}
-			return s;
 		} finally {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("<== preScannerOpen");

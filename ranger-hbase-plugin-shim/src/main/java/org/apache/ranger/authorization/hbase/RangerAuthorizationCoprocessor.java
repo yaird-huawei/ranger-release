@@ -799,16 +799,15 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public RegionScanner preScannerOpen(ObserverContext<RegionCoprocessorEnvironment> c, Scan scan,	RegionScanner s) throws IOException {
-		final RegionScanner ret;
-		
+	public void preScannerOpen(ObserverContext<RegionCoprocessorEnvironment> c, Scan scan) throws IOException {
+
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preScannerOpen()");
 		}
 	
 		try {
 			activatePluginClassLoader();
-			ret = implRegionObserver.preScannerOpen(c, scan, s);
+			implRegionObserver.preScannerOpen(c, scan);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -816,8 +815,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.preScannerOpen()");
 		}
-		
-		return ret;
+
 	}
 
 	@Override
