@@ -962,12 +962,14 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case CREATETABLE:
 				case CREATEVIEW:
 				case CREATETABLE_AS_SELECT:
+				case CREATE_MATERIALIZED_VIEW:
 					if(hiveObj.getType() == HivePrivilegeObjectType.TABLE_OR_VIEW) {
 						accessType = isInput ? HiveAccessType.SELECT : HiveAccessType.CREATE;
 					}
 				break;
 
 				case ALTERDATABASE:
+				case ALTERDATABASE_LOCATION:
 				case ALTERDATABASE_OWNER:
 				case ALTERINDEX_PROPS:
 				case ALTERINDEX_REBUILD:
@@ -1017,6 +1019,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case DROPINDEX:
 				case DROPTABLE:
 				case DROPVIEW:
+				case DROP_MATERIALIZED_VIEW:
 				case DROPDATABASE:
 					accessType = HiveAccessType.DROP;
 				break;
@@ -1086,6 +1089,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case SWITCHDATABASE:
 				case DESCDATABASE:
 				case SHOWTABLES:
+				case SHOWVIEWS:
 					accessType = HiveAccessType.USE;
 				break;
 
@@ -1156,6 +1160,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case CREATETABLE:
 			case CREATETABLE_AS_SELECT:
 			case ALTERDATABASE:
+			case ALTERDATABASE_LOCATION:
 			case ALTERDATABASE_OWNER:
 			case ALTERTABLE_ADDCOLS:
 			case ALTERTABLE_REPLACECOLS:
@@ -1215,6 +1220,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case SHOW_CREATEDATABASE:
 			case SHOW_CREATETABLE:
 			case SHOWFUNCTIONS:
+			case SHOWVIEWS:
 			case SHOWINDEXES:
 			case SHOWPARTITIONS:
 			case SHOWLOCKS:
@@ -1226,11 +1232,13 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case DROPMACRO:
 			case CREATEVIEW:
 			case DROPVIEW:
+			case CREATE_MATERIALIZED_VIEW:
 			case CREATEINDEX:
 			case DROPINDEX:
 			case ALTERINDEX_REBUILD:
 			case ALTERVIEW_PROPERTIES:
 			case DROPVIEW_PROPERTIES:
+			case DROP_MATERIALIZED_VIEW:
 			case LOCKTABLE:
 			case UNLOCKTABLE:
 			case CREATEROLE:
