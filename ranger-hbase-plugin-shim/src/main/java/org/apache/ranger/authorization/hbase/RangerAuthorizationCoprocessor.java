@@ -279,8 +279,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 	}
 
 	@Override
-	public boolean preBalanceSwitch(ObserverContext<MasterCoprocessorEnvironment> c, boolean newValue) 	throws IOException {
-		final boolean ret;
+	public void preBalanceSwitch(ObserverContext<MasterCoprocessorEnvironment> c, boolean newValue) 	throws IOException {
 		
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.preBalanceSwitch()");
@@ -288,7 +287,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		
 		try {
 			activatePluginClassLoader();
-			ret = implMasterObserver.preBalanceSwitch(c, newValue);
+			implMasterObserver.preBalanceSwitch(c, newValue);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -296,8 +295,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.preBalanceSwitch()");
 		}	
-		
-		return ret;
+
 	}
 
 	@Override

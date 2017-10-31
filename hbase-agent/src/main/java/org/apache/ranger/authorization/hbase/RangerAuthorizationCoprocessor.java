@@ -716,9 +716,8 @@ public class RangerAuthorizationCoprocessor extends RangerAuthorizationCoprocess
 		requirePermission("balance", Permission.Action.ADMIN);
 	}
 	@Override
-	public boolean preBalanceSwitch(ObserverContext<MasterCoprocessorEnvironment> c, boolean newValue) throws IOException {
+	public void preBalanceSwitch(ObserverContext<MasterCoprocessorEnvironment> c, boolean newValue) throws IOException {
 		requirePermission("balanceSwitch", Permission.Action.ADMIN);
-		return newValue;
 	}
 	@Override
 	public void preBulkLoadHFile(ObserverContext<RegionCoprocessorEnvironment> ctx, List<Pair<byte[], String>> familyPaths) throws IOException {
