@@ -171,7 +171,7 @@ public class AtlasTagSource extends AbstractTagSource {
                             if (kafkaMessage instanceof EntityNotification) {
                                 notification = (EntityNotification) kafkaMessage;
                             } else {
-                                LOG.warn("Received Kafka notification of unexpected type, Ignoring...");
+                                LOG.warn("Received Kafka notification of unexpected type:[" + kafkaMessage.getClass().toString() + "], Ignoring...");
                             }
                             if (notification != null) {
                                 if (LOG.isDebugEnabled()) {
