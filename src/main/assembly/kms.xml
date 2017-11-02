@@ -108,6 +108,7 @@
 					<include>com.fasterxml.woodstox:woodstox-core</include>
 					<include>org.codehaus.woodstox:stax2-api</include>
 					<include>org.apache.commons:commons-configuration2</include>
+					<include>com.fasterxml.jackson.core:jackson-core</include>
 	            </includes>
             </dependencySet>
         </dependencySets>

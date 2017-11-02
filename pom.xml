@@ -219,6 +219,7 @@
         <hive.thrift.version>0.9.3</hive.thrift.version>
 		<codehaus.woodstox.version>3.1.4</codehaus.woodstox.version>
 		<fasterxml.woodstox.version>5.0.3</fasterxml.woodstox.version>
+	<jackson-core.version>2.5.2</jackson-core.version>
     </properties>
     <profiles>
         <profile>
