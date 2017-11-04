@@ -266,6 +266,12 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
 			<version>${hadoop.version}</version>
+			<exclusions>
+			    <exclusion>
+			        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+			        <artifactId>jackson-jaxrs-json-provider</artifactId>
+			    </exclusion>
+			</exclusions>
 		</dependency>
         <dependency>
             <groupId>com.sun.jersey.contribs</groupId>
@@ -492,6 +498,12 @@
 		<dependency>
 			<groupId>com.webcohesion.enunciate</groupId>
 			<artifactId>enunciate-core-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>${fasterxml.jackson.version}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
     <build>
