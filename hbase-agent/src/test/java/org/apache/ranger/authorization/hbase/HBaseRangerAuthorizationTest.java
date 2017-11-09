@@ -35,7 +35,6 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -57,7 +56,7 @@ import org.junit.Test;
  * 
  * http://localhost:6080/service/plugins/policies/download/cl1_hbase
  */
-@Ignore public class HBaseRangerAuthorizationTest {
+public class HBaseRangerAuthorizationTest {
 
     private static final Log LOG = LogFactory.getLog(HBaseRangerAuthorizationTest.class.getName());
 

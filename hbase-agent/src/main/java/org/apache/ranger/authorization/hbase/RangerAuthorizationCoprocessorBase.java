@@ -31,6 +31,7 @@ import org.apache.hadoop.hbase.master.RegionPlan;
 import org.apache.hadoop.hbase.net.Address;
 import org.apache.hadoop.hbase.quotas.GlobalQuotaSettings;
 import org.apache.hadoop.hbase.replication.ReplicationEndpoint;
+import org.apache.hadoop.hbase.security.access.AccessController;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.WALEntry;
 import org.apache.hadoop.hbase.wal.WALEdit;
 
@@ -40,40 +41,10 @@ import org.apache.hadoop.hbase.wal.WALEdit;
  * @author alal
  *
  */
-public abstract class RangerAuthorizationCoprocessorBase
+public abstract class RangerAuthorizationCoprocessorBase extends AccessController
 		implements MasterObserver, RegionServerObserver, BulkLoadObserver, RegionObserver {
 
 	private static final Log LOG = LogFactory.getLog(RangerAuthorizationCoprocessorBase.class.getName());
-
-	/*@Override
-	public void preMergeCommit(
-			ObserverContext<RegionServerCoprocessorEnvironment> ctx,
-			Region regionA, Region regionB, List<Mutation> metaEntries)
-			throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void postMergeCommit(
-			ObserverContext<RegionServerCoprocessorEnvironment> ctx,
-			Region regionA, Region regionB, Region mergedRegion)
-			throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void preRollBackMerge(
-			ObserverContext<RegionServerCoprocessorEnvironment> ctx,
-			Region regionA, Region regionB) throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void postRollBackMerge(
-			ObserverContext<RegionServerCoprocessorEnvironment> ctx,
-			Region regionA, Region regionB) throws IOException {
-		// Not applicable.  Expected to be empty
-	} */
 
 	@Override
 	public void preCreateTableAction(
@@ -116,50 +87,6 @@ public abstract class RangerAuthorizationCoprocessorBase
 			TableName tableName, TableDescriptor htd) throws IOException {
 		// Not applicable.  Expected to be empty
 	}
-
-	/*@Override
-	public void preAddColumnFamilyAction(
-			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, ColumnFamilyDescriptor column) throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void postCompletedAddColumnFamilyAction(
-			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, ColumnFamilyDescriptor column) throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void preModifyColumnFamilyAction(
-			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, ColumnFamilyDescriptor descriptor)
-			throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void postCompletedModifyColumnFamilyAction(
-			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, ColumnFamilyDescriptor descriptor)
-			throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void preDeleteColumnFamilyAction(
-			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, byte[] c) throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-
-	@Override
-	public void postCompletedDeleteColumnFamilyAction(
-			ObserverContext<MasterCoprocessorEnvironment> ctx,
-			TableName tableName, byte[] c) throws IOException {
-		// Not applicable.  Expected to be empty
-	} */
 
 	@Override
 	public void preEnableTableAction(
@@ -210,15 +137,6 @@ public abstract class RangerAuthorizationCoprocessorBase
     public void postReplicateLogEntries(final ObserverContext<RegionServerCoprocessorEnvironment> ctx, List<WALEntry> entries, CellScanner cells) throws IOException {
     }
 
-	/*@Override
-	public void preGetTableDescriptors(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableName> tableNamesList,  List<TableDescriptor> descriptors) throws IOException {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug(String.format("==> postGetTableDescriptors(count(tableNamesList)=%s, count(descriptors)=%s)", tableNamesList == null ? 0 : tableNamesList.size(),
-					descriptors == null ? 0 : descriptors.size()));
-		}
-
-	}*/
-	
 	@Override
 	public void preGetTableDescriptors(ObserverContext<MasterCoprocessorEnvironment> ctx, List<TableName> tableNamesList, List<TableDescriptor> descriptors, String regex) throws IOException {
 		if (LOG.isDebugEnabled()) {
@@ -273,18 +191,6 @@ public abstract class RangerAuthorizationCoprocessorBase
 		return endpoint;
 	}
 
-	/*@Override
-	public void stop(CoprocessorEnvironment env) {
-		// Not applicable.  Expected to be empty
-	}
-	@Override
-	public void postAddColumnFamily(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName, ColumnFamilyDescriptor column) throws IOException {
-		// Not applicable.  Expected to be empty
-	}
-	@Override
-	public void postAssign(ObserverContext<MasterCoprocessorEnvironment> c, HRegionInfo regionInfo) throws IOException {
-		// Not applicable.  Expected to be empty
-	}*/
 	@Override
 	public void postBalance(ObserverContext<MasterCoprocessorEnvironment> c,List<RegionPlan> aRegPlanList) throws IOException {
 		// Not applicable.  Expected to be empty
