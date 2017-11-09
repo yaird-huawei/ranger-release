@@ -1149,25 +1149,7 @@ public class RangerAuthorizationCoprocessor implements MasterObserver, RegionObs
 			LOG.debug("<== RangerAuthorizationCoprocessor.postOpen()");
 		}
 	}
-
-	@Override
-	public void postLogReplay(ObserverContext<RegionCoprocessorEnvironment> c) {
-		if(LOG.isDebugEnabled()) {
-			LOG.debug("==> RangerAuthorizationCoprocessor.postLogReplay()");
-		}
 	
-		try {
-			activatePluginClassLoader();
-			implRegionObserver.postLogReplay(c);
-		} finally {
-			deactivatePluginClassLoader();
-		}
-		
-		if(LOG.isDebugEnabled()) {
-			LOG.debug("<== RangerAuthorizationCoprocessor.postLogReplay()");
-		}
-	}
-
 	@Override
 	public InternalScanner preFlush(ObserverContext<RegionCoprocessorEnvironment> c, Store store, InternalScanner scanner, FlushLifeCycleTracker tracker) throws IOException {
 		
