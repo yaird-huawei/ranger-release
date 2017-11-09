@@ -163,6 +163,7 @@ public class AtlasNotificationMapper {
 					break;
 				case ENTITY_DELETE:
 				case TRAIT_ADD:
+				case TRAIT_UPDATE:
 				case TRAIT_DELETE: {
 					ret = true;
 					break;
