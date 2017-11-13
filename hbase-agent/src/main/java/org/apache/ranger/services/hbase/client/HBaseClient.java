@@ -131,7 +131,7 @@ public class HBaseClient extends BaseClient {
 							LOG.info("getHBaseStatus: setting config values from client");
 							setClientConfigValues(conf);						
 							LOG.info("getHBaseStatus: checking HbaseAvailability with the new config");
-							HBaseAdmin.checkHBaseAvailable(conf);					
+							HBaseAdmin.available(conf);
 							LOG.info("getHBaseStatus: no exception: HbaseAvailability true");
 							hbaseStatus1 = true;
 						} catch (ZooKeeperConnectionException zce) {
@@ -154,15 +154,6 @@ public class HBaseClient extends BaseClient {
 									getMessage(mnre), msgDesc + errMsg,
 									null, null);
 							LOG.error(msgDesc + mnre);
-							throw hdpException;
-
-						} catch (ServiceException se) {
-							String msgDesc = "getHBaseStatus: Unable to check availability of "
-									+ "Hbase environment [" + getConfigHolder().getDatasourceName() + "].";
-							HadoopException hdpException = new HadoopException(msgDesc, se);
-							hdpException.generateResponseDataMap(false, getMessage(se),
-									msgDesc + errMsg, null, null);
-							LOG.error(msgDesc + se);
 							throw hdpException;
 
 						} catch(IOException io) {
