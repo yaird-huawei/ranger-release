@@ -34,7 +34,6 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.ranger.plugin.client.BaseClient;
 import org.apache.ranger.plugin.client.HadoopException;
 
-import com.google.protobuf.ServiceException;
 
 public class HBaseClient extends BaseClient {
 
