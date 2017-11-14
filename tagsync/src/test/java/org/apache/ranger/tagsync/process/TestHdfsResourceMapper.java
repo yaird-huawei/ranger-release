@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.atlas.typesystem.IReferenceableInstance;
+import org.apache.atlas.v1.model.instance.Referenceable;
 import org.apache.ranger.plugin.model.RangerServiceResource;
 import org.apache.ranger.tagsync.source.atlas.AtlasHdfsResourceMapper;
 import org.apache.ranger.tagsync.source.atlas.AtlasResourceMapper;
@@ -60,7 +60,7 @@ public class TestHdfsResourceMapper {
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_PATH, PATH);
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_CLUSTER_NAME, CLUSTER_NAME);
 
-		IReferenceableInstance entity   = getHdfsPathEntity(entAttribs);
+		Referenceable          entity   = getHdfsPathEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapper.buildResource(entity);
 
 		assertServiceResource(resource);
@@ -73,7 +73,7 @@ public class TestHdfsResourceMapper {
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_PATH, PATH);
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_QUALIFIED_NAME, QUALIFIED_NAME);
 
-		IReferenceableInstance entity   = getHdfsPathEntity(entAttribs);
+		Referenceable          entity   = getHdfsPathEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapper.buildResource(entity);
 
 		assertServiceResource(resource);
@@ -86,7 +86,7 @@ public class TestHdfsResourceMapper {
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_CLUSTER_NAME, CLUSTER_NAME);
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_QUALIFIED_NAME, QUALIFIED_NAME);
 
-		IReferenceableInstance entity   = getHdfsPathEntity(entAttribs);
+		Referenceable          entity   = getHdfsPathEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapper.buildResource(entity);
 
 		assertServiceResource(resource);
@@ -100,7 +100,7 @@ public class TestHdfsResourceMapper {
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_CLUSTER_NAME, CLUSTER_NAME);
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_QUALIFIED_NAME, QUALIFIED_NAME);
 
-		IReferenceableInstance entity   = getHdfsPathEntity(entAttribs);
+		Referenceable          entity   = getHdfsPathEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapper.buildResource(entity);
 
 		assertServiceResource(resource);
@@ -112,7 +112,7 @@ public class TestHdfsResourceMapper {
 
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_QUALIFIED_NAME, PATH);
 
-		IReferenceableInstance entity   = getHdfsPathEntity(entAttribs);
+		Referenceable          entity   = getHdfsPathEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapperWithDefaultClusterName.buildResource(entity);
 
 		assertServiceResource(resource);
@@ -124,7 +124,7 @@ public class TestHdfsResourceMapper {
 
 		entAttribs.put(AtlasHdfsResourceMapper.ENTITY_ATTRIBUTE_PATH, PATH);
 
-		IReferenceableInstance entity   = getHdfsPathEntity(entAttribs);
+		Referenceable          entity   = getHdfsPathEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapperWithDefaultClusterName.buildResource(entity);
 
 		assertServiceResource(resource);
@@ -134,7 +134,7 @@ public class TestHdfsResourceMapper {
 	public void testHdfsResourceFromMissingAttribs() throws Exception {
 		Map<String, Object> entAttribs = new HashMap<String, Object>();
 
-		IReferenceableInstance entity  = getHdfsPathEntity(entAttribs);
+		Referenceable entity  = getHdfsPathEntity(entAttribs);
 
 		try {
 			RangerServiceResource resource = resourceMapper.buildResource(entity);
@@ -145,8 +145,8 @@ public class TestHdfsResourceMapper {
 		}
 	}
 
-	private IReferenceableInstance getHdfsPathEntity(Map<String, Object> entAttribs) throws Exception {
-		IReferenceableInstance entity = Mockito.mock(IReferenceableInstance.class);
+	private Referenceable  getHdfsPathEntity(Map<String, Object> entAttribs) throws Exception {
+		Referenceable entity = Mockito.mock(Referenceable.class);
 
 		Mockito.when(entity.getTypeName()).thenReturn(AtlasHdfsResourceMapper.ENTITY_TYPE_HDFS_PATH);
 		Mockito.when(entity.getValuesMap()).thenReturn(entAttribs);

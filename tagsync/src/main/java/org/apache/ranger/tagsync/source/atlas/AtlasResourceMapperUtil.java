@@ -19,7 +19,7 @@
 
 package org.apache.ranger.tagsync.source.atlas;
 
-import org.apache.atlas.typesystem.IReferenceableInstance;
+import org.apache.atlas.v1.model.instance.Referenceable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ranger.plugin.model.RangerServiceResource;
 
@@ -52,7 +52,7 @@ public class AtlasResourceMapperUtil {
 		return ret;
 	}
 
-	public static RangerServiceResource getRangerServiceResource(IReferenceableInstance atlasEntity) {
+	public static RangerServiceResource getRangerServiceResource(Referenceable atlasEntity) {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> getRangerServiceResource(" + atlasEntity.getId()._getId() +")");
 		}

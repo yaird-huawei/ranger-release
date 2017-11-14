@@ -22,8 +22,7 @@ package org.apache.ranger.tagsync.source.atlas;
 import java.util.Properties;
 import java.util.Map;
 
-import org.apache.atlas.AtlasException;
-import org.apache.atlas.typesystem.IReferenceableInstance;
+import org.apache.atlas.v1.model.instance.Referenceable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -73,7 +72,7 @@ public abstract class AtlasResourceMapper {
 		this.defaultClusterName = properties != null ? properties.getProperty(TAGSYNC_DEFAULT_CLUSTER_NAME) : null;
 	}
 
-	abstract public RangerServiceResource buildResource(final IReferenceableInstance entity) throws Exception;
+	abstract public RangerServiceResource buildResource(final Referenceable entity) throws Exception;
 
 	protected String getCustomRangerServiceName(String atlasInstanceName) {
 		if(properties != null) {
@@ -119,15 +118,9 @@ public abstract class AtlasResourceMapper {
 		throw new Exception(msg);
 	}
 
-	static protected <T> T getEntityAttribute(IReferenceableInstance entity, String name, Class<T> type) {
-		T ret = null;
-
-		try {
-			Map<String, Object> valueMap = entity.getValuesMap();
-			ret = getAttribute(valueMap, name, type);
-		} catch (AtlasException exception) {
-			LOG.error("Cannot get map of values for entity: " + entity.getId()._getId(), exception);
-		}
+	static protected <T> T getEntityAttribute(Referenceable entity, String name, Class<T> type) {
+		Map<String, Object> valueMap = entity.getValuesMap();
+		T ret = getAttribute(valueMap, name, type);
 
 		return ret;
 	}

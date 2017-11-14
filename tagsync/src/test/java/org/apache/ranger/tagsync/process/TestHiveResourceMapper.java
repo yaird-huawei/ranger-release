@@ -19,7 +19,7 @@
 
 package org.apache.ranger.tagsync.process;
 
-import org.apache.atlas.typesystem.IReferenceableInstance;
+import org.apache.atlas.v1.model.instance.Referenceable;
 import org.apache.ranger.plugin.model.RangerServiceResource;
 import org.apache.ranger.tagsync.source.atlas.AtlasHiveResourceMapper;
 import org.junit.Assert;
@@ -48,7 +48,7 @@ public class TestHiveResourceMapper {
 
 		entAttribs.put(AtlasHiveResourceMapper.ENTITY_ATTRIBUTE_QUALIFIED_NAME, DB_QUALIFIED_NAME);
 
-		IReferenceableInstance entity   = getHiveDbEntity(entAttribs);
+		Referenceable          entity   = getHiveDbEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapper.buildResource(entity);
 
 		assertDbResource(resource);
@@ -60,7 +60,7 @@ public class TestHiveResourceMapper {
 
 		entAttribs.put(AtlasHiveResourceMapper.ENTITY_ATTRIBUTE_QUALIFIED_NAME, TABLE_QUALIFIED_NAME);
 
-		IReferenceableInstance entity   = getHiveTableEntity(entAttribs);
+		Referenceable          entity   = getHiveTableEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapper.buildResource(entity);
 
 		assertTableResource(resource);
@@ -72,7 +72,7 @@ public class TestHiveResourceMapper {
 
 		entAttribs.put(AtlasHiveResourceMapper.ENTITY_ATTRIBUTE_QUALIFIED_NAME, COLUMN_QUALIFIED_NAME);
 
-		IReferenceableInstance entity   = getHiveColumnEntity(entAttribs);
+		Referenceable          entity   = getHiveColumnEntity(entAttribs);
 		RangerServiceResource  resource = resourceMapper.buildResource(entity);
 
 		assertColumnResource(resource);
@@ -82,7 +82,7 @@ public class TestHiveResourceMapper {
 	public void testHiveResourceFromMissingAttribs() throws Exception {
 		Map<String, Object> entAttribs = new HashMap<String, Object>();
 
-		IReferenceableInstance entity = getHiveDbEntity(entAttribs);
+		Referenceable entity = getHiveDbEntity(entAttribs);
 
 		try {
 			RangerServiceResource resource = resourceMapper.buildResource(entity);
@@ -93,8 +93,8 @@ public class TestHiveResourceMapper {
 		}
 	}
 
-	private IReferenceableInstance getHiveDbEntity(Map<String, Object> entAttribs) throws Exception {
-		IReferenceableInstance entity = Mockito.mock(IReferenceableInstance.class);
+	private Referenceable getHiveDbEntity(Map<String, Object> entAttribs) throws Exception {
+		Referenceable entity = Mockito.mock(Referenceable.class);
 
 		Mockito.when(entity.getTypeName()).thenReturn(AtlasHiveResourceMapper.ENTITY_TYPE_HIVE_DB);
 		Mockito.when(entity.getValuesMap()).thenReturn(entAttribs);
@@ -102,8 +102,8 @@ public class TestHiveResourceMapper {
 		return entity;
 	}
 
-	private IReferenceableInstance getHiveTableEntity(Map<String, Object> entAttribs) throws Exception {
-		IReferenceableInstance entity = Mockito.mock(IReferenceableInstance.class);
+	private Referenceable getHiveTableEntity(Map<String, Object> entAttribs) throws Exception {
+		Referenceable entity = Mockito.mock(Referenceable.class);
 
 		Mockito.when(entity.getTypeName()).thenReturn(AtlasHiveResourceMapper.ENTITY_TYPE_HIVE_TABLE);
 		Mockito.when(entity.getValuesMap()).thenReturn(entAttribs);
@@ -111,8 +111,8 @@ public class TestHiveResourceMapper {
 		return entity;
 	}
 
-	private IReferenceableInstance getHiveColumnEntity(Map<String, Object> entAttribs) throws Exception {
-		IReferenceableInstance entity = Mockito.mock(IReferenceableInstance.class);
+	private Referenceable getHiveColumnEntity(Map<String, Object> entAttribs) throws Exception {
+		Referenceable entity = Mockito.mock(Referenceable.class);
 
 		Mockito.when(entity.getTypeName()).thenReturn(AtlasHiveResourceMapper.ENTITY_TYPE_HIVE_COLUMN);
 		Mockito.when(entity.getValuesMap()).thenReturn(entAttribs);

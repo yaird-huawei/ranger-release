@@ -18,13 +18,10 @@
 
 package org.apache.ranger.tagsync.source.atlasrest;
 
-import com.google.gson.Gson;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import org.apache.atlas.typesystem.IReferenceableInstance;
-import org.apache.atlas.typesystem.IStruct;
-import org.apache.atlas.typesystem.Struct;
-import org.apache.atlas.typesystem.json.InstanceSerialization;
+import org.apache.atlas.v1.model.instance.Referenceable;
+import org.apache.atlas.v1.model.instance.Struct;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -62,8 +59,6 @@ public class AtlasRESTUtil {
 	private static final String SUPER_TYPES_ATTRIBUTE           = "superTypes";
 	private static final String ATTRIBUTE_DEFINITIONS_ATTRIBUTE = "attributeDefinitions";
 	private static final String NAME_ATTRIBUTE                  = "name";
-
-	private final Gson gson = new Gson();
 
 	private final RangerRESTClient atlasRESTClient;
 	private final String principal;
@@ -129,7 +124,7 @@ public class AtlasRESTUtil {
 
 					Map<String, Object> traitsAttribute = getAttribute(definition, TRAITS_ATTRIBUTE, Map.class);
 
-					List<IStruct> allTraits = new LinkedList<>();
+					List<Struct> allTraits = new LinkedList<>();
 
 					if (MapUtils.isNotEmpty(traitsAttribute)) {
 
@@ -144,7 +139,7 @@ public class AtlasRESTUtil {
 								continue;
 							}
 
-							List<IStruct> superTypes = getTraitSuperTypes(getTraitType(traitTypeName), traitValues);
+							List<Struct> superTypes = getTraitSuperTypes(getTraitType(traitTypeName), traitValues);
 
 							Struct trait1 = new Struct(traitTypeName, traitValues);
 
@@ -153,7 +148,7 @@ public class AtlasRESTUtil {
 						}
 					}
 
-					IReferenceableInstance entity = InstanceSerialization.fromJsonReferenceable(gson.toJson(definition), true);
+					Referenceable entity = new Referenceable(definition);
 
 					if (entity != null) {
 						AtlasEntityWithTraits atlasEntity = new AtlasEntityWithTraits(entity, allTraits);
@@ -197,12 +192,12 @@ public class AtlasRESTUtil {
 		return ret;
 	}
 
-	private List<IStruct> getTraitSuperTypes(Map<String, Object> traitType, Map<String, Object> values) {
+	private List<Struct> getTraitSuperTypes(Map<String, Object> traitType, Map<String, Object> values) {
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> getTraitSuperTypes()");
 		}
-		List<IStruct> ret = new LinkedList<>();
+		List<Struct> ret = new LinkedList<>();
 
 		if (traitType != null) {
 
@@ -225,7 +220,7 @@ public class AtlasRESTUtil {
 							}
 						}
 
-						List<IStruct> superTraits = getTraitSuperTypes(getTraitType(superTypeName), values);
+						List<Struct> superTraits = getTraitSuperTypes(getTraitType(superTypeName), values);
 
 						Struct superTrait = new Struct(superTypeName, superTypeValues);
 

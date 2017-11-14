@@ -19,9 +19,8 @@
 
 package org.apache.ranger.tagsync.source.atlas;
 
-import org.apache.atlas.AtlasException;
-import org.apache.atlas.typesystem.IReferenceableInstance;
-import org.apache.atlas.typesystem.IStruct;
+import org.apache.atlas.v1.model.instance.Referenceable;
+import org.apache.atlas.v1.model.instance.Struct;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -29,20 +28,20 @@ import java.util.Map;
 
 public class AtlasEntityWithTraits {
 
-	private final IReferenceableInstance entity;
-	private final List<IStruct> traits;
+	private final Referenceable entity;
+	private final List<Struct>  traits;
 
-	public AtlasEntityWithTraits(IReferenceableInstance entity, List<IStruct> traits) {
+	public AtlasEntityWithTraits(Referenceable entity, List<Struct> traits) {
 		this.entity = entity;
 		this.traits = traits;
 	}
 
-	public IReferenceableInstance getEntity() {
+	public Referenceable getEntity() {
 		return entity;
 	}
 
-	public List<IStruct> getAllTraits() {
-		return traits == null ? new LinkedList<IStruct>() : traits;
+	public List<Struct> getAllTraits() {
+		return traits == null ? new LinkedList<Struct>() : traits;
 	}
 
 	@Override
@@ -61,33 +60,25 @@ public class AtlasEntityWithTraits {
 		sb.append("Entity-Id: " + entity.getId()._getId()).append(", ")
 				.append("Entity-Type: " + entity.getTypeName()).append(", ")
 				.append("Entity-Version: " + entity.getId().getVersion()).append(", ")
-				.append("Entity-State: " + entity.getId().getStateAsString()).append(", ");
+				.append("Entity-State: " + entity.getId().getState()).append(", ");
 
 		sb.append("Entity-Values={ ");
-		try {
-			for (Map.Entry<String, Object> entry : entity.getValuesMap().entrySet()) {
-				sb.append("{").append(entry.getKey()).append(", ").append(entry.getValue()).append("}, ");
-			}
-		} catch (AtlasException exception) {
-				// Ignore
+		for (Map.Entry<String, Object> entry : entity.getValuesMap().entrySet()) {
+			sb.append("{").append(entry.getKey()).append(", ").append(entry.getValue()).append("}, ");
 		}
 		sb.append(" }");
 
 		sb.append(", Entity-Traits={ ");
-		for (IStruct trait : traits) {
-			try {
-				sb.append("{traitType=").append(trait.getTypeName()).append(", ");
-				Map<String, Object> traitValues = trait.getValuesMap();
-				sb.append("{");
-				for (Map.Entry<String, Object> valueEntry : traitValues.entrySet()) {
-					sb.append("{").append(valueEntry.getKey()).append(", ").append(valueEntry.getValue()).append("}");
-				}
-				sb.append("}");
-
-				sb.append(" }");
-			} catch (AtlasException exception) {
-				// Ignore
+		for (Struct trait : traits) {
+			sb.append("{traitType=").append(trait.getTypeName()).append(", ");
+			Map<String, Object> traitValues = trait.getValuesMap();
+			sb.append("{");
+			for (Map.Entry<String, Object> valueEntry : traitValues.entrySet()) {
+				sb.append("{").append(valueEntry.getKey()).append(", ").append(valueEntry.getValue()).append("}");
 			}
+			sb.append("}");
+
+			sb.append(" }");
 		}
 		sb.append(" }");
 

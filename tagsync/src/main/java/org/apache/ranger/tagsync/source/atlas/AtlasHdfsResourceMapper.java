@@ -22,7 +22,7 @@ package org.apache.ranger.tagsync.source.atlas;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.atlas.typesystem.IReferenceableInstance;
+import org.apache.atlas.v1.model.instance.Referenceable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.ranger.plugin.model.RangerPolicy;
@@ -56,7 +56,7 @@ public class AtlasHdfsResourceMapper extends AtlasResourceMapper {
 	}
 
 	@Override
-	public RangerServiceResource buildResource(final IReferenceableInstance entity) throws Exception {
+	public RangerServiceResource buildResource(final Referenceable entity) throws Exception {
 		String path          = getEntityAttribute(entity, ENTITY_ATTRIBUTE_PATH, String.class);
 		String clusterName   = getEntityAttribute(entity, ENTITY_ATTRIBUTE_CLUSTER_NAME, String.class);
 		String qualifiedName = getEntityAttribute(entity, ENTITY_ATTRIBUTE_QUALIFIED_NAME, String.class);

@@ -22,7 +22,7 @@ package org.apache.ranger.tagsync.source.atlas;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.apache.atlas.typesystem.IReferenceableInstance;
+import org.apache.atlas.v1.model.instance.Referenceable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
 import org.apache.ranger.plugin.model.RangerServiceResource;
@@ -46,7 +46,7 @@ public class AtlasHiveResourceMapper extends AtlasResourceMapper {
 	}
 
 	@Override
-	public RangerServiceResource buildResource(final IReferenceableInstance entity) throws Exception {
+	public RangerServiceResource buildResource(final Referenceable entity) throws Exception {
 		String qualifiedName = getEntityAttribute(entity, ENTITY_ATTRIBUTE_QUALIFIED_NAME, String.class);
 		if (StringUtils.isEmpty(qualifiedName)) {
 			throw new Exception("attribute '" +  ENTITY_ATTRIBUTE_QUALIFIED_NAME + "' not found in entity");

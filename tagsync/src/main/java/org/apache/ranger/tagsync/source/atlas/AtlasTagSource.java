@@ -28,7 +28,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.apache.atlas.notification.NotificationConsumer;
 import org.apache.atlas.notification.NotificationInterface;
-import org.apache.atlas.notification.entity.EntityNotification;
+import org.apache.atlas.v1.model.notification.EntityNotificationV1;
 
 import org.apache.kafka.common.TopicPartition;
 import org.apache.ranger.tagsync.model.AbstractTagSource;
@@ -137,7 +137,7 @@ public class AtlasTagSource extends AbstractTagSource {
 		}
 	}
 
-	private static String getPrintableEntityNotification(EntityNotification notification) {
+	private static String getPrintableEntityNotification(EntityNotificationV1 notification) {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("{ Notification-Type: ").append(notification.getOperationType()).append(", ");
@@ -167,9 +167,9 @@ public class AtlasTagSource extends AbstractTagSource {
                         Object kafkaMessage = message != null ? message.getMessage() : null;
 
                         if (kafkaMessage != null) {
-                            EntityNotification notification = null;
-                            if (kafkaMessage instanceof EntityNotification) {
-                                notification = (EntityNotification) kafkaMessage;
+                            EntityNotificationV1 notification = null;
+                            if (kafkaMessage instanceof EntityNotificationV1) {
+                                notification = (EntityNotificationV1) kafkaMessage;
                             } else {
                                 LOG.warn("Received Kafka notification of unexpected type:[" + kafkaMessage.getClass().toString() + "], Ignoring...");
                             }
