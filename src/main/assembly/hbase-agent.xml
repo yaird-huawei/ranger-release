@@ -86,6 +86,10 @@
                         <include>org.slf4j:slf4j-api:jar:${slf4j-api.version}</include>
                         <include>org.apache.hadoop:hadoop-common:jar:${hadoop.version}</include>
                         <include>org.apache.hadoop:hadoop-auth:jar:${hadoop.version}</include>
+                        <include>org.apache.htrace:htrace-core4</include>
+                        <include>com.fasterxml.woodstox:woodstox-core</include>
+                        <include>org.codehaus.woodstox:stax2-api</include>
+                        <include>org.apache.commons:commons-configuration2</include>
                     </includes>
                 </dependencySet>
         </dependencySets>
