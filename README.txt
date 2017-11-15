@@ -90,3 +90,4 @@ Installation Process
    If the install.sh file does not exists, 
        Execute ./enable-<component>-plugin.sh
 
+Patch Upgrade - Wed Nov 15 10:28:10 UTC 2017
