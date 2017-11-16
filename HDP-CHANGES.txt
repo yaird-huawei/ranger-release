@@ -47,3 +47,4 @@ BUG
 	[RANGER-1096] - Revert to jceks scheme for credential store related operations
 	[RANGER-1094] - One way SSL (when Kerberos is enabled) for Ranger and its plugins
 	[RANGER-1097] - Ranger KMS Plugin should not fails to download policy when UGI ticket expires
+	[HOTFIX-1576] - RANGER-1731  Exclude old guava versions, which could cause build problems, especially with owasp-java-html-sanitizer, which declares the deps as a range: [11.0,) Guava is already included in the admin module
