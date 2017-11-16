@@ -166,3 +166,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1897] : tagsync update to replace Atlas V1 API usage with Atlas V2 API for tag-download using REST
 [RANGER-2007] : : ranger-tagsync's Kerberos ticket fails to renew
 [RANGER-2010] : : Ranger Tagsync should use cookie based authentication for subsequent requests to Ranger admin
+[RANGER-1731] : Exclude old guava versions, which could cause build problems, especially with owasp-java-html-sanitizer, which declares the deps as a range: [11.0,) Guava is already included in the admin module
