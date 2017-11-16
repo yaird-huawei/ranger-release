@@ -271,6 +271,26 @@
 			<artifactId>jackson-core</artifactId>
 			<version>${fasterxml.jackson.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>org.apache.kerby</groupId>
+            <artifactId>kerb-core</artifactId>
+            <version>${kerby.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kerby</groupId>
+            <artifactId>kerb-util</artifactId>
+            <version>${kerby.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kerby</groupId>
+            <artifactId>kerb-crypto</artifactId>
+            <version>${kerby.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kerby</groupId>
+            <artifactId>kerby-asn1</artifactId>
+            <version>${kerby.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
