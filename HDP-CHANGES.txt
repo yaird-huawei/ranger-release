@@ -70,3 +70,4 @@ BUG
 	RANGER-1499 - BUG-78284: Ranger - Upgrade Tomcat version
 	RANGER-1603 - BUG-81748: Wildcard policy authorization incorrectly performs prefix match
 	RANGER-1619 - BUG-81764: [2.5] HS2 doesn't evaluate WASB ranger policies on the location given in Create & Load commands if the location doesn't exist / Ranger Hive Plugin fails to check the URI when the location doesn't exist 
+	[HOTFIX-1949] - RANGER-1731  Exclude old guava versions, which could cause build problems, especially with owasp-java-html-sanitizer, which declares the deps as a range: [11.0,) Guava is already included in the admin module
