@@ -68,3 +68,4 @@ BUG
 	RANGER-1434 - BUG-76701: Enable Group Search First causes issues
 	RANGER-1435 - BUG-76703: Allow different files to be specified for unix based usersync
 	RANGER-1499 - BUG-78284: Ranger - Upgrade Tomcat version
+	[HOTFIX-1780] - RANGER-1731  Exclude old guava versions, which could cause build problems, especially with owasp-java-html-sanitizer, which declares the deps as a range: [11.0,) Guava is already included in the admin module
