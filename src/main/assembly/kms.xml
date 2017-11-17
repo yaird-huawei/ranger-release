@@ -109,6 +109,8 @@
 					<include>org.codehaus.woodstox:stax2-api</include>
 					<include>org.apache.commons:commons-configuration2</include>
 					<include>com.fasterxml.jackson.core:jackson-core</include>
+					<include>com.fasterxml.jackson.core:jackson-databind</include>
+					<include>com.fasterxml.jackson.core:jackson-annotations</include>
                                         <include>org.apache.kerby:kerb-core</include>
                                         <include>org.apache.kerby:kerb-util</include>
                                         <include>org.apache.kerby:kerb-crypto</include>
