@@ -52,10 +52,10 @@
 					<include>org.apache.ranger:ranger-plugins-common</include>
 					<include>org.apache.ranger:ranger-util</include>
 					<include>org.apache.zookeeper:zookeeper:jar:${zookeeper.version}</include>
-					<include>org.codehaus.jackson:jackson-core-asl</include>
-					<include>org.codehaus.jackson:jackson-jaxrs</include>
-					<include>org.codehaus.jackson:jackson-mapper-asl</include>
-					<include>org.codehaus.jackson:jackson-xc</include>
+					<include>com.fasterxml.jackson.core:jackson-core</include>
+					<include>com.fasterxml.jackson.core:jackson-databind</include>
+					<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-base</include>
+					<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider</include>
 					<include>org.codehaus.jettison:jettison:jar:${jettison.version}</include>
 					<include>org.scala-lang:scala-library:jar:${scala.version}</include>
 					<include>org.slf4j:slf4j-api</include>
