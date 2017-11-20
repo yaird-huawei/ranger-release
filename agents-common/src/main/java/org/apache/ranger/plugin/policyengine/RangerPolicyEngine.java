@@ -49,6 +49,10 @@ public interface RangerPolicyEngine {
 
 	RangerAccessResult createAccessResult(RangerAccessRequest request);
 
+	RangerDataMaskResult createDataMaskResult(RangerAccessRequest request);
+
+	RangerRowFilterResult createRowFilterResult(RangerAccessRequest request);
+
 	void preProcess(RangerAccessRequest request);
 
 	void preProcess(Collection<RangerAccessRequest> requests);
@@ -70,6 +74,8 @@ public interface RangerPolicyEngine {
 	List<RangerPolicy> getExactMatchPolicies(Map<String, RangerPolicyResource> resources, Map<String, Object> evalContext);
 
 	List<RangerPolicy> getAllowedPolicies(String user, Set<String> userGroups, String accessType);
+
+	List<RangerPolicy> getMatchingPolicies(RangerAccessResource resource);
 
 	RangerResourceAccessInfo getResourceAccessInfo(RangerAccessRequest request);
 

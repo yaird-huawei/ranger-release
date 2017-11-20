@@ -543,6 +543,9 @@ public class TestServiceREST {
 
 		RangerService rangerService = rangerService();
 		XXServiceDef xServiceDef = serviceDef();
+        HttpServletRequest request = null;
+		Map<String, Object> options = null;
+
 		XXServiceDefDao xServiceDefDao = Mockito.mock(XXServiceDefDao.class);
 		Mockito.when(validatorFactory.getServiceValidator(svcStore))
 				.thenReturn(serviceValidator);
@@ -552,11 +555,12 @@ public class TestServiceREST {
 				.thenReturn(xServiceDef);
 
 		Mockito.when(
-				svcStore.updateService((RangerService) Mockito.anyObject()))
+
+				svcStore.updateService((RangerService) Mockito.any(), (Map<String, Object>) Mockito.any()))
 				.thenReturn(rangerService);
 
 		RangerService dbRangerService = serviceREST
-				.updateService(rangerService);
+				.updateService(rangerService, request);
 		Assert.assertNotNull(dbRangerService);
 		Assert.assertNotNull(dbRangerService);
 		Assert.assertEquals(rangerService, dbRangerService);
@@ -580,7 +584,7 @@ public class TestServiceREST {
 				dbRangerService.getUpdatedBy());
 		Mockito.verify(validatorFactory).getServiceValidator(svcStore);
 		Mockito.verify(daoManager).getXXServiceDef();
-		Mockito.verify(svcStore).updateService(rangerService);
+		Mockito.verify(svcStore).updateService(rangerService, options);
 	}
 
 	@Test
@@ -1099,7 +1103,8 @@ public class TestServiceREST {
 		RangerPolicy existingPolicy = rangerPolicy();
 		RangerPolicy appliedPolicy = rangerPolicy();
 
-		existingPolicy.setPolicyItems(null);
+                List<RangerPolicyItem> policyItem = new ArrayList<RangerPolicyItem>();
+                existingPolicy.setPolicyItems(policyItem );
 		appliedPolicy.setPolicyItems(null);
 
 		Map<String, RangerPolicyResource> policyResources = new HashMap<String, RangerPolicyResource>();
@@ -1148,7 +1153,8 @@ public class TestServiceREST {
 		RangerPolicy existingPolicy = rangerPolicy();
 		RangerPolicy appliedPolicy = rangerPolicy();
 
-		existingPolicy.setPolicyItems(null);
+                List<RangerPolicyItem> policyItem = new ArrayList<RangerPolicyItem>();
+                existingPolicy.setPolicyItems(policyItem);
 		appliedPolicy.setPolicyItems(null);
 
 		Map<String, RangerPolicyResource> policyResources = new HashMap<String, RangerPolicyResource>();
@@ -1242,8 +1248,8 @@ public class TestServiceREST {
 	@Test
 	public void test42grant() {
 		RangerPolicy existingPolicy = rangerPolicy();
-
-		existingPolicy.setPolicyItems(null);
+                List<RangerPolicyItem> policyItem = new ArrayList<RangerPolicyItem>();
+                existingPolicy.setPolicyItems(policyItem );
 
 		Map<String, RangerPolicyResource> policyResources = new HashMap<String, RangerPolicyResource>();
 		RangerPolicyResource rangerPolicyResource = new RangerPolicyResource("/tmp");
@@ -1337,7 +1343,8 @@ public class TestServiceREST {
 	public void test43revoke() {
 		RangerPolicy existingPolicy = rangerPolicy();
 
-		existingPolicy.setPolicyItems(null);
+                List<RangerPolicyItem> policyItem = new ArrayList<RangerPolicyItem>();
+                existingPolicy.setPolicyItems(policyItem );
 
 		Map<String, RangerPolicyResource> policyResources = new HashMap<String, RangerPolicyResource>();
 		RangerPolicyResource rangerPolicyResource = new RangerPolicyResource("/tmp");

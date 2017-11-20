@@ -20,6 +20,8 @@
 package org.apache.ranger.plugin.policyevaluator;
 
 
+import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +39,8 @@ import org.apache.ranger.plugin.policyresourcematcher.RangerPolicyResourceEvalua
 
 
 public interface RangerPolicyEvaluator extends RangerPolicyResourceEvaluator {
+	Comparator<RangerPolicyEvaluator> EVAL_ORDER_COMPARATOR = new RangerPolicyEvaluator.PolicyEvalOrderComparator();
+
 	String EVALUATOR_TYPE_AUTO   = "auto";
 	String EVALUATOR_TYPE_OPTIMIZED = "optimized";
 	String EVALUATOR_TYPE_CACHED    = "cached";
@@ -82,5 +86,26 @@ public interface RangerPolicyEvaluator extends RangerPolicyResourceEvaluator {
 	boolean isAccessAllowed(Map<String, RangerPolicyResource> resources, String user, Set<String> userGroups, String accessType);
 
 	void getResourceAccessInfo(RangerAccessRequest request, RangerResourceAccessInfo result);
+
+	class PolicyEvalOrderComparator implements Comparator<RangerPolicyEvaluator>, Serializable {
+		@Override
+		public int compare(RangerPolicyEvaluator me, RangerPolicyEvaluator other) {
+			int result;
+
+			if (me.hasDeny() && !other.hasDeny()) {
+				result = -1;
+			} else if (!me.hasDeny() && other.hasDeny()) {
+				result = 1;
+			} else {
+				result = Long.compare(other.getUsageCount(), me.getUsageCount());
+
+				if (result == 0) {
+					result = Integer.compare(me.getEvalOrder(), other.getEvalOrder());
+				}
+			}
+
+			return result;
+		}
+	}
 
 }

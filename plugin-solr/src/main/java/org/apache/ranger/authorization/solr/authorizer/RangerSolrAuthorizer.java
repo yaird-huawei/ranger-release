@@ -28,10 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.security.auth.login.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.ranger.audit.provider.AuditProviderFactory;
 import org.apache.ranger.audit.provider.MiscUtil;
 import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
 import org.apache.ranger.plugin.audit.RangerMultiResourceAuditHandler;
@@ -39,6 +38,7 @@ import org.apache.ranger.plugin.policyengine.RangerAccessRequestImpl;
 import org.apache.ranger.plugin.policyengine.RangerAccessResourceImpl;
 import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 import org.apache.ranger.plugin.service.RangerBasePlugin;
+import org.apache.ranger.plugin.util.RangerPerfTracer;
 import org.apache.solr.security.AuthorizationContext.RequestType;
 import org.apache.solr.security.AuthorizationPlugin;
 import org.apache.solr.security.AuthorizationResponse;
@@ -48,6 +48,7 @@ import org.apache.solr.security.AuthorizationContext.CollectionRequest;
 public class RangerSolrAuthorizer implements AuthorizationPlugin {
 	private static final Log logger = LogFactory
 			.getLog(RangerSolrAuthorizer.class);
+	private static final Log PERF_SOLRAUTH_REQUEST_LOG = RangerPerfTracer.getPerfLogger("solrauth.request");
 
 	public static final String PROP_USE_PROXY_IP = "xasecure.solr.use_proxy_ip";
 	public static final String PROP_PROXY_IP_HEADER = "xasecure.solr.proxy_ip_header";
@@ -123,12 +124,8 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 
 	private void authToJAASFile() {
 		try {
-			// logger.info("DEFAULT UGI=" +
-			// UserGroupInformation.getLoginUser());
-
-			Configuration config = Configuration.getConfiguration();
-			MiscUtil.authWithConfig(solrAppName, config);
-			logger.info("POST AUTH UGI=" + UserGroupInformation.getLoginUser());
+			MiscUtil.setUGIFromJAASConfig(solrAppName);
+			logger.info("LoginUser=" + MiscUtil.getUGILoginUser());
 		} catch (Throwable t) {
 			logger.error("Error authenticating for appName=" + solrAppName, t);
 		}
@@ -144,6 +141,11 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 		logger.info("close() called");
 		try {
 			solrPlugin.cleanup();
+			/* Solr shutdown is not graceful so that JVM shutdown hooks
+			 * are not always invoked and the audit store are not flushed. So
+			 * we are forcing a cleanup here.
+			 */
+			AuditProviderFactory.getInstance().shutdown();
 		} catch (Throwable t) {
 			logger.error("Error cleaning up Ranger plugin. Ignoring error", t);
 		}
@@ -158,14 +160,21 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 	 */
 	@Override
 	public AuthorizationResponse authorize(AuthorizationContext context) {
-		boolean isDenied = true;
+		boolean isDenied = false;
 
 		try {
 			if (logger.isDebugEnabled()) {
+				logger.debug("==> RangerSolrAuthorizer.authorize()");
 				logAuthorizationConext(context);
 			}
 
 			RangerMultiResourceAuditHandler auditHandler = new RangerMultiResourceAuditHandler();
+
+			RangerPerfTracer perf = null;
+
+			if(RangerPerfTracer.isPerfTraceEnabled(PERF_SOLRAUTH_REQUEST_LOG)) {
+				perf = RangerPerfTracer.getPerfTracer(PERF_SOLRAUTH_REQUEST_LOG, "RangerSolrAuthorizer.authorize()");
+			}
 
 			String userName = getUserName(context);
 			Set<String> userGroups = getGroupsForUser(userName);
@@ -178,6 +187,9 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 			}
 			if (ip == null) {
 				ip = context.getHttpHeader("REMOTE_ADDR");
+			}
+			if (ip == null) {
+				ip = context.getRemoteAddr();
 			}
 
 			// Create the list of requests for access check. Each field is
@@ -209,14 +221,14 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 						isDenied = true;
 						// rejecting on first failure
 						break;
-					} else {
-						isDenied = false;
 					}
 				}
 			} finally {
 				auditHandler.flushAudit();
+				RangerPerfTracer.log(perf);
 			}
 		} catch (Throwable t) {
+			isDenied = true;
 			MiscUtil.logErrorMessageByInterval(logger, t.getMessage(), t);
 		}
 		AuthorizationResponse response = null;
@@ -226,7 +238,7 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 			response = new AuthorizationResponse(200);
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("context=" + context + ": returning: " + isDenied);
+			logger.debug( "<== RangerSolrAuthorizer.authorize() result: " + isDenied + "Response : " + response.getMessage());
 		}
 		return response;
 	}
@@ -236,9 +248,7 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 	 */
 	private void logAuthorizationConext(AuthorizationContext context) {
 		try {
-			// Note: This method should be called with isDebugEnabled() or
-			// isInfoEnabled() scope
-
+			// Note: This method should be called with isDebugEnabled()
 			String collections = "";
 			int i = -1;
 			for (CollectionRequest collectionRequest : context
@@ -272,18 +282,36 @@ public class RangerSolrAuthorizer implements AuthorizationPlugin {
 			if (ipAddress == null) {
 				ipAddress = context.getHttpHeader("REMOTE_ADDR");
 			}
+			if (ipAddress == null) {
+				ipAddress = context.getRemoteAddr();
+			}
 
 			String userName = getUserName(context);
 			Set<String> groups = getGroupsForUser(userName);
+			String resource    = context.getResource();
+			String solrParams  = "";
+			try {
+				solrParams = context.getParams().toQueryString();
+			} catch (Throwable t) {
+				//Exception ignored
+			}
+			RequestType requestType  = context.getRequestType();
+			String 		accessType   = mapToRangerAccessType(context);
+			Principal	principal	 = context.getUserPrincipal();
 
-			logger.info("AuthorizationContext: context.getResource()="
-					+ context.getResource() + ", solarParams="
-					+ context.getParams() + ", requestType="
-					+ context.getRequestType() + ", ranger.requestType="
-					+ mapToRangerAccessType(context) + ", userPrincipal="
-					+ context.getUserPrincipal() + ", userName=" + userName
-					+ ", groups=" + groups + ", ipAddress=" + ipAddress
-					+ ", collections=" + collections + ", headers=" + headers);
+			String contextString = new String("AuthorizationContext: ");
+			contextString  = contextString + "context.getResource()= " + ((resource != null ) ? resource : "");
+			contextString  = contextString + ", solarParams= " + (( solrParams != null ) ? solrParams : "");
+			contextString  = contextString + ", requestType= " + (( requestType != null ) ? requestType : "");
+			contextString  = contextString + ", ranger.requestType= " + ((accessType != null ) ? accessType : "");
+			contextString  = contextString + ", userPrincipal= " + ((principal != null ) ? principal : "");
+			contextString  = contextString + ", userName= "  + userName;
+			contextString  = contextString + ", groups= " + groups;
+			contextString  = contextString + ", ipAddress= " + ipAddress;
+			contextString  = contextString + ", collections= " + collections;
+			contextString  = contextString + ", headers= " + headers;
+
+			logger.debug(contextString);
 		} catch (Throwable t) {
 			logger.error("Error getting request context!!!", t);
 		}

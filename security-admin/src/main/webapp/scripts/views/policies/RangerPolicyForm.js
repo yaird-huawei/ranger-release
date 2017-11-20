@@ -118,22 +118,6 @@ define(function(require){
 			
 			var attr1 = _.pick(_.result(this.model,'schemaBase'),basicSchema);
 			var attr2 = _.pick(_.result(this.model,'schemaBase'),schemaNames);
-			var arr = {};
-
-			_.each(attrs,function(resourceObject,resourceName){
-				if(resourceObject.hasOwnProperty('recursiveSupport')) {
-					if(resourceObject.recursiveSupport) {
-						var recursiveAttrSchema = _.pick(_.result(that.model,'schemaBase'),'recursive');
-						if(!_.isUndefined(that.model.get('id'))) {
-							recursiveAttrSchema.recursive.switchOn=(that.model.get(resourceName)).isRecursive;
-						}
-						arr[resourceName] = resourceObject;
-						_.extend(arr,recursiveAttrSchema);
-					}
-				}
-			});
-			_.extend(attrs,arr);
-
 			return _.extend(attr1,_.extend(attrs,attr2));
 		},
 		/** on render callback */
@@ -216,7 +200,11 @@ define(function(require){
 				this.selectedResourceTypes = {};
 				var resourceDefList = this.rangerServiceDefModel.get('resources');
 				if(XAUtil.isMaskingPolicy(this.model.get('policyType')) && XAUtil.isRenderMasking(this.rangerServiceDefModel.get('dataMaskDef'))){
-					resourceDefList = this.rangerServiceDefModel.get('dataMaskDef').resources;
+					if(!_.isEmpty(this.rangerServiceDefModel.get('dataMaskDef').resources)){
+						resourceDefList = this.rangerServiceDefModel.get('dataMaskDef').resources;
+					}else{
+						resourceDefList = this.rangerServiceDefModel.get('resources');
+					}
 				}
 				_.each(this.model.get('resources'),function(obj,key){
 					var resourceDef = _.findWhere(resourceDefList,{'name':key}),
@@ -270,7 +258,7 @@ define(function(require){
                                 rangerPolicyType : that.model.get('policyType')
                         }).render().el);
 						
-                        if( enableDenyAndExceptionsInPolicies ){
+                        if( enableDenyAndExceptionsInPolicies && !XAUtil.isMaskingPolicy(that.model.get('policyType')) ){
                                 that.$('[data-customfields="groupPermsAllowExclude"]').html(new PermissionList({
                                         collection : that.formInputAllowExceptionList,
                                         model 	   : that.model,
@@ -322,20 +310,27 @@ define(function(require){
 				}
 			},this);
 			//remove validation of fields if it's hidden
-			_.each(this.fields, function(obj, key){
-				if(obj.$el.hasClass('hideResource')){
-					if($.inArray('required',obj.editor.validators) >= 0){
-						this.defaultValidator[key] = obj.editor.validators;
-						obj.editor.validators=[];
-						var label = obj.$el.find('label').html();
-						obj.$el.find('label').html(label.replace('*', ''));
+                        //remove validation if fields is not empty
+                        _.each(this.fields, function(field, key){
+                                if((key.substring(0,key.length-2) === "sameLevel") && field.$el.find('[data-js="resource"]').val()!="" && field.$el.hasClass('error')){
+                                        field.$el.removeClass('error');
+                                        field.$el.find('.help-inline').empty();
+                                }
+                                if(field.$el.hasClass('hideResource')){
+                                        if($.inArray('required',field.editor.validators) >= 0){
+                                                this.defaultValidator[key] = field.editor.validators;
+                                                field.editor.validators=[];
+                                                var label = field.$el.find('label').html();
+                                                field.$el.find('label').html(label.replace('*', ''));
+                                                field.$el.removeClass('error');
+                                                field.$el.find('.help-inline').empty();
 					}
 				}else{
 					if(!_.isUndefined(this.defaultValidator[key])){
-						obj.editor.validators = this.defaultValidator[key];
-						if($.inArray('required',obj.editor.validators) >= 0){
-							var label = obj.$el.find('label').html();
-							obj.$el.find('label').html(label+"*");
+                                                field.editor.validators = this.defaultValidator[key];
+                                                if($.inArray('required',field.editor.validators) >= 0){
+                                                        var label = field.$el.find('label').html();
+                                                        field.$el.find('label').html(label+"*");
 						}
 					}
 				}
@@ -345,16 +340,6 @@ define(function(require){
 			var that = this, resources = [];
 
 			var resources = {};
-			//set 'isRecursive' attribute of resource object to value of field recursive
-			var recursiveValue = '';
-			if(!_.isUndefined(this.model.get('recursive'))){
-				recursiveValue = that.model.get('recursive');
-			}
-			_.each(this.model.attributes,function(val) {
-				if(_.isObject(val) && !_.isUndefined(val.isRecursive)) {
-					val.isRecursive = recursiveValue;
-				}
-			});// 'isRecursive' attribute of model is updated
 			//set sameLevel fieldAttr value with resource name
 			_.each(this.model.attributes, function(val, key) {
  		               if(key.indexOf("sameLevel") >= 0 && !_.isNull(val)){ 
@@ -366,7 +351,11 @@ define(function(require){
 			//Check for masking policies
 			var resourceDef = this.rangerServiceDefModel.get('resources');
 			if(XAUtil.isMaskingPolicy(this.model.get('policyType')) && XAUtil.isRenderMasking(this.rangerServiceDefModel.get('dataMaskDef'))){
-				resourceDef = this.rangerServiceDefModel.get('dataMaskDef').resources;
+				if(!_.isEmpty(this.rangerServiceDefModel.get('dataMaskDef').resources)){
+					resourceDef = this.rangerServiceDefModel.get('dataMaskDef').resources;
+				}else{
+					resourceDef = this.rangerServiceDefModel.get('resources');
+				}
 			}
 			if(XAUtil.isRowFilterPolicy(this.model.get('policyType')) && XAUtil.isRenderRowFilter(this.rangerServiceDefModel.get('rowFilterDef'))){
 				resourceDef = this.rangerServiceDefModel.get('rowFilterDef').resources;
@@ -438,7 +427,6 @@ define(function(require){
 						var RangerPolicyItemAccessList = Backbone.Collection.extend();
 						var rangerPlcItemAccessList = new RangerPolicyItemAccessList(m.get('accesses'));
 						policyItem.set('accesses', rangerPlcItemAccessList)
-						policyItemList.add(policyItem)
 					}
 					if(!_.isUndefined(m.get('dataMaskInfo'))){
 						policyItem.set("dataMaskInfo",m.get("dataMaskInfo"));
@@ -446,6 +434,7 @@ define(function(require){
 					if(!_.isUndefined(m.get('rowFilterInfo'))){
 						policyItem.set("rowFilterInfo",m.get("rowFilterInfo"));
 					}
+                                        policyItemList.add(policyItem);
 					
 					
 				}
@@ -638,7 +627,7 @@ define(function(require){
 			var resources = {},resourceName = options.type;
 			var isParent = true, name = options.type, val = null,isCurrentSameLevelField = true;
 			while(isParent){
-				var currentResource = _.findWhere(this.rangerServiceDefModel.get('resources'), {'name': name });
+				var currentResource = _.findWhere(this.getResources(), {'name': name });
 				//same level type
 				if(_.isUndefined(this.fields[currentResource.name])){
 					var sameLevelName = 'sameLevel'+currentResource.level;
@@ -666,16 +655,17 @@ define(function(require){
 			return JSON.stringify(context);
 		},
 		formValidation : function(coll){
-			var groupSet = false,permSet = false,groupPermSet = false,
+                        var groupSet = false , permSet = false , groupPermSet = false , delegateAdmin = false ,
 			userSet=false, userPerm = false, userPermSet =false,breakFlag =false, condSet = false,customMaskSet = true;
 			console.log('validation called..');
 			coll.each(function(m){
 				if(_.isEmpty(m.attributes)) return;
-				if(m.has('groupName') || m.has('userName') || m.has('accesses') ){
+                                if(m.has('groupName') || m.has('userName') || m.has('accesses') || m.has('delegateAdmin') ){
 					if(! breakFlag){
 						groupSet = m.has('groupName') ? true : false;
 						userSet = m.has('userName') ? true : false;
-						permSet = m.has('accesses') ? true : false; 
+                                                permSet = m.has('accesses') ? true : false;
+                                                delegateAdmin = m.has('delegateAdmin') ? m.get('delegateAdmin') : false;
 						if(groupSet && permSet){
 							groupPermSet = true;
 							userPermSet = false;
@@ -683,7 +673,9 @@ define(function(require){
 							userPermSet = true;
 							groupPermSet = false;
 						}else{
-							breakFlag=true;
+                                                        if(!((userSet || groupSet) && delegateAdmin)){
+                                                                breakFlag=true;
+                                                        }
 						}
 					}
 				}
@@ -691,8 +683,9 @@ define(function(require){
 					condSet = m.has('conditions') ? true : false;
 				}
 				if(m.has('dataMaskInfo') && !_.isUndefined(m.get('dataMaskInfo').dataMaskType)){
-					if(m.get('dataMaskInfo').dataMaskType === "CUSTOM"){
-						customMaskSet = _.isUndefined(m.get('dataMaskInfo').valueExpr) || _.isEmpty(m.get('dataMaskInfo')).valueExpr ? false : true;
+					if( m.get('dataMaskInfo').dataMaskType.indexOf("CUSTOM") >= 0 ){
+						var valueExpr = m.get('dataMaskInfo').valueExpr;
+						customMaskSet = _.isUndefined(valueExpr) || _.isEmpty(valueExpr.trim()) ? false : true;
 					}
 				}
 			});
@@ -702,7 +695,8 @@ define(function(require){
 						userSet 		: userSet, isUsers:userPermSet,
 						auditLoggin 	: auditStatus,
 						condSet			: condSet,
-						customMaskSet   : customMaskSet
+                                                customMaskSet   : customMaskSet,
+                                                delegateAdmin	: delegateAdmin,
 					};
 			if(groupSet || userSet){
 				obj['permSet'] = groupSet ? permSet : false;
@@ -716,6 +710,20 @@ define(function(require){
 		getPolicyBaseFieldNames : function(){
 			 var fields = ['isAuditEnabled','description'];
 			 return fields;
+		},
+		getResources : function(){
+			if(XAUtil.isMaskingPolicy(this.model.get('policyType'))){
+				if(XAUtil.isRenderMasking(this.rangerServiceDefModel.get('dataMaskDef'))){
+					if(!_.isEmpty(this.rangerServiceDefModel.get('dataMaskDef').resources)){
+						return this.rangerServiceDefModel.get('dataMaskDef').resources;
+					}
+				}
+			}else if(XAUtil.isRowFilterPolicy(this.model.get('policyType'))){
+				if(XAUtil.isRenderRowFilter(this.rangerServiceDefModel.get('rowFilterDef'))){
+					return this.rangerServiceDefModel.get('rowFilterDef').resources;
+				}
+			}
+			return this.rangerServiceDefModel.get('resources');
 		}
 	});
 

@@ -102,40 +102,6 @@
               "isAllowed": true
             },
             {
-              "type": "configure",
-              "isAllowed": true
-            },
-            {
-              "type": "describe",
-              "isAllowed": true
-            },
-            {
-              "type": "create",
-              "isAllowed": true
-            },
-            {
-              "type": "delete",
-              "isAllowed": true
-            },
-            {
-              "type": "kafka_admin",
-              "isAllowed": true
-            }
-          ],
-          "users": [],
-          "groups": [
-            "IT"
-          ],
-          "conditions": [],
-          "delegateAdmin": false
-        },
-        {
-          "accesses": [
-            {
-              "type": "consume",
-              "isAllowed": true
-            },
-            {
               "type": "describe",
               "isAllowed": true
             }
@@ -160,7 +126,51 @@
       "updatedBy": "Admin",
       "createTime": "20160907-16:13:26.000-+0100",
       "updateTime": "20160907-16:45:05.000-+0100",
-      "version": 2
+      "version": 1
+    },
+    {
+      "service": "cl1_kafka",
+      "name": "DevPolicy",
+      "policyType": 0,
+      "description": "",
+      "isAuditEnabled": true,
+      "resources": {
+        "topic": {
+          "values": [
+            "dev"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        }
+      },
+      "policyItems": [
+        {
+          "accesses": [
+            {
+              "type": "consume",
+              "isAllowed": true
+            },
+            {
+              "type": "describe",
+              "isAllowed": true
+            }
+          ],
+          "users": [],
+          "groups": [
+            "public"
+          ],
+          "conditions": [],
+          "delegateAdmin": false
+        }
+      ],
+      "denyPolicyItems": [],
+      "allowExceptions": [],
+      "denyExceptions": [],
+      "dataMaskPolicyItems": [],
+      "rowFilterPolicyItems": [],
+      "id": 30,
+      "isEnabled": true,
+      "version": 1
     }
   ],
   "serviceDef": {

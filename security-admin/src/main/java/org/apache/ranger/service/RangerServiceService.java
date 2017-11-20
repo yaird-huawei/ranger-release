@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.ranger.biz.ServiceDBStore;
@@ -36,7 +37,6 @@ import org.apache.ranger.common.PropertiesUtil;
 import org.apache.ranger.common.view.VTrxLogAttr;
 import org.apache.ranger.db.XXServiceVersionInfoDao;
 import org.apache.ranger.entity.XXService;
-import org.apache.ranger.entity.XXServiceBase;
 import org.apache.ranger.entity.XXServiceConfigMap;
 import org.apache.ranger.entity.XXServiceDef;
 import org.apache.ranger.entity.XXServiceVersionInfo;
@@ -168,9 +168,9 @@ public class RangerServiceService extends RangerServiceServiceBase<XXService, Ra
 				}
 			}
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LOG.info("Get transaction log failure." + e);
 		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
+			LOG.info("Get transaction log failure." + e);
 		}
 		return trxLogList;
 	}
@@ -277,7 +277,7 @@ public class RangerServiceService extends RangerServiceServiceBase<XXService, Ra
 				xTrxLog.setNewValue(value);
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
-			e.printStackTrace();
+			LOG.info("Process field to create trx log failure." + e);
 		}
 
 		xTrxLog.setAction(actionString);

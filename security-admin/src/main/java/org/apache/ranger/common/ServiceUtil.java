@@ -126,6 +126,8 @@ public class ServiceUtil {
 		mapAccessTypeToPermType.put("getUserTopology", 29);
 		mapAccessTypeToPermType.put("getTopologyInfo", 30);
 		mapAccessTypeToPermType.put("uploadNewCredentials", 31);
+		mapAccessTypeToPermType.put("repladmin",32);
+		mapAccessTypeToPermType.put("serviceadmin",33);
 
 		version = "0";
 	}
@@ -245,6 +247,7 @@ public class ServiceUtil {
 		toRangerResourceList(resource.getUdfs(), "udf", Boolean.FALSE, Boolean.FALSE, ret.getResources());
 		toRangerResourceList(resource.getTopologies(), "topology", Boolean.FALSE, Boolean.FALSE, ret.getResources());
 		toRangerResourceList(resource.getServices(), "service", Boolean.FALSE, Boolean.FALSE, ret.getResources());
+		toRangerResourceList(resource.getHiveServices(), "hiveservice", Boolean.FALSE, Boolean.FALSE, ret.getResources());
 
 		HashMap<String, List<VXPermMap>> sortedPermMap = new HashMap<String, List<VXPermMap>>();
 		
@@ -371,6 +374,8 @@ public class ServiceUtil {
 				ret.setTopologies(resString);
 			} else if(resType.equalsIgnoreCase("service")) {
 				ret.setServices(resString);
+			} else if(resType.equalsIgnoreCase("hiveservice")) {
+				ret.setHiveServices(resString);
 			}
 		}
 		updateResourceName(ret);
@@ -835,6 +840,8 @@ public class ServiceUtil {
 				ret.setTopologies(resString);
 			} else if(resType.equalsIgnoreCase("service")) {
 				ret.setServices(resString);
+			} else if(resType.equalsIgnoreCase("hiveservice")) {
+				ret.setHiveServices(resString);
 			}
 		}
 		updateResourceName(ret);
@@ -1059,7 +1066,11 @@ public class ServiceUtil {
 		if (vXPolicy.getServices() != null) {
 			toRangerResourceList(vXPolicy.getServices(), "service", Boolean.FALSE, isRecursive, ret.getResources());
 		}
-		
+
+		if (vXPolicy.getHiveServices() != null) {
+			toRangerResourceList(vXPolicy.getHiveServices(), "hiveservice", Boolean.FALSE, isRecursive, ret.getResources());
+		}
+
 		if ( vXPolicy.getPermMapList() != null) {
 			List<VXPermObj> vXPermObjList = vXPolicy.getPermMapList();
 
@@ -1562,6 +1573,60 @@ public class ServiceUtil {
 		Integer assetType = toAssetType(serviceType);
 		
 		return assetType;
+	}
+
+	public List<RangerPolicy> getMatchingPoliciesForResource(HttpServletRequest request,
+			List<RangerPolicy> policyLists) {
+		List<RangerPolicy> policies = new ArrayList<RangerPolicy>();
+		if (request != null) {
+			String resource = request.getParameter(SearchFilter.POL_RESOURCE);
+			String serviceType = request.getParameter(SearchFilter.SERVICE_TYPE);
+			if (!StringUtil.isEmpty(resource) && !StringUtil.isEmpty(serviceType)) {
+				List<String> resourceList = null;
+				Map<String, RangerPolicy.RangerPolicyResource> rangerPolicyResourceMap = null;
+				RangerPolicy.RangerPolicyResource rangerPolicyResource = null;
+				for (RangerPolicy rangerPolicy : policyLists) {
+					if (rangerPolicy != null) {
+						rangerPolicyResourceMap = rangerPolicy.getResources();
+						if (rangerPolicyResourceMap != null) {
+							if (rangerPolicyResourceMap.containsKey("path")) {
+								rangerPolicyResource = rangerPolicyResourceMap.get("path");
+								if (rangerPolicyResource != null) {
+									resourceList = rangerPolicyResource.getValues();
+									if (CollectionUtils.isNotEmpty(resourceList) && resourceList.size() == 1) {
+										String resourcePath = resourceList.get(0);
+										if (!StringUtil.isEmpty(resourcePath)) {
+											if (resourcePath.equals(resource)
+													|| resourcePath.startsWith(resource + "/")) {
+												policies.add(rangerPolicy);
+											}
+										}
+									}
+								}
+							} else if (rangerPolicyResourceMap.containsKey("database")) {
+								rangerPolicyResource = rangerPolicyResourceMap.get("database");
+								if (rangerPolicyResource != null) {
+									resourceList = rangerPolicyResource.getValues();
+									if (CollectionUtils.isNotEmpty(resourceList) && resourceList.size() == 1) {
+										String resourcePath = resourceList.get(0);
+										if (!StringUtil.isEmpty(resourcePath)) {
+											if (resourcePath.equals(resource)) {
+												policies.add(rangerPolicy);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				policyLists.clear();
+				if (CollectionUtils.isNotEmpty(policies)) {
+					policyLists.addAll(policies);
+				}
+			}
+		}
+		return policyLists;
 	}
 }
 	

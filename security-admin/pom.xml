@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.apache.ranger</groupId>
         <artifactId>ranger</artifactId>
-        <version>0.7.0.2.6.1.0-SNAPSHOT</version>
+        <version>0.7.0.2.6.3.0-SNAPSHOT</version>
     </parent>
     <dependencies>
         <dependency>
@@ -434,6 +434,35 @@
             <artifactId>guice</artifactId>
             <version>3.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-common</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-service</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-metastore</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-jdbc</artifactId>
+            <version>${hive1.version}</version>
+        </dependency>
+        <dependency>
+                        <groupId>com.webcohesion.enunciate</groupId>
+                        <artifactId>enunciate-core-annotations</artifactId>
+                </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -459,6 +488,17 @@
                         </dependencies>
 -->
                 </plugin>
+                 <plugin>
+                                        <groupId>com.webcohesion.enunciate</groupId>
+                                        <artifactId>enunciate-maven-plugin</artifactId>
+                                        <configuration>
+                                                <configFile>enunciate.xml</configFile>
+                                                <enunciateArtifactId/>
+                                                <docsDir>docs/target/</docsDir>
+                                                <source>1.8</source>
+                                                <target>1.8</target>
+                                        </configuration>
+                                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -484,7 +524,8 @@
                             <packagingExcludes>
                                                         WEB-INF/lib/spring-*.SEC03.jar,
                                                         WEB-INF/lib/spring-*.RC3.jar,
-                                                        WEB-INF/lib/spring-2.*.jar
+                                                        WEB-INF/lib/spring-2.*.jar,
+														WEB-INF/lib/hive*-${hive1.version}.jar
                                                 </packagingExcludes>
                             <warSourceDirectory>${project.build.directory}/${project.build.finalName}</warSourceDirectory>
                         </configuration>

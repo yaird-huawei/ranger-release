@@ -320,15 +320,25 @@ define(function(require) {
 						
 						switch (facet) {
 							case 'Service Name':
-								var serviceList 	= new RangerServiceList();
+								var serviceList 	= new RangerServiceList() , serviceNameVal = [];
 								serviceList.setPageSize(100);
 								serviceList.fetch().done(function(){
-									callback(serviceList.map(function(model){return model.get('name');}));
+								serviceList.each(function(m){
+									if(m.get('type') !== XAEnums.ServiceType.SERVICE_TAG.label){
+										serviceNameVal.push(m.get('name'));
+									};
+								});
+								callback(serviceNameVal);
 								});
 								break;
 							case 'Service Type':
-								var serviceList =  that.serviceDefList.map(function(serviceDef){ return {'label' : serviceDef.get('name').toUpperCase(), 'value' : serviceDef.get('name').toUpperCase()}; })
-								callback(serviceList);
+								var serviveDefs = [];
+								that.serviceDefList.each(function(m){
+									if(m.get('name').toUpperCase() != (XAEnums.ServiceType.SERVICE_TAG.label).toUpperCase()){
+										serviveDefs.push({ 'label' : m.get('name').toUpperCase(), 'value' : m.get('name').toUpperCase() });
+									}
+								});
+								callback(serviveDefs);
 								break;
 							case 'Result':
 				                callback(XAUtils.hackForVSLabelValuePairs(XAEnums.AccessResult));
@@ -609,7 +619,14 @@ define(function(require) {
 					
 					var fullTrxLogListForTrxId = new VXTrxLogList();
 					fullTrxLogListForTrxId.getFullTrxLogListForTrxId(this.model.get('transactionId'),{
-						cache : false
+                                                cache : false,
+                                                error : function(response , error){
+                                                        if (response && response.status === 419 ) {
+                                                                XAUtils.defaultErrorHandler(error , response);
+                                                        } else {
+                                                                XAUtils.showErrorMsg(response.responseJSON.msgDesc);
+                                                        }
+                                                }
 					}).done(function(coll,mm){
 						XAUtils.blockUI('unblock');
 						fullTrxLogListForTrxId = new VXTrxLogList(coll.vXTrxLogs);
@@ -835,19 +852,18 @@ define(function(require) {
 					Backgrid.Row.prototype.initialize.apply(this, args);
 				},
 				onClick: function (e) {
-					var self = this;
-                                        if($(e.target).hasClass('tagsColumn') || $(e.target).closest('td').hasClass("tagsColumn")){
-                                                return;
-                                        }
+                    var self = this ;
+                    if($(e.target).hasClass('tagsColumn') || $(e.target).closest('td').hasClass("tagsColumn")){
+                            return;
+                    }
+                    if(this.model.get('repoType')){
+			var repoType =  this.model.get('repoType');
+                    }
 					var policyId = this.model.get('policyId');
 					if(policyId == -1){
 						return;
 					}
-					var	serviceDef = that.serviceDefList.findWhere({'id':this.model.get('repoType')});
-					if(_.isUndefined(serviceDef)){
-						return ;
-					}
-					var eventTime = this.model.get('eventTime');
+                    var eventTime = this.model.get('eventTime');
 
 					var policy = new RangerPolicy({
 						id: policyId
@@ -856,17 +872,19 @@ define(function(require) {
 					var view = new RangerPolicyRO({
 						policy: policy,
 						policyVersionList : policyVersionList,
-						serviceDef: serviceDef,
-						eventTime : eventTime
+                                                serviceDefList: that.serviceDefList,
+                                                eventTime : eventTime,
+                                                repoType : repoType
 					});
 					var modal = new Backbone.BootstrapModal({
 						animate : true, 
 						content		: view,
 						title: localization.tt("h.policyDetails"),
 						okText :localization.tt("lbl.ok"),
-						allowCancel : false,
+                                                allowCancel : true,
 						escape : true
 					}).open();
+                                        modal.$el.find('.cancel').hide();
 					var policyVerEl = modal.$el.find('.modal-footer').prepend('<div class="policyVer pull-left"></div>').find('.policyVer');
 					policyVerEl.append('<i id="preVer" class="icon-chevron-left '+ ((policy.get('version')>1) ? 'active' : '') +'"></i><text>Version '+ policy.get('version') +'</text>').find('#preVer').click(function(e){
 						view.previousVer(e);

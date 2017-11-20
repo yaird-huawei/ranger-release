@@ -52,8 +52,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.ranger.biz.UserMgr;
 import org.apache.ranger.common.PropertiesUtil;
 import org.apache.ranger.common.UserSessionBase;
@@ -77,6 +79,8 @@ public class RangerSSOAuthenticationFilter implements Filter {
 	public static final String JWT_COOKIE_NAME_DEFAULT = "hadoop-jwt";
 	public static final String JWT_ORIGINAL_URL_QUERY_PARAM_DEFAULT = "originalUrl";
 	public static final String LOCAL_LOGIN_URL = "locallogin";
+	public static final String DEFAULT_BROWSER_USERAGENT = "ranger.default.browser-useragents";
+        public static final String PROXY_RANGER_URL_PATH = "/ranger";
 
 	private SSOAuthenticationProperties jwtProperties;
 
@@ -115,6 +119,9 @@ public class RangerSSOAuthenticationFilter implements Filter {
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)throws IOException, ServletException {
 		
 		HttpServletRequest httpRequest = (HttpServletRequest)servletRequest;
+
+                String xForwardedURL = constructForwardableURL(httpRequest);
+
 		if (httpRequest.getRequestedSessionId() != null && !httpRequest.isRequestedSessionIdValid()){
 			synchronized(httpRequest.getServletContext()){
 				if(httpRequest.getServletContext().getAttribute(httpRequest.getRequestedSessionId()) != null && httpRequest.getServletContext().getAttribute(httpRequest.getRequestedSessionId()).toString().equals("locallogin")){
@@ -138,9 +145,8 @@ public class RangerSSOAuthenticationFilter implements Filter {
 				return;
 			}
 		}		
-		
 		//If sso is enable and request is not for local login and is from browser then it will go inside and try for knox sso authentication
-		if (ssoEnabled && !httpRequest.getRequestURI().contains(LOCAL_LOGIN_URL) && isWebUserAgent(userAgent)) {
+		if (ssoEnabled && !httpRequest.getRequestURI().contains(LOCAL_LOGIN_URL)) {
 			//if jwt properties are loaded and is current not authenticated then it will go for sso authentication
 			//Note : Need to remove !isAuthenticated() after knoxsso solve the bug from cross-origin script
 			if (jwtProperties != null && !isAuthenticated()) {
@@ -177,10 +183,15 @@ public class RangerSSOAuthenticationFilter implements Filter {
 						}
 						// if the token is not valid then redirect to knox sso
 						else {
-							String ssourl = constructLoginURL(httpRequest);
-							if(LOG.isDebugEnabled())
-								LOG.debug("SSO URL = " + ssourl);
-							httpServletResponse.sendRedirect(ssourl);
+							if (isWebUserAgent(userAgent)) {
+                                                                String ssourl = constructLoginURL(httpRequest, xForwardedURL);
+								if (LOG.isDebugEnabled()) {
+									LOG.debug("SSO URL = " + ssourl);
+								}
+								httpServletResponse.sendRedirect(ssourl);
+							} else {
+								filterChain.doFilter(servletRequest,httpServletResponse);
+							}
 						}
 					} catch (ParseException e) {
 						LOG.warn("Unable to parse the JWT token", e);
@@ -188,10 +199,15 @@ public class RangerSSOAuthenticationFilter implements Filter {
 				}
 				// if the jwt token is not available then redirect it to knox sso
 				else {
-					String ssourl = constructLoginURL(httpRequest);
-					if(LOG.isDebugEnabled())
-						LOG.debug("SSO URL = " + ssourl);
-					httpServletResponse.sendRedirect(ssourl);
+					if (isWebUserAgent(userAgent)) {
+                                                String ssourl = constructLoginURL(httpRequest, xForwardedURL);
+						if (LOG.isDebugEnabled()) {
+							LOG.debug("SSO URL = " + ssourl);
+						}
+						httpServletResponse.sendRedirect(ssourl);
+					} else {
+						filterChain.doFilter(servletRequest,httpServletResponse);
+					}
 				}
 			}
 			//if property is not loaded or is already authenticated then proceed further with next filter
@@ -207,10 +223,43 @@ public class RangerSSOAuthenticationFilter implements Filter {
 				((HttpServletResponse)servletResponse).sendRedirect(url);
 		}
 		//if sso is not enable or the request is not from browser then proceed further with next filter
-		else {			
+		else {
 			filterChain.doFilter(servletRequest, servletResponse);	
 		}
 	}
+
+        private String constructForwardableURL(HttpServletRequest httpRequest){
+                String xForwardedProto = "";
+                String xForwardedHost = "";
+                String xForwardedContext = "";
+                Enumeration<String> names = httpRequest.getHeaderNames();
+                while (names.hasMoreElements()) {
+                        String name = (String) names.nextElement();
+                        Enumeration<String> values = httpRequest.getHeaders(name);
+                        String value = "";
+                        if (values != null) {
+                                while (values.hasMoreElements()) {
+                                        value = (String) values.nextElement();
+                                }
+                        }
+                        if (StringUtils.trimToNull(name) != null && StringUtils.trimToNull(value) != null) {
+                                if (name.equalsIgnoreCase("x-forwarded-proto")) {
+                                        xForwardedProto = value;
+                                } else if (name.equalsIgnoreCase("x-forwarded-host")) {
+                                        xForwardedHost = value;
+                                } else if (name.equalsIgnoreCase("x-forwarded-context")) {
+                                        xForwardedContext = value;
+                                }
+                        }
+                }
+                String xForwardedURL = "";
+                if (StringUtils.trimToNull(xForwardedProto) != null && StringUtils.trimToNull(xForwardedHost) != null && StringUtils.trimToNull(xForwardedContext) != null) {
+                        xForwardedURL = xForwardedProto + "://" + xForwardedHost
+                                        + xForwardedContext + PROXY_RANGER_URL_PATH
+                                        + httpRequest.getRequestURI();
+                }
+                return xForwardedURL;
+        }
 
 	private Authentication getGrantedAuthority(Authentication authentication) {
 		UsernamePasswordAuthenticationToken result=null;
@@ -297,8 +346,9 @@ public class RangerSSOAuthenticationFilter implements Filter {
 		if (cookies != null) {
 			for (Cookie cookie : cookies) {
 				if (cookieName != null && cookieName.equals(cookie.getName())) {
-					if(LOG.isDebugEnabled())
+					if (LOG.isDebugEnabled()) {
 						LOG.debug(cookieName + " cookie has been found and is being processed");
+					}
 					serializedJWT = cookie.getValue();
 					break;
 				}
@@ -315,12 +365,17 @@ public class RangerSSOAuthenticationFilter implements Filter {
 	 *            for getting the original request URL
 	 * @return url to use as login url for redirect
 	 */
-	protected String constructLoginURL(HttpServletRequest request) {
+        protected String constructLoginURL(HttpServletRequest request, String xForwardedURL) {
 		String delimiter = "?";
 		if (authenticationProviderUrl.contains("?")) {
 			delimiter = "&";
 		}
-		String loginURL = authenticationProviderUrl + delimiter + originalUrlQueryParam + "=" + request.getRequestURL().append(getOriginalQueryString(request));
+                String loginURL = authenticationProviderUrl + delimiter + originalUrlQueryParam + "=";
+                if (StringUtils.trimToNull(xForwardedURL) != null) {
+                        loginURL += xForwardedURL + getOriginalQueryString(request);
+                } else {
+                        loginURL += request.getRequestURL().append(getOriginalQueryString(request));
+                }
 		return loginURL;
 	}
 
@@ -364,17 +419,20 @@ public class RangerSSOAuthenticationFilter implements Filter {
 	protected boolean validateSignature(SignedJWT jwtToken) {
 		boolean valid = false;
 		if (JWSObject.State.SIGNED == jwtToken.getState()) {
-			if(LOG.isDebugEnabled())
+			if (LOG.isDebugEnabled()) {
 				LOG.debug("SSO token is in a SIGNED state");
+			}
 			if (jwtToken.getSignature() != null) {
-				if(LOG.isDebugEnabled())
+				if (LOG.isDebugEnabled()) {
 					LOG.debug("SSO token signature is not null");
+				}
 				try {
 					JWSVerifier verifier = new RSASSAVerifier(publicKey);
 					if (jwtToken.verify(verifier)) {
 						valid = true;
-						if(LOG.isDebugEnabled())
+						if (LOG.isDebugEnabled()) {
 							LOG.debug("SSO token has been successfully verified");
+						}
 					} else {
 						LOG.warn("SSO signature verification failed.Please check the public key");
 					}
@@ -402,8 +460,9 @@ public class RangerSSOAuthenticationFilter implements Filter {
 		try {
 			Date expires = jwtToken.getJWTClaimsSet().getExpirationTime();
 			if (expires == null || new Date().before(expires)) {
-				if(LOG.isDebugEnabled())
+				if (LOG.isDebugEnabled()) {
 					LOG.debug("SSO token expiration date has been " + "successfully validated");
+				}
 				valid = true;
 			} else {
 				LOG.warn("SSO expiration date validation failed.");
@@ -430,8 +489,12 @@ public class RangerSSOAuthenticationFilter implements Filter {
 			jwtProperties.setAuthenticationProviderUrl(providerUrl);
 			jwtProperties.setCookieName(PropertiesUtil.getProperty(JWT_COOKIE_NAME, JWT_COOKIE_NAME_DEFAULT));
 			jwtProperties.setOriginalUrlQueryParam(PropertiesUtil.getProperty(JWT_ORIGINAL_URL_QUERY_PARAM, JWT_ORIGINAL_URL_QUERY_PARAM_DEFAULT));
+			String defaultUserAgent = PropertiesUtil.getProperty(DEFAULT_BROWSER_USERAGENT);
 			String userAgent = PropertiesUtil.getProperty(BROWSER_USERAGENT);
-			if(userAgent != null && !userAgent.isEmpty()){
+			if (userAgent != null && !userAgent.isEmpty()) {
+				jwtProperties.setUserAgentList(userAgent.split(","));
+			} else if (defaultUserAgent != null && !defaultUserAgent.isEmpty()) {
+				userAgent = defaultUserAgent;
 				jwtProperties.setUserAgentList(userAgent.split(","));
 			}
 			try {

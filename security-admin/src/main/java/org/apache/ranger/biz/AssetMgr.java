@@ -183,7 +183,7 @@ public class AssetMgr extends AssetMgrBase {
 	public String getLatestRepoPolicy(VXAsset xAsset, List<VXResource> xResourceList, Long updatedTime,
 									  X509Certificate[] certchain, boolean httpEnabled, String epoch,
 									  String ipAddress, boolean isSecure, String count, String agentId) {
-		if(xAsset==null){
+                if(xAsset == null) {
 			logger.error("Requested repository not found");
 			throw restErrorUtil.createRESTException("No Data Found.",
 					MessageEnums.DATA_NOT_FOUND);
@@ -193,7 +193,7 @@ public class AssetMgr extends AssetMgrBase {
 			throw restErrorUtil.createRESTException("No Data Found.",
 					MessageEnums.DATA_NOT_FOUND);
 		}
-		if(xAsset.getActiveStatus()==RangerCommonEnums.ACT_STATUS_DISABLED){
+                if(xAsset.getActiveStatus() == RangerCommonEnums.ACT_STATUS_DISABLED) {
 			logger.error("Requested repository is disabled");
 			throw restErrorUtil.createRESTException("Unauthorized access.",
 					MessageEnums.OPER_NO_EXPORT);
@@ -520,7 +520,7 @@ public class AssetMgr extends AssetMgrBase {
 						if (groupId != null) {
 							Set<String> groups = (Set<String>) sortedPermMap.get("groups");
 
-							if(groups != null){
+                                                        if(groups != null) {
 								groups.add(xPermMap.getGroupName());
 								sortedPermMap.put("groups", groups);
 							}
@@ -552,12 +552,12 @@ public class AssetMgr extends AssetMgrBase {
 					
 					sortedPermMap.put("access", permSet);
 					
-					if(assetType == AppConstants.ASSET_KNOX){
+                                        if(assetType == AppConstants.ASSET_KNOX) {
 						String[] ipAddrList = new String[0];
-						if(xPermMap.getIpAddress() != null){
+                                                if(xPermMap.getIpAddress() != null) {
 							ipAddrList = xPermMap.getIpAddress().split(",");
 							sortedPermMap.put("ipAddress", ipAddrList);
-						}else
+                                                } else
 							sortedPermMap.put("ipAddress",ipAddrList);
 					}
 					
@@ -709,7 +709,7 @@ public class AssetMgr extends AssetMgrBase {
 
 	private void createOrUpdatePluginInfo(final RangerPluginInfo pluginInfo, final boolean isPolicyDownloadRequest, final int httpCode) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("==> createOrUpdatePluginInfo(pluginInfo=" + pluginInfo + ", isPolicyDownloadRequest=" + isPolicyDownloadRequest + ", httpCode=" + httpCode + ")");
+                        logger.debug("==> createOrUpdatePluginInfo(pluginInfo = " + pluginInfo + ", isPolicyDownloadRequest = " + isPolicyDownloadRequest + ", httpCode = " + httpCode + ")");
 		}
 
 		final boolean isTagVersionResetNeeded;
@@ -757,7 +757,7 @@ public class AssetMgr extends AssetMgrBase {
 			doCreateOrUpdateXXPluginInfo(pluginInfo, isPolicyDownloadRequest, isTagVersionResetNeeded);
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("<== createOrUpdatePluginInfo(pluginInfo=" + pluginInfo + ", isPolicyDownloadRequest=" + isPolicyDownloadRequest + ", httpCode=" + httpCode + ")");
+                        logger.debug("<== createOrUpdatePluginInfo(pluginInfo = " + pluginInfo + ", isPolicyDownloadRequest = " + isPolicyDownloadRequest + ", httpCode = " + httpCode + ")");
 		}
 
 	}
@@ -894,61 +894,63 @@ public class AssetMgr extends AssetMgrBase {
 			}
 		}
 		return ret;
-	}
+        }
 
-	public VXTrxLogList getReportLogs(SearchCriteria searchCriteria) {
-		if (!xaBizUtil.isAdmin()) {
-			throw restErrorUtil.create403RESTException("Permission Denied !");
-		}
+        public VXTrxLogList getReportLogs(SearchCriteria searchCriteria) {
+                if (xaBizUtil.isAdmin() || xaBizUtil.isKeyAdmin()) {
+                        if (searchCriteria == null) {
+                                searchCriteria = new SearchCriteria();
+                        }
 
-		if (searchCriteria == null) {
-			searchCriteria = new SearchCriteria();
-		}
+                        if (searchCriteria.getParamList() != null
+                                        && searchCriteria.getParamList().size() > 0) {
+                                int clientTimeOffsetInMinute = RestUtil.getClientTimeOffset();
+                                Date temp = null;
+                                DateUtil dateUtil = new DateUtil();
+                                if (searchCriteria.getParamList().containsKey("startDate")) {
+                                        temp = (Date) searchCriteria.getParamList().get(
+                                                        "startDate");
+                                        temp = dateUtil.getDateFromGivenDate(temp, 0, 0, 0, 0);
+                                        temp = dateUtil.addTimeOffset(temp, clientTimeOffsetInMinute);
+                                        searchCriteria.getParamList().put("startDate", temp);
+                                }
+                                if (searchCriteria.getParamList().containsKey("endDate")) {
+                                        temp = (Date) searchCriteria.getParamList().get(
+                                                        "endDate");
+                                        temp = dateUtil.getDateFromGivenDate(temp, 0, 23, 59, 59);
+                                        temp = dateUtil.addTimeOffset(temp, clientTimeOffsetInMinute);
+                                        searchCriteria.getParamList().put("endDate", temp);
+                                }
+                                if (searchCriteria.getParamList().containsKey("owner")) {
+                                        XXPortalUser xXPortalUser = rangerDaoManager.getXXPortalUser().findByLoginId(
+                                                        (searchCriteria.getParamList().get("owner").toString()));
+                                        if(xXPortalUser != null) {
+                                                searchCriteria.getParamList().put("owner", xXPortalUser.getId());
+                                        } else {
+                                                searchCriteria.getParamList().put("owner", 0);
+                                        }
 
-		if (searchCriteria.getParamList() != null
-				&& searchCriteria.getParamList().size() > 0) {
-			int clientTimeOffsetInMinute = RestUtil.getClientTimeOffset();
-			Date temp = null;
-			DateUtil dateUtil = new DateUtil();
-			if (searchCriteria.getParamList().containsKey("startDate")) {
-				temp = (Date) searchCriteria.getParamList().get(
-						"startDate");
-				temp = dateUtil.getDateFromGivenDate(temp, 0, 0, 0, 0);
-				temp = dateUtil.addTimeOffset(temp, clientTimeOffsetInMinute);
-				searchCriteria.getParamList().put("startDate", temp);
-			}
-			if (searchCriteria.getParamList().containsKey("endDate")) {
-				temp = (Date) searchCriteria.getParamList().get(
-						"endDate");
-				temp = dateUtil.getDateFromGivenDate(temp, 0, 23, 59, 59);
-				temp = dateUtil.addTimeOffset(temp, clientTimeOffsetInMinute);
-				searchCriteria.getParamList().put("endDate", temp);
-			}
-			if (searchCriteria.getParamList().containsKey("owner")) {
-				XXPortalUser xXPortalUser= rangerDaoManager.getXXPortalUser().findByLoginId(
-						(searchCriteria.getParamList().get("owner").toString()));
-				if(xXPortalUser!=null){
-					searchCriteria.getParamList().put("owner", xXPortalUser.getId());
-				}else{
-					searchCriteria.getParamList().put("owner", 0);
-				}
-				
-			}
+                                }
 
-		}
+                        }
 
-		VXTrxLogList vXTrxLogList = xTrxLogService
-				.searchXTrxLogs(searchCriteria);
-		Long count=xTrxLogService
-				.searchXTrxLogsCount(searchCriteria);
-		vXTrxLogList.setTotalCount(count);
-		
-		List<VXTrxLog> newList = validateXXTrxLogList(vXTrxLogList.getVXTrxLogs());
-		vXTrxLogList.setVXTrxLogs(newList);
-		return vXTrxLogList;
-	}
+                        VXTrxLogList vXTrxLogList = xTrxLogService
+                                        .searchXTrxLogs(searchCriteria);
+                        Long count = xTrxLogService
+                                        .searchXTrxLogsCount(searchCriteria);
+                        vXTrxLogList.setTotalCount(count);
 
-	public VXAccessAuditList getAccessLogs(SearchCriteria searchCriteria) {
+                        List<VXTrxLog> newList = validateXXTrxLogList(vXTrxLogList.getVXTrxLogs());
+                        vXTrxLogList.setVXTrxLogs(newList);
+                        return vXTrxLogList;
+                } else {
+                        throw restErrorUtil.create403RESTException("Permission Denied !");
+                }
+
+
+        }
+
+        public VXAccessAuditList getAccessLogs(SearchCriteria searchCriteria) {
 
         if (searchCriteria == null) {
             searchCriteria = new SearchCriteria();
@@ -1007,51 +1009,58 @@ public class AssetMgr extends AssetMgrBase {
 		for (VXTrxLog xTrxLog : xTrxLogList) {
 			VXTrxLog vXTrxLog = new VXTrxLog();
 			vXTrxLog = xTrxLog;
-			if(vXTrxLog.getPreviousValue()==null || vXTrxLog.getPreviousValue().equalsIgnoreCase("null")){
+                        if(vXTrxLog.getPreviousValue() == null || vXTrxLog.getPreviousValue().equalsIgnoreCase("null")) {
 				vXTrxLog.setPreviousValue("");
 			}
-			if(vXTrxLog.getAttributeName()!=null && vXTrxLog.getAttributeName().equalsIgnoreCase("Password")){
+                        if(vXTrxLog.getAttributeName() != null && vXTrxLog.getAttributeName().equalsIgnoreCase("Password")) {
 				vXTrxLog.setPreviousValue("*********");
 				vXTrxLog.setNewValue("***********");
 			}
-			if(vXTrxLog.getAttributeName()!=null && vXTrxLog.getAttributeName().equalsIgnoreCase("Connection Configurations")){
-				if(vXTrxLog.getPreviousValue()!=null && vXTrxLog.getPreviousValue().contains("password")){
-					String tempPreviousStr=vXTrxLog.getPreviousValue();					
-					String tempPreviousArr[]=vXTrxLog.getPreviousValue().split(",");					
-					for(int i=0;i<tempPreviousArr.length;i++){
-						if(tempPreviousArr[i].contains("{\"password")){
-							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i], "{\"password\":\"*****\"}"));
+                        if(vXTrxLog.getAttributeName() != null && vXTrxLog.getAttributeName().equalsIgnoreCase("Connection Configurations")) {
+                                if(vXTrxLog.getPreviousValue() != null && vXTrxLog.getPreviousValue().contains("password")) {
+                                        String tempPreviousStr = vXTrxLog.getPreviousValue();
+                                        String tempPreviousArr[] = vXTrxLog.getPreviousValue().split(",");
+                                        for(int i = 0; i < tempPreviousArr.length; i++) {
+                                                if(tempPreviousArr[i].contains("{\"password") && tempPreviousArr[i].contains("}")) {
+                                                        vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i],"{\"password\":\"*****\"}"));
+                                                        break;
+                                                }
+                                                if(tempPreviousArr[i].contains("{\"password")) {
+                                                        vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i], "{\"password\":\"*****\""));
 							break;
-						}else if(tempPreviousArr[i].contains("\"password") && tempPreviousArr[i].contains("}")){
+                                                } else if(tempPreviousArr[i].contains("\"password") && tempPreviousArr[i].contains("}")) {
 							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i], "\"password\":\"******\"}"));
 							break;
-						}else if(tempPreviousArr[i].contains("\"password")){
+                                                }else if(tempPreviousArr[i].contains("\"password")) 	{
 							vXTrxLog.setPreviousValue(tempPreviousStr.replace(tempPreviousArr[i], "\"password\":\"******\""));
 							break;
 						}
 					}			
 				}
-				if(vXTrxLog.getNewValue()!=null && vXTrxLog.getNewValue().contains("password")){
-					String tempNewStr=vXTrxLog.getNewValue();
-					String tempNewArr[]=vXTrxLog.getNewValue().split(",");
-					for(int i=0;i<tempNewArr.length;i++){
-						if(tempNewArr[i].contains("{\"password")){
+                                if(vXTrxLog.getNewValue() != null && vXTrxLog.getNewValue().contains("password")) {
+                                        String tempNewStr = vXTrxLog.getNewValue();
+                                        String tempNewArr[] = vXTrxLog.getNewValue().split(",");
+                                        for(int i = 0; i < tempNewArr.length; i++) {
+                                                if(tempNewArr[i].contains("{\"password") && tempNewArr[i].contains("}")) {
+                                                        vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "{\"password\":\"*****\"}"));
+                                                        break;
+                                                } else if(tempNewArr[i].contains("{\"password")) {
 							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "{\"password\":\"*****\""));
 							break;
-						}else if(tempNewArr[i].contains("\"password") && tempNewArr[i].contains("}")){
+                                                } else if(tempNewArr[i].contains("\"password") && tempNewArr[i].contains("}")) {
 							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "\"password\":\"******\"}"));
 							break;
-						}else if(tempNewArr[i].contains("\"password")){
+                                                } else if(tempNewArr[i].contains("\"password")) {
 							vXTrxLog.setNewValue(tempNewStr.replace(tempNewArr[i], "\"password\":\"******\""));
 							break;
 						}
-					}	
-				}
-			}			
-			vXTrxLogs.add(vXTrxLog);
-		}
-		return vXTrxLogs;
-	}
+                                        }
+                                }
+                        }
+                        vXTrxLogs.add(vXTrxLog);
+                }
+                return vXTrxLogs;
+        }
 	/*
 	 * (non-Javadoc)
 	 *
