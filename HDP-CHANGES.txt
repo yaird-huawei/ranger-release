@@ -69,3 +69,4 @@ BUG
 	RANGER-1435 - BUG-76703: Allow different files to be specified for unix based usersync
 	RANGER-1499 - BUG-78284: Ranger - Upgrade Tomcat version
 	[HOTFIX-1780] - RANGER-1731  Exclude old guava versions, which could cause build problems, especially with owasp-java-html-sanitizer, which declares the deps as a range: [11.0,) Guava is already included in the admin module
+	[HOTFIX-1780] - RANGER-1905: Fix assembly creation - it's a black magic. As ranger-plugins-audit doesn't exclude guava from hadoop common, an older guava is leaked into embeddedwebserver classpath, which somehow filtered out
