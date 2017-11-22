@@ -301,6 +301,16 @@
             <artifactId>kerby-asn1</artifactId>
             <version>${kerby.version}</version>
         </dependency>
+	<dependency>
+	    <groupId>org.apache.hadoop</groupId>
+	    <artifactId>hadoop-hdfs-client</artifactId>
+	    <version>${hadoop.version}</version>
+	</dependency>
+	<dependency>
+	    <groupId>com.google.re2j</groupId>
+	    <artifactId>re2j</artifactId>
+	    <version>1.1</version>
+	</dependency>
     </dependencies>
     <build>
         <pluginManagement>
