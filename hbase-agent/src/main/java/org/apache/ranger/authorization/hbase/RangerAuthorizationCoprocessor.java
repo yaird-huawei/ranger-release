@@ -66,7 +66,7 @@ import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 
-public class RangerAuthorizationCoprocessor extends AccessController implements AccessControlService.Interface, RegionCoprocessor, MasterCoprocessor {
+public class RangerAuthorizationCoprocessor extends AccessController implements AccessControlService.Interface, RegionCoprocessor, MasterCoprocessor, RegionServerCoprocessor {
 	private static final Log LOG = LogFactory.getLog(RangerAuthorizationCoprocessor.class.getName());
 	private static final Log PERF_HBASEAUTH_REQUEST_LOG = RangerPerfTracer.getPerfLogger("hbaseauth.request");
 	private static boolean UpdateRangerPoliciesOnGrantRevoke = RangerHadoopConstants.HBASE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_DEFAULT_VALUE;
@@ -533,7 +533,7 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 			RangerPerfTracer.log(perf);
 		}
 	}
-	
+
 	/**
 	 * This could run s
 	 * @param operation
@@ -696,7 +696,8 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 	@Override
 	public void postStartMaster(ObserverContext<MasterCoprocessorEnvironment> ctx) throws IOException {
 		if(UpdateRangerPoliciesOnGrantRevoke) {
-			//RangerAccessControlLists.init(((HasMasterServices)ctx.getEnvironment()).getMasterServices());
+			LOG.debug("Calling super.postStartMaster() to create ACL table ...");
+			//RangerAccessControlLists.init(((HasMasterServices) ctx.getEnvironment()).getMasterServices());
 			super.postStartMaster(ctx);
 		}
 	}
@@ -997,6 +998,7 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 			LOG.debug("Start of Coprocessor: [" + coprocessorType + "]");
 		}
 	}
+
 	@Override
 	public void prePut(ObserverContext<RegionCoprocessorEnvironment> c, Put put, WALEdit edit, Durability durability) throws IOException {
 		requirePermission("put", TablePermission.Action.WRITE, c.getEnvironment(), put.getFamilyCellMap());
