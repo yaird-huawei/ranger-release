@@ -56,6 +56,8 @@
 					<include>com.fasterxml.jackson.core:jackson-databind</include>
 					<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-base</include>
 					<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider</include>
+					<include>org.codehaus.jackson:jackson-core-asl:jar:${codehaus.jackson.version}</include>
+					<include>org.codehaus.jackson:jackson-jaxrs:jar:${codehaus.jackson.version}</include>
 					<include>org.codehaus.jettison:jettison:jar:${jettison.version}</include>
 					<include>org.scala-lang:scala-library:jar:${scala.version}</include>
 					<include>org.slf4j:slf4j-api</include>
