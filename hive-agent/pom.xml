@@ -96,6 +96,17 @@
     		<artifactId>httpcore</artifactId>
     		<version>${httpcomponents.httpcore.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+            <version>${jersey-core.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-bundle</artifactId>
+            <version>${jersey-bundle.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <testResources>

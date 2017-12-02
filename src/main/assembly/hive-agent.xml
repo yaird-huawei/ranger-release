@@ -55,6 +55,8 @@
 					<include>org.apache.httpcomponents:httpcore:jar:${httpcomponents.httpcore.version}</include>
 		   			<include>org.noggit:noggit:jar:${noggit.version}</include>
 		   			<include>org.apache.solr:solr-solrj</include>
+                    <include>com.sun.jersey:jersey-core</include>
+                    <include>com.sun.jersey:jersey-bundle</include>
                 </includes>
                 <unpack>false</unpack>
             </dependencySet>
