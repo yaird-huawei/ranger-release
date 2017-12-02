@@ -101,7 +101,12 @@
               <include>org.apache.hbase:hbase-client:jar:${hbase.version}</include>
               <include>org.apache.hbase:hbase-protocol:jar:${hbase.version}</include>
               <include>org.apache.hbase:hbase-server:jar:${hbase.version}</include>
+              <include>org.apache.hbase:hbase-protocol-shaded:jar:${hbase.version}</include>
+              <include>org.apache.hbase.thirdparty:hbase-shaded-protobuf:jar:1.0.1</include>
+              <include>org.apache.hbase.thirdparty:hbase-shaded-netty:jar:1.0.1</include>
+              <include>org.apache.hbase.thirdparty:hbase-shaded-miscellaneous:jar:1.0.1</include>
               <include>org.apache.htrace:htrace-core4</include>
+              <include>io.dropwizard.metrics:metrics-core</include>
             </includes>
           </dependencySet>
         </dependencySets>
