@@ -75,17 +75,17 @@
                         <include>commons-configuration:commons-configuration:jar:${commons.pool.version}</include>
                         <include>commons-io:commons-io:jar:${commons.io.version}</include>
                         <include>commons-lang:commons-lang:jar:${commons.lang.version}</include>
-         		<include>commons-logging:commons-logging:jar:${commons.logging.version}</include>
+                        <include>commons-logging:commons-logging:jar:${commons.logging.version}</include>
                         <include>com.google.guava:guava:jar:${guava.version}</include>
                         <include>org.slf4j:slf4j-api:jar:${slf4j-api.version}</include>
                         <include>org.apache.hadoop:hadoop-common:jar:${hadoop.version}</include>
                         <include>org.apache.hadoop:hadoop-auth:jar:${hadoop.version}</include>
-			<include>org.apache.ranger:ranger-plugins-cred</include>
-			<include>org.apache.ranger:credentialbuilder</include>
-                        <include>org.apache.commons:commons-configuration2</include>
-                        <include>org.codehaus.woodstox:stax2-api</include>
+                        <include>org.apache.ranger:ranger-plugins-cred</include>
+                        <include>org.apache.ranger:credentialbuilder</include>
                         <include>org.apache.htrace:htrace-core4:jar:${htrace-core.version}</include>
-                        <include>com.fasterxml.woodstox:woodstox-core</include>
+						<include>com.fasterxml.woodstox:woodstox-core:jar:${fasterxml.woodstox.version}</include>
+						<include>org.codehaus.woodstox:stax2-api:jar:${codehaus.woodstox.stax2api.version}</include>
+						<include>org.apache.commons:commons-configuration2:jar:${commons.configuration2.version}</include>
                     </includes>
             </dependencySet>
         </dependencySets>

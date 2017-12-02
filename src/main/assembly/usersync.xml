@@ -40,7 +40,6 @@
 					<include>commons-cli:commons-cli</include>
 					<include>commons-collections:commons-collections</include>
 					<include>commons-configuration:commons-configuration</include>
-					<include>org.apache.commons:commons-configuration2</include>
 					<include>commons-lang:commons-lang</include>
 					<include>commons-logging:commons-logging</include>
 					<include>com.google.guava:guava</include>
@@ -51,12 +50,13 @@
 					<include>org.apache.ranger:credentialbuilder</include>
 					<include>org.apache.ranger:ranger-util</include>
 					<include>commons-io:commons-io:jar:${commons.io.version}</include>
-					<include>org.apache.htrace:htrace-core4</include>
 					<include>org.apache.httpcomponents:httpclient:jar:${httpcomponents.httpclient.version}</include>
 					<include>commons-codec:commons-codec</include>
 					<include>org.apache.ranger:ranger-plugins-common</include>
-					<include>com.fasterxml.woodstox:woodstox-core</include>
-					<include>org.codehaus.woodstox:stax2-api</include>
+					<include>org.apache.htrace:htrace-core4:jar:${htrace-core.version}</include>
+					<include>com.fasterxml.woodstox:woodstox-core:jar:${fasterxml.woodstox.version}</include>
+					<include>org.codehaus.woodstox:stax2-api:jar:${codehaus.woodstox.stax2api.version}</include>
+					<include>org.apache.commons:commons-configuration2:jar:${commons.configuration2.version}</include>
 				</includes>
 				<unpack>false</unpack>
   			</dependencySet>

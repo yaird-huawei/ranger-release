@@ -81,7 +81,6 @@
 					<include>org.apache.curator:curator-recipes</include>
 					<include>com.google.code.gson:gson</include>
 					<include>org.apache.hadoop:hadoop-annotations</include>
-					<include>org.apache.htrace:htrace-core4</include>
 					<include>org.apache.httpcomponents:httpcore</include>
 					<include>org.codehaus.jackson:jackson-core-asl</include>
 					<include>org.codehaus.jackson:jackson-jaxrs</include>
@@ -107,16 +106,16 @@
 		    		<include>org.apache.hadoop:hadoop-hdfs:jar:${hadoop.version}</include>
 		    		<include>org.apache.hadoop:hadoop-hdfs-client:jar:${hadoop.version}</include>
 					<include>org.apache.htrace:htrace-core4:jar:${htrace-core.version}</include>
-					<include>com.fasterxml.woodstox:woodstox-core</include>
-					<include>org.codehaus.woodstox:stax2-api</include>
-					<include>org.apache.commons:commons-configuration2</include>
+					<include>com.fasterxml.woodstox:woodstox-core:jar:${fasterxml.woodstox.version}</include>
+					<include>org.codehaus.woodstox:stax2-api:jar:${codehaus.woodstox.stax2api.version}</include>
+					<include>org.apache.commons:commons-configuration2:jar:${commons.configuration2.version}</include>
 					<include>com.fasterxml.jackson.core:jackson-core</include>
 					<include>com.fasterxml.jackson.core:jackson-databind</include>
 					<include>com.fasterxml.jackson.core:jackson-annotations</include>
-                                        <include>org.apache.kerby:kerb-core</include>
-                                        <include>org.apache.kerby:kerb-util</include>
-                                        <include>org.apache.kerby:kerb-crypto</include>
-                                        <include>org.apache.kerby:kerby-asn1</include>
+					<include>org.apache.kerby:kerb-core</include>
+					<include>org.apache.kerby:kerb-util</include>
+					<include>org.apache.kerby:kerb-crypto</include>
+					<include>org.apache.kerby:kerby-asn1</include>
 	            </includes>
             </dependencySet>
         </dependencySets>
@@ -152,12 +151,12 @@
                     <include>org.eclipse.jdt.core.compiler:ecj:jar:P20140317-1600</include>
                     <include>com.google.protobuf:protobuf-java:jar:${protobuf-java.version}</include>
 		    		<include>org.apache.hadoop:hadoop-hdfs:jar:${hadoop.version}</include>
-					<include>org.apache.htrace:htrace-core4:jar:${htrace-core.version}</include>
-		    		<include>org.apache.solr:solr-solrj</include>
+					<include>org.apache.solr:solr-solrj</include>
 					<include>org.apache.ranger:ranger-plugins-common</include>
-					<include>com.fasterxml.woodstox:woodstox-core</include>
-					<include>org.codehaus.woodstox:stax2-api</include>
-					<include>org.apache.commons:commons-configuration2</include>
+					<include>org.apache.htrace:htrace-core4:jar:${htrace-core.version}</include>
+					<include>com.fasterxml.woodstox:woodstox-core:jar:${fasterxml.woodstox.version}</include>
+					<include>org.codehaus.woodstox:stax2-api:jar:${codehaus.woodstox.stax2api.version}</include>
+					<include>org.apache.commons:commons-configuration2:jar:${commons.configuration2.version}</include>
                 </includes>
                 <unpack>false</unpack>
             </dependencySet>
@@ -294,10 +293,10 @@
 							<include>org.slf4j:slf4j-api</include>
 							<include>org.apache.hadoop:hadoop-common</include>
 							<include>org.apache.hadoop:hadoop-auth</include>
-							<include>org.apache.htrace:htrace-core4</include>
-							<include>com.fasterxml.woodstox:woodstox-core</include>
-							<include>org.codehaus.woodstox:stax2-api</include>
-							<include>org.apache.commons:commons-configuration2</include>
+							<include>org.apache.htrace:htrace-core4:jar:${htrace-core.version}</include>
+							<include>com.fasterxml.woodstox:woodstox-core:jar:${fasterxml.woodstox.version}</include>
+							<include>org.codehaus.woodstox:stax2-api:jar:${codehaus.woodstox.stax2api.version}</include>
+							<include>org.apache.commons:commons-configuration2:jar:${commons.configuration2.version}</include>
 						</includes>
 					</dependencySet>
 				</dependencySets>
