@@ -217,7 +217,7 @@
         <sqoop.version>1.99.7</sqoop.version>
         <storm.version>1.0.2</storm.version>
         <sun-jersey-bundle.version>1.19</sun-jersey-bundle.version>
-        <tomcat.embed.version>7.0.77</tomcat.embed.version>
+        <tomcat.embed.version>7.0.82</tomcat.embed.version>
         <velocity.version>1.7</velocity.version>
         <zookeeper.version>3.5.3-beta</zookeeper.version>
         <hive.thrift.version>0.9.3</hive.thrift.version>
