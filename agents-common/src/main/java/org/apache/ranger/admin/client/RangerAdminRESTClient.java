@@ -54,9 +54,6 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 	private RangerRESTClient restClient;
 	private RangerRESTUtils restUtils   = new RangerRESTUtils();
 
-	public RangerAdminRESTClient() {
-	}
-
 	public static <T> GenericType<List<T>> getGenericType(final T clazz) {
 
 		ParameterizedType parameterizedGenericType = new ParameterizedType() {
@@ -200,11 +197,11 @@ public class RangerAdminRESTClient implements RangerAdminClient {
                                                                                 .queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
 			response = webResource.accept(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).type(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(ClientResponse.class, restClient.toJson(request));
 		}
-		if(response != null && response.getStatus() != 200) {
+		if(response != null && response.getStatus() != HttpServletResponse.SC_OK) {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 			LOG.error("grantAccess() failed: HTTP status=" + response.getStatus() + ", message=" + resp.getMessage() + ", isSecure=" + isSecureMode + (isSecureMode ? (", user=" + user) : ""));
 
-			if(response.getStatus() == 401) {
+			if(response.getStatus()==HttpServletResponse.SC_UNAUTHORIZED) {
 				throw new AccessControlException();
 			}
 
@@ -246,11 +243,11 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 			response = webResource.accept(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).type(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(ClientResponse.class, restClient.toJson(request));
 		}
 
-		if(response != null && response.getStatus() != 200) {
+		if(response != null && response.getStatus() != HttpServletResponse.SC_OK) {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 			LOG.error("revokeAccess() failed: HTTP status=" + response.getStatus() + ", message=" + resp.getMessage() + ", isSecure=" + isSecureMode + (isSecureMode ? (", user=" + user) : ""));
 
-			if(response.getStatus() == 401) {
+			if(response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
 				throw new AccessControlException();
 			}
 
@@ -386,7 +383,7 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 			response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
 		}
 
-		if(response != null && response.getStatus() == 200) {
+		if(response != null && response.getStatus() == HttpServletResponse.SC_OK) {
 			ret = response.getEntity(getGenericType(emptyString));
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
