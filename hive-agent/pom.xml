@@ -104,8 +104,8 @@
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-bundle</artifactId>
-            <version>${jersey-bundle.version}</version>
+            <artifactId>jersey-client</artifactId>
+            <version>${sun-jersey-client.version}</version>
         </dependency>
     </dependencies>
     <build>
