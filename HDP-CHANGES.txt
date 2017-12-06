@@ -161,3 +161,6 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1505] : Remove KeyProtector code in KMS
 [RANGER-1402] : NPE if there is a problem with the HiveClient driverClassName
 [RANGER-1403] : There is a problem in buildks class when delete invalid keystore file.
+[RANGER-1880] : TagSync update to process TRAIT_UPDATE notification from Atlas
+[RANGER-1883] : TagSync should reuse kerberos ticket in REST calls to Ranger Admin
+[RANGER-1897] : tagsync update to replace Atlas V1 API usage with Atlas V2 API for tag-download using REST
