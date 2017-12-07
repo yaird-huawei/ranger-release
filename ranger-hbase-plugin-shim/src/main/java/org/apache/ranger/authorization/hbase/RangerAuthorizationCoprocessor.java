@@ -74,7 +74,7 @@ public class RangerAuthorizationCoprocessor implements RegionCoprocessor, Master
 	private MasterCoprocessor									implMasterCoprocessor	 	= null;
 	private RegionCoprocessor									implRegionCoprocessor	 	= null;
 	private RegionServerCoprocessor								implRegionServerCoporcessor = null;
-	private EndpointObserver									implEndpointObserver		= null;
+	//private EndpointObserver									implEndpointObserver		= null;
 
 	public RangerAuthorizationCoprocessor() {
 		if(LOG.isDebugEnabled()) {
@@ -111,7 +111,7 @@ public class RangerAuthorizationCoprocessor implements RegionCoprocessor, Master
 			implRegionObserver       = (RegionObserver)impl;
 			implRegionServerObserver = (RegionServerObserver)impl;
 			implBulkLoadObserver     = (BulkLoadObserver)impl;
-			implEndpointObserver	 = (EndpointObserver)impl;
+			//implEndpointObserver	 = (EndpointObserver)impl;
 
 		} catch (Exception e) {
 			// check what need to be done

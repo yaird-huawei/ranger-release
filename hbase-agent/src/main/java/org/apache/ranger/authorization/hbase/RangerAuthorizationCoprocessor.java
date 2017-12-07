@@ -753,7 +753,7 @@ public class RangerAuthorizationCoprocessor implements AccessControlService.Inte
 	}
 
 	private static void createACLTable(Admin admin) throws IOException {
-		ColumnFamilyDescriptor cfd = ColumnFamilyDescriptorBuilder.newBuilder(AccessControlLists.ACL_LIST_FAMILY).setMaxVersions(1).setInMemory(true).setBlockCacheEnabled(true).setBlocksize(8192).setBloomFilterType(BloomType.NONE).setScope(0).setCacheDataInL1(true).build();
+		ColumnFamilyDescriptor cfd = ColumnFamilyDescriptorBuilder.newBuilder(AccessControlLists.ACL_LIST_FAMILY).setMaxVersions(1).setInMemory(true).setBlockCacheEnabled(true).setBlocksize(8192).setBloomFilterType(BloomType.NONE).setScope(0).build();
 		TableDescriptor td = TableDescriptorBuilder.newBuilder(AccessControlLists.ACL_TABLE_NAME).addColumnFamily(cfd).build();
 		admin.createTable(td);
 	}
