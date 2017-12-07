@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.*;
 
+import com.google.protobuf.Service;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,7 +67,7 @@ import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 
-public class RangerAuthorizationCoprocessor extends AccessController implements AccessControlService.Interface, RegionCoprocessor, MasterCoprocessor, RegionServerCoprocessor {
+public class RangerAuthorizationCoprocessor implements AccessControlService.Interface, RegionCoprocessor, MasterCoprocessor, RegionServerCoprocessor, MasterObserver, RegionObserver, RegionServerObserver, EndpointObserver, BulkLoadObserver, Coprocessor {
 	private static final Log LOG = LogFactory.getLog(RangerAuthorizationCoprocessor.class.getName());
 	private static final Log PERF_HBASEAUTH_REQUEST_LOG = RangerPerfTracer.getPerfLogger("hbaseauth.request");
 	private static boolean UpdateRangerPoliciesOnGrantRevoke = RangerHadoopConstants.HBASE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_DEFAULT_VALUE;
@@ -679,6 +680,32 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 		}
 		requirePermission(request, perm, env, familyMap);
 	}
+
+	@Override
+	public Optional<RegionObserver> getRegionObserver() {
+		return Optional.<RegionObserver>of(this);
+	}
+
+	@Override
+	public Optional<MasterObserver> getMasterObserver() {
+		return Optional.<MasterObserver>of(this);
+	}
+
+	@Override
+	public Optional<EndpointObserver> getEndpointObserver() {
+		return Optional.<EndpointObserver>of(this);
+	}
+
+	@Override
+	public Optional<BulkLoadObserver> getBulkLoadObserver() {
+		return Optional.<BulkLoadObserver>of(this);
+	}
+
+	@Override
+	public Optional<RegionServerObserver> getRegionServerObserver() {
+		return Optional.<RegionServerObserver>of(this);
+	}
+
 	
 	@Override
 	public void postScannerClose(ObserverContext<RegionCoprocessorEnvironment> c, InternalScanner s) throws IOException {
@@ -693,13 +720,47 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 		return s;
 	}
 
+
 	@Override
 	public void postStartMaster(ObserverContext<MasterCoprocessorEnvironment> ctx) throws IOException {
 		if(UpdateRangerPoliciesOnGrantRevoke) {
-			LOG.debug("Calling super.postStartMaster() to create ACL table ...");
-			//RangerAccessControlLists.init(((HasMasterServices) ctx.getEnvironment()).getMasterServices());
-			super.postStartMaster(ctx);
+			LOG.debug("Calling create ACL table ...");
+			Admin admin = (ctx.getEnvironment()).getConnection().getAdmin();
+			Throwable var3 = null;
+
+			try {
+				if(!admin.tableExists(AccessControlLists.ACL_TABLE_NAME)) {
+					createACLTable(admin);
+				}
+			} catch (Throwable var12) {
+				var3 = var12;
+				throw var12;
+			} finally {
+				if(admin != null) {
+					if(var3 != null) {
+						try {
+							admin.close();
+						} catch (Throwable var11) {
+							var3.addSuppressed(var11);
+						}
+					} else {
+						admin.close();
+					}
+				}
+
+			}
 		}
+	}
+
+	private static void createACLTable(Admin admin) throws IOException {
+		ColumnFamilyDescriptor cfd = ColumnFamilyDescriptorBuilder.newBuilder(AccessControlLists.ACL_LIST_FAMILY).setMaxVersions(1).setInMemory(true).setBlockCacheEnabled(true).setBlocksize(8192).setBloomFilterType(BloomType.NONE).setScope(0).setCacheDataInL1(true).build();
+		TableDescriptor td = TableDescriptorBuilder.newBuilder(AccessControlLists.ACL_TABLE_NAME).addColumnFamily(cfd).build();
+		admin.createTable(td);
+	}
+
+	@Override
+	public Iterable<Service> getServices() {
+		return Collections.singleton(AccessControlService.newReflectiveService(this));
 	}
 
 	@Override
@@ -957,7 +1018,6 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 
 	@Override
 	public void start(CoprocessorEnvironment env) throws IOException {
-		super.start(env);
 		String appType = "unknown";
 
 		if (env instanceof MasterCoprocessorEnvironment) {
@@ -971,7 +1031,7 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 			coprocessorType = REGIONAL_COPROCESSOR_TYPE;
 			appType = "hbaseRegional";
 		}
-		
+
 		Configuration conf = env.getConfiguration();
 		HbaseFactory.initialize(conf);
 
@@ -981,7 +1041,7 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 		if(plugin == null) {
 			synchronized(RangerAuthorizationCoprocessor.class) {
 				plugin = hbasePlugin;
-				
+
 				if(plugin == null) {
 					plugin = new RangerHBasePlugin(appType);
 
@@ -993,7 +1053,7 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 				}
 			}
 		}
-		
+
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Start of Coprocessor: [" + coprocessorType + "]");
 		}

@@ -19,9 +19,9 @@
 package org.apache.ranger.authorization.hbase;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.google.protobuf.Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
@@ -51,23 +51,20 @@ import org.apache.hadoop.hbase.regionserver.compactions.CompactionRequest;
 import org.apache.hadoop.hbase.regionserver.querymatcher.DeleteTracker;
 import org.apache.hadoop.hbase.regionserver.Region.Operation;
 import org.apache.hadoop.hbase.replication.ReplicationEndpoint;
-import org.apache.hadoop.hbase.security.access.AccessController;
 import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.hbase.wal.WALEdit;
 import org.apache.ranger.plugin.classloader.RangerPluginClassLoader;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 
-import java.util.Set;
-
-public class RangerAuthorizationCoprocessor extends AccessController implements AccessControlProtos.AccessControlService.Interface, RegionCoprocessor, MasterCoprocessor, RegionServerCoprocessor {
+public class RangerAuthorizationCoprocessor implements RegionCoprocessor, MasterCoprocessor, RegionServerCoprocessor, MasterObserver, RegionObserver, RegionServerObserver, EndpointObserver, BulkLoadObserver, AccessControlProtos.AccessControlService.Interface {
 
 	public static final Log LOG = LogFactory.getLog(RangerAuthorizationCoprocessor.class);
 	private static final String   RANGER_PLUGIN_TYPE                      = "hbase";
 	private static final String   RANGER_HBASE_AUTHORIZER_IMPL_CLASSNAME  = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor";
-	
+
 	private static RangerPluginClassLoader rangerPluginClassLoader = null;
-	
+
 	private        Object 	               						impl	                 	= null;
 	private MasterObserver      							    implMasterObserver       	= null;
 	private RegionObserver       							    implRegionObserver       	= null;
@@ -77,6 +74,7 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 	private MasterCoprocessor									implMasterCoprocessor	 	= null;
 	private RegionCoprocessor									implRegionCoprocessor	 	= null;
 	private RegionServerCoprocessor								implRegionServerCoporcessor = null;
+	private EndpointObserver									implEndpointObserver		= null;
 
 	public RangerAuthorizationCoprocessor() {
 		if(LOG.isDebugEnabled()) {
@@ -96,9 +94,9 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 		}
 
 		try {
-			
+
 			rangerPluginClassLoader = RangerPluginClassLoader.getInstance(RANGER_PLUGIN_TYPE, this.getClass());
-			
+
 			@SuppressWarnings("unchecked")
 			Class<?> cls = Class.forName(RANGER_HBASE_AUTHORIZER_IMPL_CLASSNAME, true, rangerPluginClassLoader);
 
@@ -109,11 +107,12 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 			implMasterCoprocessor 	 = (MasterCoprocessor)impl;
 			implRegionCoprocessor	 = (RegionCoprocessor)impl;
 			implRegionServerCoporcessor = (RegionServerCoprocessor)impl;
-			implMasterObserver       = implMasterCoprocessor.getMasterObserver().get();
-			implRegionObserver       = implRegionCoprocessor.getRegionObserver().get();
-			implRegionServerObserver = implRegionServerCoporcessor.getRegionServerObserver().get();
+			implMasterObserver       = (MasterObserver)impl;
+			implRegionObserver       = (RegionObserver)impl;
+			implRegionServerObserver = (RegionServerObserver)impl;
 			implBulkLoadObserver     = (BulkLoadObserver)impl;
-			
+			implEndpointObserver	 = (EndpointObserver)impl;
+
 		} catch (Exception e) {
 			// check what need to be done
 			LOG.error("Error Enabling RangerHbasePlugin", e);
@@ -125,6 +124,30 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 			LOG.debug("<== RangerAuthorizationCoprocessor.init()");
 		}
 	}
+	@Override
+	public Optional<RegionObserver> getRegionObserver() {
+		return Optional.<RegionObserver>of(this);
+	}
+
+	@Override
+	public Optional<MasterObserver> getMasterObserver() {
+		return Optional.<MasterObserver>of(this);
+	}
+
+	@Override
+	public Optional<EndpointObserver> getEndpointObserver() {
+		return Optional.<EndpointObserver>of(this);
+	}
+
+	@Override
+	public Optional<BulkLoadObserver> getBulkLoadObserver() {
+		return Optional.<BulkLoadObserver>of(this);
+	}
+
+	@Override
+	public Optional<RegionServerObserver> getRegionServerObserver() {
+		return Optional.<RegionServerObserver>of(this);
+	}
 
 	@Override
 	public void start(CoprocessorEnvironment env) throws IOException {
@@ -134,7 +157,13 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 
 		try {
 			activatePluginClassLoader();
-			implMasterCoprocessor.start(env);
+			if (env instanceof MasterCoprocessorEnvironment) {
+				implMasterCoprocessor.start(env);
+			} else if (env instanceof RegionServerCoprocessorEnvironment) {
+				implRegionServerCoporcessor.start(env);
+			} else if (env instanceof RegionCoprocessorEnvironment) {
+				implRegionCoprocessor.start(env);
+			}
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -142,6 +171,11 @@ public class RangerAuthorizationCoprocessor extends AccessController implements 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.start()");
 		}
+	}
+
+	@Override
+	public Iterable<Service> getServices() {
+		return Collections.singleton(AccessControlProtos.AccessControlService.newReflectiveService(this));
 	}
 
 	@Override
