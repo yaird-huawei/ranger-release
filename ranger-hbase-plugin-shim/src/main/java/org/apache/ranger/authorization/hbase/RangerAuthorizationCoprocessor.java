@@ -1790,8 +1790,6 @@ public class RangerAuthorizationCoprocessor implements RegionCoprocessor, Master
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAuthorizationCoprocessor.postBulkLoadHFile()");
 		}
-
-		return;
 	}
 
 	@Override
