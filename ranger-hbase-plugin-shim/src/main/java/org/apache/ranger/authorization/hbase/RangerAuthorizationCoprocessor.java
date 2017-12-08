@@ -1774,9 +1774,7 @@ public class RangerAuthorizationCoprocessor implements RegionCoprocessor, Master
 	}
 
 	@Override
-	public boolean postBulkLoadHFile(ObserverContext<RegionCoprocessorEnvironment> ctx,	List<Pair<byte[], String>> familyPaths, Map<byte[], List<Path>> finalPaths, boolean hasLoaded) throws IOException {
-		
-		final boolean ret;
+	public void postBulkLoadHFile(ObserverContext<RegionCoprocessorEnvironment> ctx,	List<Pair<byte[], String>> familyPaths, Map<byte[], List<Path>> finalPaths) throws IOException {
 		
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAuthorizationCoprocessor.postBulkLoadHFile()");
@@ -1784,7 +1782,7 @@ public class RangerAuthorizationCoprocessor implements RegionCoprocessor, Master
 
 		try {
 			activatePluginClassLoader();
-			ret = implRegionObserver.postBulkLoadHFile(ctx, familyPaths, finalPaths, hasLoaded);
+			implRegionObserver.postBulkLoadHFile(ctx, familyPaths, finalPaths);
 		} finally {
 			deactivatePluginClassLoader();
 		}
@@ -1793,7 +1791,7 @@ public class RangerAuthorizationCoprocessor implements RegionCoprocessor, Master
 			LOG.debug("<== RangerAuthorizationCoprocessor.postBulkLoadHFile()");
 		}
 
-		return ret;
+		return;
 	}
 
 	@Override
