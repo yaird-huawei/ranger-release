@@ -38,9 +38,12 @@
 					<include>com.google.code.gson:gson:jar:${gson.version}</include>
 					<include>com.google.guava:guava:jar:${google.guava.version}</include>
 					<include>com.sun.jersey:jersey-bundle:jar:${jersey-bundle.version}</include>
-					<include>com.yammer.metrics:metrics-core</include>
+					<include>com.sun.jersey.contribs:jersey-multipart:jar:${sun-jersey-bundle.version}</include>
 					<include>org.apache.atlas:atlas-notification:jar:${atlas.version}</include>
-					<include>org.apache.atlas:atlas-client:jar:${atlas.version}</include>
+					<include>org.apache.atlas:atlas-intg:jar:${atlas.version}</include>
+					<include>org.apache.atlas:atlas-client-v1:jar:${atlas.version}</include>
+					<include>org.apache.atlas:atlas-client-v2:jar:${atlas.version}</include>
+					<include>org.apache.atlas:atlas-client-common:jar:${atlas.version}</include>
 					<include>org.apache.atlas:atlas-common:jar:${atlas.version}</include>
 					<include>org.apache.atlas:atlas-intg:jar:${atlas.version}</include>
 					<include>org.apache.hadoop:hadoop-auth</include>
@@ -52,10 +55,11 @@
 					<include>org.apache.ranger:ranger-plugins-common</include>
 					<include>org.apache.ranger:ranger-util</include>
 					<include>org.apache.zookeeper:zookeeper:jar:${zookeeper.version}</include>
-					<include>com.fasterxml.jackson.core:jackson-core</include>
-					<include>com.fasterxml.jackson.core:jackson-databind</include>
-					<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-base</include>
-					<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider</include>
+					<include>com.fasterxml.jackson.core:jackson-annotations:jar:${atlas.jackson.version}</include>
+					<include>com.fasterxml.jackson.core:jackson-core:jar:${atlas.jackson.version}</include>
+					<include>com.fasterxml.jackson.core:jackson-databind:jar:${atlas.jackson.version}</include>
+					<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:jar:${atlas.jackson.version}</include>
+					<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:jar:${atlas.jackson.version}</include>
 					<include>org.codehaus.jackson:jackson-core-asl:jar:${codehaus.jackson.version}</include>
 					<include>org.codehaus.jackson:jackson-jaxrs:jar:${codehaus.jackson.version}</include>
 					<include>org.codehaus.jettison:jettison:jar:${jettison.version}</include>

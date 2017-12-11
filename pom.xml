@@ -14,7 +14,8 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache</groupId>
@@ -125,7 +126,7 @@
         <apacheds.version>2.0.0-M22</apacheds.version>
         <asm.all.version>3.2</asm.all.version>
         <aspectj.version>1.8.2</aspectj.version>
-        <atlas.version>1.0.0.3.0.0.0-463</atlas.version>
+        <atlas.version>1.0.0-SNAPSHOT</atlas.version>
         <atlas.guava.version>14.0</atlas.guava.version>
         <atlas.gson.version>2.5</atlas.gson.version>
         <atlas.jackson.version>2.9.2</atlas.jackson.version>
@@ -215,6 +216,7 @@
         <springframework.version>3.2.18.RELEASE</springframework.version>
         <sqoop.version>1.99.7</sqoop.version>
         <storm.version>1.0.2</storm.version>
+        <sun-jersey-bundle.version>1.19</sun-jersey-bundle.version>
         <tomcat.embed.version>7.0.77</tomcat.embed.version>
         <velocity.version>1.7</velocity.version>
         <zookeeper.version>3.5.3-beta</zookeeper.version>

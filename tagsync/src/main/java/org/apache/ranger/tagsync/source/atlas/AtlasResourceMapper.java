@@ -20,18 +20,20 @@
 package org.apache.ranger.tagsync.source.atlas;
 
 import java.util.Properties;
-import java.util.Map;
 
-import org.apache.atlas.v1.model.instance.Referenceable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.plugin.model.RangerServiceResource;
+import org.apache.ranger.tagsync.source.atlasrest.RangerAtlasEntity;
 
 public abstract class AtlasResourceMapper {
 	private static final Log LOG = LogFactory.getLog(AtlasResourceMapper.class);
 
 	public static final String TAGSYNC_DEFAULT_CLUSTER_NAME = "ranger.tagsync.atlas.default.cluster.name";
+	public static final String ENTITY_ATTRIBUTE_QUALIFIED_NAME = "qualifiedName";
+	public static final String QUALIFIED_NAME_DELIMITER        = "\\.";
+	public static final Character QUALIFIED_NAME_DELIMITER_CHAR    = '.';
 
 	protected static final String TAGSYNC_SERVICENAME_MAPPER_PROP_PREFIX                  = "ranger.tagsync.atlas.";
 	protected static final String TAGSYNC_SERVICENAME_MAPPER_PROP_SUFFIX                  = ".ranger.service";
@@ -72,7 +74,7 @@ public abstract class AtlasResourceMapper {
 		this.defaultClusterName = properties != null ? properties.getProperty(TAGSYNC_DEFAULT_CLUSTER_NAME) : null;
 	}
 
-	abstract public RangerServiceResource buildResource(final Referenceable entity) throws Exception;
+	abstract public RangerServiceResource buildResource(final RangerAtlasEntity entity) throws Exception;
 
 	protected String getCustomRangerServiceName(String atlasInstanceName) {
 		if(properties != null) {
@@ -118,14 +120,4 @@ public abstract class AtlasResourceMapper {
 		throw new Exception(msg);
 	}
 
-	static protected <T> T getEntityAttribute(Referenceable entity, String name, Class<T> type) {
-		Map<String, Object> valueMap = entity.getValuesMap();
-		T ret = getAttribute(valueMap, name, type);
-
-		return ret;
-	}
-
-	static protected <T> T getAttribute(Map<String, Object> map, String name, Class<T> type) {
-		return type.cast(map.get(name));
-	}
 }
