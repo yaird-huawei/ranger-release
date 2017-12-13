@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import javax.security.auth.Subject;
 
@@ -234,7 +235,7 @@ public class HBaseClient extends BaseClient {
 						//HBaseAdmin.checkHBaseAvailable(conf);
 						LOG.info("getTableList: no exception: HbaseAvailability true");
 						admin = conn.getAdmin();
-						List<TableDescriptor> htds = admin.listTableDescriptorsByNamespace(tableNameMatching.getBytes());
+						List<TableDescriptor> htds = admin.listTableDescriptors(Pattern.compile(tableNameMatching));
 						if (htds != null) {
 							for (TableDescriptor htd : htds) {
 								String tableName = htd.getTableName().getNameAsString();
