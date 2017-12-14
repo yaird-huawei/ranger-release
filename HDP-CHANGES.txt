@@ -25,3 +25,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [BUG-75869]   :   RangerHiveAuthorizer.applyRowFilterAndColumnMasking should only return tables if they need masking/filtering
 [RANGER-1383] :   Use resource matchers for filtering service policies
 
+[RANGER-1631] : : create temp function failing with permission issues
