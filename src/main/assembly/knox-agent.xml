@@ -62,6 +62,8 @@
 					<include>org.codehaus.jackson:jackson-core-asl:jar:${codehaus.jackson.version}</include>
 					<include>org.codehaus.jackson:jackson-mapper-asl:jar:${codehaus.jackson.version}</include>
 					<include>org.apache.solr:solr-solrj</include>
+					<include>org.apache.hadoop:hadoop-hdfs-client:jar:${hadoop.version}</include>
+					<include>com.google.re2j:re2j</include>
 		    	</includes>
                 <unpack>false</unpack>
             </dependencySet>
