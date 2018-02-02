@@ -148,6 +148,7 @@ import org.apache.ranger.plugin.store.EmbeddedServiceDefsUtil;
 import org.apache.ranger.plugin.store.PList;
 import org.apache.ranger.plugin.store.ServicePredicateUtil;
 import org.apache.ranger.plugin.util.SearchFilter;
+import org.apache.ranger.plugin.util.ServiceDefUtil;
 import org.apache.ranger.plugin.util.ServicePolicies;
 import org.apache.ranger.rest.ServiceREST;
 import org.apache.ranger.rest.TagREST;
@@ -354,7 +355,9 @@ public class ServiceDBStore extends AbstractServiceStore {
 					+ serviceDef.getName() + " already exists",
 					MessageEnums.ERROR_DUPLICATE_OBJECT);
 		}
-		
+
+		serviceDef = ServiceDefUtil.normalize(serviceDef);
+
 		List<RangerServiceConfigDef> configs = serviceDef.getConfigs();
 		List<RangerResourceDef> resources = serviceDef.getResources();
 		List<RangerAccessTypeDef> accessTypes = serviceDef.getAccessTypes();
