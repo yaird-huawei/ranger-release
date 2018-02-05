@@ -32,12 +32,12 @@ import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
-import org.apache.hadoop.gateway.GatewayServer;
-import org.apache.hadoop.gateway.GatewayTestConfig;
-import org.apache.hadoop.gateway.security.ldap.SimpleLdapDirectoryServer;
-import org.apache.hadoop.gateway.services.DefaultGatewayServices;
-import org.apache.hadoop.gateway.services.ServiceLifecycleException;
-import org.apache.hadoop.test.mock.MockServer;
+import org.apache.knox.gateway.GatewayServer;
+import org.apache.knox.gateway.GatewayTestConfig;
+import org.apache.knox.gateway.security.ldap.SimpleLdapDirectoryServer;
+import org.apache.knox.gateway.services.DefaultGatewayServices;
+import org.apache.knox.gateway.services.ServiceLifecycleException;
+import org.apache.knox.test.mock.MockServer;
 import org.apache.http.HttpStatus;
 import org.junit.*;
 
@@ -161,7 +161,7 @@ import io.restassured.response.ValidatableResponse;
             .addTag("enabled").addText("true")
             .addTag( "param" )
             .addTag("name").addText("main.ldapRealm")
-            .addTag("value").addText("org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm").gotoParent()
+            .addTag("value").addText("org.apache.knox.gateway.shirorealm.KnoxLdapRealm").gotoParent()
             .addTag( "param" )
             .addTag( "name" ).addText( "main.ldapRealm.userDnTemplate" )
             .addTag( "value" ).addText( "uid={0},ou=people,dc=hadoop,dc=apache,dc=org" ).gotoParent()
