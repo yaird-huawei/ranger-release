@@ -1377,8 +1377,8 @@ public class RangerAuthorizationCoprocessor implements AccessControlService.Inte
 			ret.getUsers().add(userName);
 		}
 
-		for (int i = 0; i < actions.length; i++) {
-			switch(actions[i].code()) {
+		for (Permission.Action action : actions) {
+			switch(action.code()) {
 				case 'R':
 					ret.getAccessTypes().add(HbaseAuthUtils.ACCESS_TYPE_READ);
 				break;
@@ -1397,7 +1397,7 @@ public class RangerAuthorizationCoprocessor implements AccessControlService.Inte
 				break;
 
 				default:
-					LOG.warn("grant(): ignoring action '" + actions[i].name() + "' for user '" + userName + "'");
+					LOG.warn("grant(): ignoring action '" + action.name() + "' for user '" + userName + "'");
 			}
 		}
 
