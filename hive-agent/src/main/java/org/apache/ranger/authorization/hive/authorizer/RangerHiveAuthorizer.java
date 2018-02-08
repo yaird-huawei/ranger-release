@@ -1107,6 +1107,19 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				break;
 
 				case KILL_QUERY:
+				case CREATE_RESOURCEPLAN:
+				case SHOW_RESOURCEPLAN:
+				case ALTER_RESOURCEPLAN:
+				case DROP_RESOURCEPLAN:
+				case CREATE_TRIGGER:
+				case ALTER_TRIGGER:
+				case DROP_TRIGGER:
+				case CREATE_POOL:
+				case ALTER_POOL:
+				case DROP_POOL:
+				case CREATE_MAPPING:
+				case ALTER_MAPPING:
+				case DROP_MAPPING:
 					accessType = HiveAccessType.SERVICEADMIN;
 				break;
 
@@ -1278,6 +1291,19 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case REPLLOAD:
 			case REPLSTATUS:
 			case KILL_QUERY:
+			case CREATE_RESOURCEPLAN:
+			case SHOW_RESOURCEPLAN:
+			case ALTER_RESOURCEPLAN:
+			case DROP_RESOURCEPLAN:
+			case CREATE_TRIGGER:
+			case ALTER_TRIGGER:
+			case DROP_TRIGGER:
+			case CREATE_POOL:
+			case ALTER_POOL:
+			case DROP_POOL:
+			case CREATE_MAPPING:
+			case ALTER_MAPPING:
+			case DROP_MAPPING:
 				break;
 		}
 
