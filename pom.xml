@@ -187,8 +187,9 @@
         <json4s.version>3.2.11</json4s.version>
         <jsr305.version>1.3.9</jsr305.version>
         <junit.version>4.12</junit.version>
-        <kafka.version>0.10.1.2.6.5.0-SNAPSHOT</kafka.version>
-        <knox.gateway.version>0.12.0.2.6.5.0-SNAPSHOT</knox.gateway.version>
+        <kafka.version>1.0.0</kafka.version>
+        <kerby.version>1.0.0</kerby.version>
+        <knox.gateway.version>1.0.0.3.0.0.2-SNAPSHOT</knox.gateway.version>
         <libpam4j.version>1.8</libpam4j.version>
         <local.lib.dir>${project.basedir}/../lib/local</local.lib.dir>
         <log4j.version>1.2.17</log4j.version>
