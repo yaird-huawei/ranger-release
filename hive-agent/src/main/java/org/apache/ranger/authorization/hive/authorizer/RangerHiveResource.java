@@ -97,26 +97,26 @@ public class RangerHiveResource extends RangerAccessResourceImpl {
 	}
 
 	public String getDatabase() {
-		return getValue(KEY_DATABASE);
+		return (String) getValue(KEY_DATABASE);
 	}
 
 	public String getTable() {
-		return getValue(KEY_TABLE);
+		return (String) getValue(KEY_TABLE);
 	}
 
 	public String getUdf() {
-		return getValue(KEY_UDF);
+		return (String) getValue(KEY_UDF);
 	}
 
 	public String getColumn() {
-		return getValue(KEY_COLUMN);
+		return (String) getValue(KEY_COLUMN);
 	}
 
 	public String getUrl() {
-		return getValue(KEY_URL);
+		return (String) getValue(KEY_URL);
 	}
 
 	public String getHiveService() {
-		return getValue(KEY_HIVESERVICE);
+		return (String) getValue(KEY_HIVESERVICE);
 	}
 }
