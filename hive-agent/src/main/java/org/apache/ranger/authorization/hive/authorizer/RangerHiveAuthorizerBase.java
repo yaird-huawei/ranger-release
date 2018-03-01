@@ -38,6 +38,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeInfo
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveRoleGrant;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.SettableConfigUpdater;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePolicyProvider;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.ranger.authorization.utils.StringUtil;
 
@@ -215,6 +216,11 @@ public abstract class RangerHiveAuthorizerBase implements HiveAuthorizer {
 		LOG.debug("RangerHiveAuthorizerBase.setCurrentRole()");
 
 		throwNotImplementedException("setCurrentRole");
+	}
+
+	@Override
+    	public HivePolicyProvider getHivePolicyProvider() throws HiveAuthzPluginException {
+		return null;
 	}
 
 	public Object getHiveAuthorizationTranslator() throws HiveAuthzPluginException {
