@@ -76,6 +76,8 @@
 							<include>org.codehaus.jackson:jackson-xc</include>
 							<include>org.apache.solr:solr-solrj</include>
 							<include>commons-codec:commons-codec</include>
+							<include>org.apache.hadoop:hadoop-hdfs-client:jar:${hadoop.version}</include>
+							<include>com.google.re2j:re2j</include>
 						</includes>
 					</dependencySet>
 					<dependencySet>
