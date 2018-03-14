@@ -165,3 +165,15 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1883] : TagSync should reuse kerberos ticket in REST calls to Ranger Admin
 [RANGER-1897] : tagsync update to replace Atlas V1 API usage with Atlas V2 API for tag-download using REST
 [RANGER-1905] : : Fix assembly creation - it's a black magic. As ranger-plugins-audit doesn't exclude guava from hadoop common, an older guava is leaked into embeddedwebserver classpath, which somehow filtered out
+[RANGER-1731] : Exclude old guava versions, which could cause build problems, especially with owasp-java-html-sanitizer, which declares the deps as a range: [11.0,) Guava is already included in the admin module
+[RANGER-1905] : Fix assembly creation
+[RANGER-1805] : Code improvement to follow best practices in js
+[RANGER-1960] : Take snapshot's table name into consideration for deletion
+[RANGER-1982] : Error Improvement for Analytics Metric of Ranger Admin and Ranger KMS
+[RANGER-1984] : Hbase audit log records may not show all tags associated with accessed column
+[RANGER-1988] : Fix insecure randomness
+[RANGER-1990] : Add One-way SSL MySQL support in Ranger Admin
+[RANGER-2006] : Fix problems detected by static code analysis in ranger usersync for ldap sync source
+[RANGER-2008] : Policy evaluation is failing for multiline policy conditions.
+[RANGER-2158] : Performance improvement to REST API call to update policy
+[RANGER-2010] : Ranger Tagsync should use cookie based authentication for subsequent requests to Ranger admin
