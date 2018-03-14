@@ -124,7 +124,7 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1546] : Code Improvement To Follow Best Practices
 [RANGER-1490] : Increase size of sort_order column of x_policy_resource_map
 [RANGER-1436] : Disable, by default, deny policies with ranger.servicedef.enableDenyAndExceptionsInPolicies config parameter
-[RANGER-1436] : Turn Ranger Deny Policy & Except Conditions block to On by default 
+[RANGER-1436] : Turn Ranger Deny Policy & Except Conditions block to On by default
 [RANGER-1531] : Good coding practice while parsing XML documents in Ranger
 [RANGER-1471] : Remember filters on all tabs of Ranger Audits page
 [RANGER-1483] : Ranger hive service definition to use hive metastore directly
@@ -164,6 +164,7 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1880] : TagSync update to process TRAIT_UPDATE notification from Atlas
 [RANGER-1883] : TagSync should reuse kerberos ticket in REST calls to Ranger Admin
 [RANGER-1897] : tagsync update to replace Atlas V1 API usage with Atlas V2 API for tag-download using REST
+[RANGER-1905] : : Fix assembly creation - it's a black magic. As ranger-plugins-audit doesn't exclude guava from hadoop common, an older guava is leaked into embeddedwebserver classpath, which somehow filtered out
 [RANGER-1731] : Exclude old guava versions, which could cause build problems, especially with owasp-java-html-sanitizer, which declares the deps as a range: [11.0,) Guava is already included in the admin module
 [RANGER-1905] : Fix assembly creation
 [RANGER-1805] : Code improvement to follow best practices in js
