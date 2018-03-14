@@ -167,3 +167,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1883] : TagSync should reuse kerberos ticket in REST calls to Ranger Admin
 [RANGER-1883] : Part 2 - All tag sources and sinks should use the same kerberos identity and reuse it
 [RANGER-2007] : ranger-tagsync's Kerberos ticket fails to renew
+[RANGER-2010] : Ranger Tagsync should use cookie based authentication for subsequent requests to Ranger admin
