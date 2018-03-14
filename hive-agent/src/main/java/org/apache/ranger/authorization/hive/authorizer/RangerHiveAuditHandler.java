@@ -75,22 +75,15 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 			}
 
 			if (hiveAccessType == HiveAccessType.SERVICEADMIN) {
-				String hiveOperationType = request.getAction();
 				String commandStr = request.getRequestData();
-				if (HiveOperationType.KILL_QUERY.name().equalsIgnoreCase(hiveOperationType)) {
-					String queryId = getServiceAdminQueryId(commandStr);
-					if (!StringUtils.isEmpty(queryId)) {
-						auditEvent.setRequestData(queryId);
-					}
-					commandStr = getServiceAdminCmd(commandStr);
-					if (StringUtils.isEmpty(commandStr)) {
-						commandStr = hiveAccessType.name();
-					}
+				auditEvent.setRequestData(commandStr);
+				commandStr = getServiceAdminCmd(commandStr,request);
+				if (StringUtils.isEmpty(commandStr)) {
+					commandStr = hiveAccessType.name();
 				}
 				auditEvent.setAccessType(commandStr);
 			}
 		}
-
 		return auditEvent;
 	}
 	
@@ -250,26 +243,20 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 		return ret;
 	}
 
-	private String getServiceAdminCmd(String cmdString) {
+	private String getServiceAdminCmd(String cmdString, RangerAccessRequest request ) {
 		String ret = "SERVICE ADMIN";
 		if (cmdString != null) {
+			String hiveOperationType = request.getAction();
 			String[] cmd = cmdString.trim().split("\\s+");
 			if (!ArrayUtils.isEmpty(cmd) && cmd.length > 1) {
-				ret = cmd[0] + " " + cmd[1];
+				ret = cmd[0] + " " + cmd[1] + "..";
+			}
+			if (!HiveOperationType.KILL_QUERY.name().equalsIgnoreCase(hiveOperationType)) {
+				if (!ArrayUtils.isEmpty(cmd) && cmd.length > 2) {
+					ret = cmd[0] + " " + cmd[1] + " " + cmd[2] + "..";
+				}
 			}
 		}
-		return ret;
-	}
-
-	private String getServiceAdminQueryId(String cmdString) {
-		String ret = "QUERY ID = ";
-		if (cmdString != null) {
-			String[] cmd = cmdString.trim().split("\\s+");
-			String reqData = null;
-			if (!ArrayUtils.isEmpty(cmd) && cmd.length > 2) {
-				ret = ret + cmd[2];
-			}
-		}
-		return ret;
+			return ret;
 	}
 }
