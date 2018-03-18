@@ -96,8 +96,8 @@ public class HBaseRangerAuthorizationTest {
         Admin admin = conn.getAdmin();
 
         // Create a table
-        if (!admin.tableExists(TableName.valueOf("temp"))) {
-            TableDescriptorBuilder tableDescriptor = TableDescriptorBuilder.newBuilder(TableName.valueOf("temp"));
+        if (!admin.tableExists(TableName.valueOf("default:temp"))) {
+            TableDescriptorBuilder tableDescriptor = TableDescriptorBuilder.newBuilder(TableName.valueOf("default:temp"));
 
             // Adding column families to table descriptor
             tableDescriptor.addColumnFamily(ColumnFamilyDescriptorBuilder.newBuilder("colfam1".getBytes()).build());
