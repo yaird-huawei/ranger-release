@@ -17,15 +17,23 @@
 
 package org.apache.ranger.patch;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.ranger.biz.ServiceDBStore;
 import org.apache.ranger.db.RangerDaoManager;
+import org.apache.ranger.db.XXAccessTypeDefDao;
+import org.apache.ranger.db.XXResourceDefDao;
+import org.apache.ranger.db.XXServiceDao;
+import org.apache.ranger.db.XXServiceDefDao;
+import org.apache.ranger.entity.XXAccessTypeDef;
+import org.apache.ranger.entity.XXResourceDef;
 import org.apache.ranger.entity.XXService;
-import org.apache.ranger.plugin.model.RangerService;
-import org.apache.ranger.plugin.model.RangerServiceDef;
+import org.apache.ranger.entity.XXServiceDef;
+import org.apache.ranger.plugin.store.EmbeddedServiceDefsUtil;
 import org.apache.ranger.service.RangerServiceService;
 import org.apache.ranger.util.CLIUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +41,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PatchForAtlasServiceDefUpdate_J10013 extends BaseLoader {
-	private static final Logger logger = Logger.getLogger(PatchForAtlasServiceDefUpdate_J10013.class);
-	public static final String SERVICEDBSTORE_SERVICEDEFBYNAME_ATLAS_NAME  = "atlas";
-	public static final Long ATLAS_SERVICEDEF_V1_ID=Long.valueOf(11L);
-	
+	private static final Logger LOG = Logger.getLogger(PatchForAtlasServiceDefUpdate_J10013.class);
+
 	@Autowired
 	RangerDaoManager daoMgr;
 
@@ -47,17 +53,17 @@ public class PatchForAtlasServiceDefUpdate_J10013 extends BaseLoader {
 	RangerServiceService svcService;
 
 	public static void main(String[] args) {
-		logger.info("main()");
+		LOG.info("main()");
 		try {
 			PatchForAtlasServiceDefUpdate_J10013 loader = (PatchForAtlasServiceDefUpdate_J10013) CLIUtil.getBean(PatchForAtlasServiceDefUpdate_J10013.class);
 			loader.init();
 			while (loader.isMoreToProcess()) {
 				loader.load();
 			}
-			logger.info("Load complete. Exiting!!!");
+			LOG.info("Load complete. Exiting!!!");
 			System.exit(0);
 		} catch (Exception e) {
-			logger.error("Error loading", e);
+			LOG.error("Error loading", e);
 			System.exit(1);
 		}
 	}
@@ -68,76 +74,92 @@ public class PatchForAtlasServiceDefUpdate_J10013 extends BaseLoader {
 
 	@Override
 	public void execLoad() {
-		logger.info("==> PatchForAtlasServiceDefUpdate.execLoad()");
+		LOG.info("==> PatchForAtlasServiceDefUpdate.execLoad()");
 		try {
 			updateAtlasServiceDef();
 		} catch (Exception e) {
-			logger.error("Error whille updateAtlasServiceDef()data.", e);
+			LOG.error("Error whille updateAtlasServiceDef()data.", e);
 		}
-		logger.info("<== PatchForAtlasServiceDefUpdate.execLoad()");
+		LOG.info("<== PatchForAtlasServiceDefUpdate.execLoad()");
 	}
 
 	@Override
 	public void printStats() {
-		logger.info("PatchForAtlasServiceDefUpdate data ");
+		LOG.info("PatchForAtlasServiceDefUpdate data ");
 	}
 
 	private void updateAtlasServiceDef(){
-		String serviceDefName=null;
-		try {
-			RangerServiceDef serviceDef = svcDBStore.getServiceDefByName(SERVICEDBSTORE_SERVICEDEFBYNAME_ATLAS_NAME);
-			// if service-def named 'atlas' does not exist then no need to process this patch further.
-			if(serviceDef == null || !ATLAS_SERVICEDEF_V1_ID.equals(serviceDef.getId())) {
-				return;
+		String serviceDefName=EmbeddedServiceDefsUtil.EMBEDDED_SERVICEDEF_ATLAS_NAME;
+		XXServiceDefDao serviceDefDao = daoMgr.getXXServiceDef();
+		XXServiceDef serviceDef = serviceDefDao.findByName(serviceDefName);
+		// if service-def named 'atlas' does not exist then no need to process this patch further.
+		if(serviceDef == null) {
+			LOG.info(serviceDefName + ": service-def not found. No patching is needed");
+			return;
+		}
+		// if older atlas service-def doesn't exist then no need to process this patch further.
+		if(!checkIfHasOlderServiceDef(serviceDef)) {
+			LOG.info("Older version of "+serviceDefName + " service-def not found. No patching is needed");
+			return;
+		}
+		String suffix = null;
+		for (int i = 1; true; i++) {
+			suffix = ".v" + i;
+			if (serviceDefDao.findByName(serviceDefName + suffix) == null) {
+				break;
 			}
-			serviceDefName=serviceDef.getName();
-			logger.info("Started patching service-def:[" + serviceDefName + "]");
-			List<XXService> services=daoMgr.getXXService().findByServiceDefId(serviceDef.getId());
-			if(CollectionUtils.isNotEmpty(services)) {
-				for(XXService service : services) {
-					if(service!=null && StringUtils.isNotEmpty(service.getName())) {
-						String updateServiceName=getUpdatedServiceName(service.getName());
-						service.setName(updateServiceName);
-						RangerService rangerService=svcService.getPopulatedViewObject(service);
-						rangerService=svcDBStore.updateService(rangerService, null);
-						if(updateServiceName.equals(rangerService.getName())){
-							logger.info("Service "+service.getName()+" name has been changed to "+updateServiceName);
-						}
-					}
+		}
+		String serviceDefNewName = serviceDefName + suffix;
+		LOG.info("Renaming service-def " + serviceDefName + " as " + serviceDefNewName);
+		serviceDef.setName(serviceDefNewName);
+		serviceDefDao.update(serviceDef);
+		LOG.info("Renamed service-def " + serviceDefName + " as " + serviceDefNewName);
+		XXServiceDao serviceDao = daoMgr.getXXService();
+		List<XXService> services = serviceDao.findByServiceDefId(serviceDef.getId());
+		if (CollectionUtils.isNotEmpty(services)) {
+			for (XXService service : services) {
+				String serviceName = service.getName();
+				String serviceNewName = serviceName + suffix;
+				LOG.info("Renaming service " + serviceName + " as " + serviceNewName);
+				if (serviceDao.findByName(serviceNewName) != null) {
+					LOG.warn("Another service named " + serviceNewName + " already exists. Not renaming " + serviceName);
+					continue;
 				}
+				service.setName(serviceNewName);
+				serviceDao.update(service);
+				LOG.info("Renamed service " + serviceName + " as " + serviceNewName);
 			}
-			serviceDef.setName(serviceDefName.concat("-v1"));
-			RangerServiceDef updatedServiceDef=svcDBStore.updateServiceDef(serviceDef);
-			if(serviceDefName.equals(updatedServiceDef.getName())){
-				logger.info("ServiceDef "+serviceDefName+" name has been changed to "+updatedServiceDef.getName());
-			}
-			logger.info("Completed patching service-def:[" + serviceDefName + "]");
-		}catch(Exception ex) {
-			logger.error("Error while updating Atlas service-def:[" + serviceDefName + "]", ex);
 		}
 	}
 
-	public static String getUpdatedServiceName(String serviceName) {
-		if(serviceName.contains("-v1")) {
-			String serviceNamePart1=serviceName.substring(0,serviceName.indexOf("-v1"));
-			String serviceNamePart2=serviceName.substring(serviceName.indexOf("-v1"));
-			if(serviceNamePart2.contains(".")) {
-				String version=serviceNamePart2.substring(0,serviceNamePart2.indexOf("."));
-				String subversionStr=serviceNamePart2.substring(serviceNamePart2.indexOf(".")+1);
-				int subversion=0;
-				try {
-					subversion=Integer.parseInt(subversionStr);
-				}catch(Exception ex) {
-				}
-				subversion++;
-				serviceNamePart2=version.concat("."+subversion);
-				serviceName=serviceNamePart1.concat(serviceNamePart2);
-			}else {
-				serviceName=serviceName.concat(".1");
+	/*
+	 * This method shall check whether atlas service def resources and access types
+	 * are matching with older service def resources and access types or not.
+	 * returns true if all resources and access types matches with older service def
+	 * resources and access types.
+	 */
+	private boolean checkIfHasOlderServiceDef(XXServiceDef serviceDef) {
+		boolean result = true;
+		Set<String> atlasResources = new HashSet<>(Arrays.asList("entity", "type", "operation", "taxonomy", "term"));
+		XXResourceDefDao resourceDefDao=daoMgr.getXXResourceDef();
+		List<XXResourceDef> xxResourceDefs = resourceDefDao.findByServiceDefId(serviceDef.getId());
+		for (XXResourceDef xxResourceDef : xxResourceDefs) {
+			if(! atlasResources.contains(xxResourceDef.getName())) {
+				result = false;
+				break;
 			}
-		} else {
-			serviceName=serviceName.concat("-v1");
 		}
-		return serviceName;
+		if(result){
+			Set<String> atlasAccessTypes = new HashSet<>(Arrays.asList("read", "create", "update", "delete", "all"));
+			XXAccessTypeDefDao accessTypeDefDao=daoMgr.getXXAccessTypeDef();
+			List<XXAccessTypeDef> xxAccessTypeDefs = accessTypeDefDao.findByServiceDefId(serviceDef.getId());
+			for (XXAccessTypeDef xxAccessTypeDef : xxAccessTypeDefs) {
+				if(! atlasAccessTypes.contains(xxAccessTypeDef.getName())) {
+					result = false;
+					break;
+				}
+			}
+		}
+		return result;
 	}
 }
