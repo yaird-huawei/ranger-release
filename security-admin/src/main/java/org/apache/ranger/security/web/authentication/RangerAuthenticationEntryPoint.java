@@ -36,7 +36,6 @@ import org.apache.ranger.common.RangerConfigUtil;
 import org.apache.ranger.security.web.filter.RangerSSOAuthenticationFilter;
 import org.apache.ranger.view.VXResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -61,7 +60,7 @@ public class RangerAuthenticationEntryPoint extends
 	@Autowired
 	SessionMgr sessionMgr;
 
-	public RangerAuthenticationEntryPoint(@Value("/login.jsp") String loginFormUrl) {
+	public RangerAuthenticationEntryPoint(String loginFormUrl) {
 		super(loginFormUrl);
 		if (logger.isDebugEnabled()) {
 			logger.debug("AjaxAwareAuthenticationEntryPoint(): constructor");
