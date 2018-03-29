@@ -2766,7 +2766,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 			policyItems.add(policyItem);
 			// For KMS add default policies for HDFS & HIVE users.
 			XXServiceDef xServiceDef = daoMgr.getXXServiceDef().getById(createdService.getType());
-			if (xServiceDef.getImplclassname().equals(EmbeddedServiceDefsUtil.KMS_IMPL_CLASS_NAME)) {
+			if (EmbeddedServiceDefsUtil.KMS_IMPL_CLASS_NAME.equals(xServiceDef.getImplclassname())) {
 				List<XXAccessTypeDef> hdfsAccessTypeDefs = new ArrayList<XXAccessTypeDef>();
 				List<XXAccessTypeDef> hiveAccessTypeDefs = new ArrayList<XXAccessTypeDef>();
 				for(XXAccessTypeDef accessTypeDef : accessTypeDefs) {
