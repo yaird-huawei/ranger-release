@@ -93,6 +93,12 @@
             <artifactId>jersey-client</artifactId>
             <version>${sun-jersey-client.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.ranger</groupId>
+            <artifactId>sampleapp</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <testResources>

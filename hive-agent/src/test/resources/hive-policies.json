@@ -701,7 +701,8 @@
 				}
 			],
 			"users": [
-				"tom"
+				"tom",
+                "smith"
 			],
 			"groups": [],
 			"conditions": [],
@@ -923,6 +924,53 @@
       "dataMaskPolicyItems": [],
       "rowFilterPolicyItems": [],
       "id": 16,
+      "isEnabled": true,
+      "version": 1
+    },
+
+    {
+      "service": "UDF SELECT",
+      "name": "Smith has ToUpper UDF Select on database:test1",
+      "policyType": 0,
+      "isAuditEnabled": true,
+      "resources": {
+        "database": {
+          "values": [
+            "test1"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        },
+        "udf": {
+          "values": [
+            "toupper"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        }
+      },
+      "policyItems": [
+        {
+          "accesses": [
+            {
+              "type": "select",
+              "isAllowed": true
+            }
+          ],
+          "users": [
+            "smith"
+          ],
+          "groups": [],
+          "conditions": [],
+          "delegateAdmin": false
+        }
+      ],
+      "denyPolicyItems": [],
+      "allowExceptions": [],
+      "denyExceptions": [],
+      "dataMaskPolicyItems": [],
+      "rowFilterPolicyItems": [],
+      "id": 20,
       "isEnabled": true,
       "version": 1
     }

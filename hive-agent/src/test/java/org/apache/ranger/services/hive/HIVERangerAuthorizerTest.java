@@ -98,6 +98,7 @@ public class HIVERangerAuthorizerTest {
         conf.set(HiveConf.ConfVars.METASTOREPWD.varname, "youPassword");
         conf.set(HiveConf.ConfVars.HIVE_SERVER2_WEBUI_PORT.varname, "0");
         conf.set(HiveConf.ConfVars.HIVE_EXECUTION_ENGINE.varname,"mr");
+        conf.set(HiveConf.ConfVars.HIVE_SERVER2_ACTIVE_PASSIVE_HA_ENABLE.varname,"true");
 
         hiveServer = new HiveServer2();
         hiveServer.init(conf);
@@ -367,6 +368,71 @@ public class HIVERangerAuthorizerTest {
 			statement.execute("DROP DATABASE IF EXISTS test1");
 		}
 	}
+
+    @Test
+    public void testHiveUDFSelect() throws Exception {
+        String url = "jdbc:hive2://localhost:" + port;
+        // "tom" has:
+        // ranger permissions to create/read/update/drop the database
+        // ranger permissions to create/read/update/drop UDFs on test1 database
+        // Try to create a database as "bob" - this should be allowed
+        Connection connection = DriverManager.getConnection(url, "tom", "tom");
+        Statement statement = connection.createStatement();
+
+        statement.execute("DROP DATABASE IF EXISTS test1");
+        statement.execute("CREATE DATABASE test1");
+        statement.execute("USE test1");
+        statement.execute("CREATE FUNCTION tolower AS \"org.apache.ranger.examples.customudf.ToLower\"");
+        statement.execute("CREATE FUNCTION toupper AS \"org.apache.ranger.examples.customudf.ToUpper\"");
+        ResultSet resultSet = statement.executeQuery("SHOW FUNCTIONS LIKE '*tolower'");
+        int rowCounter = 0;
+        while (resultSet.next()) {
+            String value = resultSet.getString(1);
+            if (value.contains("tolower")) {
+                ++rowCounter;
+            }
+        }
+        Assert.assertEquals(1, rowCounter);
+        statement.execute("create table if not exists testwords (word STRING, count INT) row format delimited fields terminated by '\t' stored as textfile");
+        statement.executeQuery("SELECT tolower(word) FROM testwords where count == '5'");
+
+
+        // Try to create UDF as "bob" - this should fail
+        connection = DriverManager.getConnection(url, "bob", "bob");
+        statement = connection.createStatement();
+        statement.execute("USE test1");
+
+        try {
+            statement.execute("CREATE FUNCTION toupper AS \"org.apache.ranger.examples.customudf.ToUpper\"");
+            Assert.fail("Failure expected on an unauthorized call");
+        } catch (SQLException ex) {
+            // expected
+        }
+
+        // Try to selects to tolower and toupper customer udf
+        // smith should be allowed to use to "toupper" and denied auth for "tolower"
+        connection = DriverManager.getConnection(url, "smith", "smith");
+        statement = connection.createStatement();
+        statement.execute("USE test1");
+        statement.executeQuery("SELECT toupper(word) FROM testwords where count == '5'");
+
+        try {
+            statement.executeQuery("SELECT tolower(word) FROM testwords where count == '5'");
+            Assert.fail("Failure expected on an unauthorized call");
+        } catch (SQLException ex) {
+            // expected
+        }
+
+        // for clean up
+        connection = DriverManager.getConnection(url, "tom", "tom");
+        statement = connection.createStatement();
+        statement.execute("DROP FUNCTION IF EXISTS test1.tolower");
+        statement.execute("DROP FUNCTION IF EXISTS test1.toupper");
+        statement.execute("DROP TABLE IF EXISTS test1.testwords");
+        statement.execute("DROP DATABASE IF EXISTS test1");
+
+    }
+
 
     @Test
     public void testHiveCreateDropDatabase() throws Exception {
