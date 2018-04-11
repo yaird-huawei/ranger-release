@@ -28,19 +28,15 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizerFac
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
-import org.apache.ranger.plugin.classloader.RangerPluginClassLoader;
 
 
-public class RangerHiveAuthorizerFactory implements HiveAuthorizerFactory {
+public class RangerHiveAuthorizerFactory extends RangerPluginClassGateKeeper implements HiveAuthorizerFactory {
 	
 	private static final Log LOG  = LogFactory.getLog(RangerHiveAuthorizerFactory.class);
 	
-	private static final String   RANGER_PLUGIN_TYPE                      = "hive";
 	private static final String   RANGER_HIVE_AUTHORIZER_IMPL_CLASSNAME   = "org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory";
 
 	private HiveAuthorizerFactory 	rangerHiveAuthorizerFactoryImpl		  = null;
-	private RangerPluginClassLoader rangerPluginClassLoader 			  = null;
-
 	
 	public RangerHiveAuthorizerFactory() {
 
@@ -55,17 +51,16 @@ public class RangerHiveAuthorizerFactory implements HiveAuthorizerFactory {
 		}
 	}
 	
-	public void init(){
+	protected void init(){
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerHiveAuthorizerFactory.init()");
 		}
+		super.init();
 
 		try {
 
-			rangerPluginClassLoader =  RangerPluginClassLoader.getInstance(RANGER_PLUGIN_TYPE, this.getClass());
-
 			@SuppressWarnings("unchecked")
-			Class<HiveAuthorizerFactory> cls = (Class<HiveAuthorizerFactory>) Class.forName(RANGER_HIVE_AUTHORIZER_IMPL_CLASSNAME, true, rangerPluginClassLoader);
+			Class<HiveAuthorizerFactory> cls = (Class<HiveAuthorizerFactory>) Class.forName(RANGER_HIVE_AUTHORIZER_IMPL_CLASSNAME, true, getRangerPluginClassLoader());
 
 			activatePluginClassLoader();
 			
@@ -107,18 +102,6 @@ public class RangerHiveAuthorizerFactory implements HiveAuthorizerFactory {
 		}
 
 		return ret;
-	}
-	
-  	private void activatePluginClassLoader() {
-		if(rangerPluginClassLoader != null) {
-			rangerPluginClassLoader.activate();
-		}
-	}
-
-	private void deactivatePluginClassLoader() {
-		if(rangerPluginClassLoader != null) {
-			rangerPluginClassLoader.deactivate();
-		}
 	}
 
 }

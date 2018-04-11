@@ -54,6 +54,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginEx
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePolicyProvider;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeInfo;
@@ -69,6 +70,7 @@ import org.apache.ranger.plugin.model.RangerPolicy;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerDataMaskTypeDef;
 import org.apache.ranger.plugin.policyengine.RangerAccessRequest;
 import org.apache.ranger.plugin.policyengine.RangerAccessResult;
+import org.apache.ranger.plugin.service.RangerAuthContext;
 import org.apache.ranger.plugin.service.RangerBasePlugin;
 import org.apache.ranger.plugin.util.GrantRevokeRequest;
 import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
@@ -127,6 +129,17 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		}
 	}
 
+	@Override
+	public HivePolicyProvider getHivePolicyProvider() throws HiveAuthzPluginException {
+		if (hivePlugin == null) {
+			throw new HiveAuthzPluginException();
+		}
+		RangerHivePolicyProvider policyProvider = new RangerHivePolicyProvider(hivePlugin);
+		if (policyProvider.getAuthContext().getPolicyEngine() == null) {
+			throw new HiveAuthzPluginException();
+		}
+		return policyProvider;
+	}
 
 	/**
 	 * Grant privileges for principals on the object
@@ -373,7 +386,9 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 			buildRequestContextWithAllAccessedResources(requests);
 
-			for(RangerHiveAccessRequest request : requests) {
+            RangerAuthContext authContext = hivePlugin.createRangerAuthContext();
+
+            for(RangerHiveAccessRequest request : requests) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("request: " + request);
 				}
@@ -404,7 +419,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						colRequests.add(colRequest);
 					}
 
-					Collection<RangerAccessResult> colResults = hivePlugin.isAccessAllowed(colRequests, auditHandler);
+					Collection<RangerAccessResult> colResults = authContext.isAccessAllowed(colRequests, auditHandler);
 
 					if(colResults != null) {
 						for(RangerAccessResult colResult : colResults) {
@@ -416,7 +431,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						}
 					}
 				} else {
-					result = hivePlugin.isAccessAllowed(request, auditHandler);
+					result = authContext.isAccessAllowed(request, auditHandler);
 				}
 
 				if((result == null || result.getIsAllowed()) && isBlockAccessIfRowfilterColumnMaskSpecified(hiveOpType, request)) {
@@ -427,7 +442,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					request.setHiveAccessType(HiveAccessType.SELECT); // filtering/masking policies are defined only for SELECT
 					request.setResource(tblResource);
 
-					RangerAccessResult rowFilterResult = getRowFilterResult(request);
+					RangerAccessResult rowFilterResult = getRowFilterResult(request, authContext);
 
 					if (isRowFilterEnabled(rowFilterResult)) {
 						if(result == null) {
@@ -441,7 +456,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						// check if masking is enabled for any column in the table/view
 						request.setResourceMatchingScope(RangerAccessRequest.ResourceMatchingScope.SELF_OR_DESCENDANTS);
 
-						RangerAccessResult dataMaskResult = getDataMaskResult(request);
+						RangerAccessResult dataMaskResult = getDataMaskResult(request, authContext);
 
 						if (isDataMaskEnabled(dataMaskResult)) {
 							if(result == null) {
@@ -528,7 +543,9 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			if (ret == null) { // if we got any items to filter then we can't return back a null.  We must return back a list even if its empty.
 				ret = new ArrayList<HivePrivilegeObject>(objs.size());
 			}
-			for (HivePrivilegeObject privilegeObject : objs) {
+            RangerAuthContext authContext = hivePlugin.createRangerAuthContext();
+
+            for (HivePrivilegeObject privilegeObject : objs) {
 				if (LOG.isDebugEnabled()) {
 					HivePrivObjectActionType actionType = privilegeObject.getActionType();
 					HivePrivilegeObjectType objectType = privilegeObject.getType();
@@ -548,7 +565,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					LOG.error("filterListCmdObjects: RangerHiveResource returned by createHiveResource is null");
 				} else {
 					RangerHiveAccessRequest request = new RangerHiveAccessRequest(resource, user, groups, context, sessionContext, hivePlugin.getClusterName());
-					RangerAccessResult result = hivePlugin.isAccessAllowed(request);
+					RangerAccessResult result = authContext.isAccessAllowed(request, hivePlugin.getResultProcessor());
 					if (result == null) {
 						LOG.error("filterListCmdObjects: Internal error: null RangerAccessResult object received back from isAccessAllowed()!");
 					} else if (!result.getIsAllowed()) {
@@ -590,7 +607,9 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			perf = RangerPerfTracer.getPerfTracer(PERF_HIVEAUTH_REQUEST_LOG, "RangerHiveAuthorizer.applyRowFilterAndColumnMasking()");
 		}
 
-		if(CollectionUtils.isNotEmpty(hiveObjs)) {
+        RangerAuthContext authContext = hivePlugin.createRangerAuthContext();
+
+        if(CollectionUtils.isNotEmpty(hiveObjs)) {
 			for (HivePrivilegeObject hiveObj : hiveObjs) {
 				HivePrivilegeObjectType hiveObjType = hiveObj.getType();
 
@@ -608,7 +627,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					String database = hiveObj.getDbname();
 					String table    = hiveObj.getObjectName();
 
-					String rowFilterExpr = getRowFilterExpression(queryContext, database, table);
+					String rowFilterExpr = getRowFilterExpression(queryContext, database, table, authContext);
 
 					if (StringUtils.isNotBlank(rowFilterExpr)) {
 						if(LOG.isDebugEnabled()) {
@@ -623,7 +642,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						List<String> columnTransformers = new ArrayList<String>();
 
 						for (String column : hiveObj.getColumns()) {
-							boolean isColumnTransformed = addCellValueTransformerAndCheckIfTransformed(queryContext, database, table, column, columnTransformers);
+							boolean isColumnTransformed = addCellValueTransformerAndCheckIfTransformed(queryContext, database, table, column, columnTransformers, authContext);
 
 							if(LOG.isDebugEnabled()) {
 								LOG.debug("addCellValueTransformerAndCheckIfTransformed(database=" + database + ", table=" + table + ", column=" + column + "): " + isColumnTransformed);
@@ -656,12 +675,12 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		return true; // TODO: derive from the policies
 	}
 
-	private RangerAccessResult getDataMaskResult(RangerHiveAccessRequest request) {
+	private RangerAccessResult getDataMaskResult(RangerHiveAccessRequest request, RangerAuthContext authContext) {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> getDataMaskResult(request=" + request + ")");
 		}
 
-		RangerAccessResult ret = hivePlugin.evalDataMaskPolicies(request, null);
+		RangerAccessResult ret = authContext.evalDataMaskPolicies(request, null);
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== getDataMaskResult(request=" + request + "): ret=" + ret);
@@ -670,12 +689,12 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		return ret;
 	}
 
-	private RangerAccessResult getRowFilterResult(RangerHiveAccessRequest request) {
+	private RangerAccessResult getRowFilterResult(RangerHiveAccessRequest request, RangerAuthContext authContext) {
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("==> getRowFilterResult(request=" + request + ")");
 		}
 
-		RangerAccessResult ret = hivePlugin.evalRowFilterPolicies(request, null);
+		RangerAccessResult ret = authContext.evalRowFilterPolicies(request, null);
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== getRowFilterResult(request=" + request + "): ret=" + ret);
@@ -692,7 +711,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		return result != null && result.isRowFilterEnabled() && StringUtils.isNotEmpty(result.getFilterExpr());
 	}
 
-	private String getRowFilterExpression(HiveAuthzContext context, String databaseName, String tableOrViewName) throws SemanticException {
+	private String getRowFilterExpression(HiveAuthzContext context, String databaseName, String tableOrViewName, RangerAuthContext authContext) throws SemanticException {
 		UserGroupInformation ugi = getCurrentUserGroupInfo();
 
 		if(ugi == null) {
@@ -716,7 +735,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			RangerHiveResource      resource       = new RangerHiveResource(objectType, databaseName, tableOrViewName);
 			RangerHiveAccessRequest request        = new RangerHiveAccessRequest(resource, user, groups, objectType.name(), HiveAccessType.SELECT, context, sessionContext, clusterName);
 
-			RangerAccessResult result = hivePlugin.evalRowFilterPolicies(request, auditHandler);
+			RangerAccessResult result = authContext.evalRowFilterPolicies(request, auditHandler);
 
 			if(isRowFilterEnabled(result)) {
 				ret = result.getFilterExpr();
@@ -732,7 +751,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		return ret;
 	}
 
-	private boolean addCellValueTransformerAndCheckIfTransformed(HiveAuthzContext context, String databaseName, String tableOrViewName, String columnName, List<String> columnTransformers) throws SemanticException {
+	private boolean addCellValueTransformerAndCheckIfTransformed(HiveAuthzContext context, String databaseName, String tableOrViewName, String columnName, List<String> columnTransformers, RangerAuthContext authContext) throws SemanticException {
 		UserGroupInformation ugi = getCurrentUserGroupInfo();
 
 		String clusterName = hivePlugin.getClusterName();
@@ -757,7 +776,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			RangerHiveResource      resource       = new RangerHiveResource(objectType, databaseName, tableOrViewName, columnName);
 			RangerHiveAccessRequest request        = new RangerHiveAccessRequest(resource, user, groups, objectType.name(), HiveAccessType.SELECT, context, sessionContext, clusterName);
 
-			RangerAccessResult result = hivePlugin.evalDataMaskPolicies(request, auditHandler);
+			RangerAccessResult result = authContext.evalDataMaskPolicies(request, auditHandler);
 
 			ret = isDataMaskEnabled(result);
 
@@ -805,7 +824,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		return ret;
 	}
 
-	RangerHiveResource createHiveResource(HivePrivilegeObject privilegeObject) {
+	static RangerHiveResource createHiveResource(HivePrivilegeObject privilegeObject) {
 		RangerHiveResource resource = null;
 
 		HivePrivilegeObjectType objectType = privilegeObject.getType();
