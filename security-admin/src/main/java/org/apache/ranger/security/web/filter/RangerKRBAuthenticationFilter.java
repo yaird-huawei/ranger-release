@@ -236,9 +236,9 @@ public class RangerKRBAuthenticationFilter extends RangerKrbFilter {
 			FilterChain filterChain) throws IOException, ServletException {
 		String authtype = PropertiesUtil.getProperty(RANGER_AUTH_TYPE);
 		HttpServletRequest httpRequest = (HttpServletRequest)request;
-		if(isSpnegoEnable(authtype)){
+		Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
+		if(isSpnegoEnable(authtype) && (existingAuth == null || !existingAuth.isAuthenticated())){
 			KerberosName.setRules(PropertiesUtil.getProperty(NAME_RULES, "DEFAULT"));
-			Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
 			String userName = null;
 			Cookie[] cookie = httpRequest.getCookies();
 			if(cookie != null){
@@ -261,7 +261,7 @@ public class RangerKRBAuthenticationFilter extends RangerKrbFilter {
 								userName = cname.substring(ustr+2, andStr);
 							}
 						}
-					}			
+					}
 				}	
 			}
 			if((existingAuth == null || !existingAuth.isAuthenticated()) && (!StringUtils.isEmpty(userName))){
