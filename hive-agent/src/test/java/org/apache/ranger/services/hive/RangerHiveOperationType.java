@@ -67,6 +67,7 @@ public enum RangerHiveOperationType {
     ALTERTABLE_UNARCHIVE,
     ALTERTABLE_UPDATEPARTSTATS,
     ALTERTABLE_UPDATETABLESTATS,
+    ALTERTABLE_UPDATECOLUMNS,
     ALTERTABLE_EXCHANGEPARTITION,
     ALTERTBLPART_SKEWED_LOCATION,
     ALTERVIEW_AS,
@@ -159,8 +160,9 @@ public enum RangerHiveOperationType {
     REPLDUMP,
     REPLLOAD,
     REPLSTATUS,
-    KILL_QUERY;
-
+    KILL_QUERY,
+    LLAP_CLUSTER,
+    LLAP_CACHE;
     private RangerHiveOperationType() {
     }
 }

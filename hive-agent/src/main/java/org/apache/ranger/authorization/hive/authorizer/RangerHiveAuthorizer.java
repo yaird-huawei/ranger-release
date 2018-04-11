@@ -1025,6 +1025,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case ALTERTABLE_UNARCHIVE:
 				case ALTERTABLE_UPDATEPARTSTATS:
 				case ALTERTABLE_UPDATETABLESTATS:
+				case ALTERTABLE_UPDATECOLUMNS:
 				case ALTERTBLPART_SKEWED_LOCATION:
 				case ALTERVIEW_AS:
 				case ALTERVIEW_PROPERTIES:
@@ -1141,6 +1142,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case CREATE_MAPPING:
 				case ALTER_MAPPING:
 				case DROP_MAPPING:
+				case LLAP_CACHE:
+				case LLAP_CLUSTER:
 					accessType = HiveAccessType.SERVICEADMIN;
 				break;
 
@@ -1214,6 +1217,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case ALTERTABLE_BUCKETNUM:
 			case ALTERTABLE_UPDATETABLESTATS:
 			case ALTERTABLE_UPDATEPARTSTATS:
+			case ALTERTABLE_UPDATECOLUMNS:
 			case ALTERTABLE_PROTECTMODE:
 			case ALTERTABLE_FILEFORMAT:
 			case ALTERTABLE_LOCATION:
@@ -1312,6 +1316,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case REPLLOAD:
 			case REPLSTATUS:
 			case KILL_QUERY:
+			case LLAP_CACHE:
+			case LLAP_CLUSTER:
 			case CREATE_RESOURCEPLAN:
 			case SHOW_RESOURCEPLAN:
 			case ALTER_RESOURCEPLAN:
