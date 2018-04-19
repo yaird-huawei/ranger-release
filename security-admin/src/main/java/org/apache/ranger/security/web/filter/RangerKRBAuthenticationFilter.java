@@ -215,7 +215,29 @@ public class RangerKRBAuthenticationFilter extends RangerKrbFilter {
 				RangerAuthenticationProvider authenticationProvider = new RangerAuthenticationProvider();
 				Authentication authentication = authenticationProvider.authenticate(finalAuthentication);
 				authentication = getGrantedAuthority(authentication);
-				SecurityContextHolder.getContext().setAuthentication(authentication);	
+				if(authentication != null && authentication.isAuthenticated()) {
+					if (request.getParameterMap().containsKey("doAs")) {
+						if(!response.isCommitted()) {
+							if(LOG.isDebugEnabled()) {
+								LOG.debug("Request contains unsupported parameter, doAs.");
+							}
+							request.setAttribute("spnegoenabled", false);
+							response.sendError(HttpServletResponse.SC_FORBIDDEN, "Missing authentication token.");
+						}
+					}
+					if(request.getParameterMap().containsKey("user.name")) {
+						if(!response.isCommitted()) {
+							if(LOG.isDebugEnabled()) {
+								LOG.debug("Request contains an unsupported parameter user.name");
+							}
+							request.setAttribute("spnegoenabled", false);
+							response.sendError(HttpServletResponse.SC_FORBIDDEN, "Missing authentication token.");
+						} else {
+							LOG.info("Response seems to be already committed for user.name.");
+						}
+					}
+				}
+				SecurityContextHolder.getContext().setAuthentication(authentication);
 				request.setAttribute("spnegoEnabled", true);
 				LOG.info("Logged into Ranger as = "+userName);
 				filterChain.doFilter(request, response);
