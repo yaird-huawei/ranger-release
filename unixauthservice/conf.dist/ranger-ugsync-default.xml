@@ -47,7 +47,7 @@
 	</property>
 	<property>
 		<name>ranger.usersync.unix.minGroupId</name>
-		<value>0</value>
+		<value>500</value>
 	</property>
 	<property>
 		<name>ranger.usersync.ldap.username.caseconversion</name>
