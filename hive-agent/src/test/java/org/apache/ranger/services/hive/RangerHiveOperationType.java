@@ -161,8 +161,8 @@ public enum RangerHiveOperationType {
     REPLLOAD,
     REPLSTATUS,
     KILL_QUERY,
-    LLAP_CLUSTER,
-    LLAP_CACHE;
+    LLAP_CLUSTER_INFO,
+    LLAP_CACHE_PURGE;
     private RangerHiveOperationType() {
     }
 }

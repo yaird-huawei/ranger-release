@@ -1142,8 +1142,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case CREATE_MAPPING:
 				case ALTER_MAPPING:
 				case DROP_MAPPING:
-				case LLAP_CACHE:
-				case LLAP_CLUSTER:
+				case LLAP_CACHE_PURGE:
+				case LLAP_CLUSTER_INFO:
 					accessType = HiveAccessType.SERVICEADMIN;
 				break;
 
@@ -1316,8 +1316,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case REPLLOAD:
 			case REPLSTATUS:
 			case KILL_QUERY:
-			case LLAP_CACHE:
-			case LLAP_CLUSTER:
+			case LLAP_CACHE_PURGE:
+			case LLAP_CLUSTER_INFO:
 			case CREATE_RESOURCEPLAN:
 			case SHOW_RESOURCEPLAN:
 			case ALTER_RESOURCEPLAN:
