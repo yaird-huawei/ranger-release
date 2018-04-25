@@ -560,7 +560,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					LOG.debug(String.format(format, actionType, objectType, objectName, dbName, columns, partitionKeys, commandString, ipAddress));
 				}
 				
-				RangerHiveResource resource = createHiveResource(privilegeObject);
+				RangerHiveResource resource = createHiveResourceForFiltering(privilegeObject);
 				if (resource == null) {
 					LOG.error("filterListCmdObjects: RangerHiveResource returned by createHiveResource is null");
 				} else {
@@ -824,6 +824,23 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		return ret;
 	}
 
+	static RangerHiveResource createHiveResourceForFiltering(HivePrivilegeObject privilegeObject) {
+		RangerHiveResource resource = null;
+
+		HivePrivilegeObjectType objectType = privilegeObject.getType();
+
+		switch(objectType) {
+			case DATABASE:
+			case TABLE_OR_VIEW:
+				resource = createHiveResource(privilegeObject);
+				break;
+			default:
+				LOG.warn("RangerHiveAuthorizer.getHiveResourceForFiltering: unexpected objectType:" + objectType);
+		}
+
+		return resource;
+	}
+
 	static RangerHiveResource createHiveResource(HivePrivilegeObject privilegeObject) {
 		RangerHiveResource resource = null;
 
@@ -832,14 +849,23 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 		String dbName = privilegeObject.getDbname();
 
 		switch(objectType) {
-		case DATABASE:
-			resource = new RangerHiveResource(HiveObjectType.DATABASE, objectName);
-			break;
-		case TABLE_OR_VIEW:
-			resource = new RangerHiveResource(HiveObjectType.TABLE, dbName, objectName);
-			break;
-		default:
-			LOG.warn("RangerHiveAuthorizer.getHiveResource: unexpected objectType:" + objectType);
+			case DATABASE:
+				resource = new RangerHiveResource(HiveObjectType.DATABASE, objectName);
+				break;
+			case TABLE_OR_VIEW:
+				resource = new RangerHiveResource(HiveObjectType.TABLE, dbName, objectName);
+				break;
+			case COLUMN:
+				List<String> columns = privilegeObject.getColumns();
+				int numOfColumns = columns == null ? 0 : columns.size();
+				if (numOfColumns == 1) {
+					resource = new RangerHiveResource(HiveObjectType.COLUMN, dbName, objectName, columns.get(0));
+				} else {
+					LOG.warn("RangerHiveAuthorizer.getHiveResource: unexpected number of columns requested:" + numOfColumns + ", objectType:" + objectType);
+				}
+				break;
+			default:
+				LOG.warn("RangerHiveAuthorizer.getHiveResource: unexpected objectType:" + objectType);
 		}
 
 		if (resource != null) {
