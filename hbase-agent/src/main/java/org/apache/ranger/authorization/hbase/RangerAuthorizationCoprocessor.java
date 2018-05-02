@@ -882,7 +882,7 @@ public class RangerAuthorizationCoprocessor implements AccessControlService.Inte
 
 	@Override
 	public void preDeleteSnapshot(ObserverContext<MasterCoprocessorEnvironment> ctx, SnapshotDescription snapshot) throws IOException {
-		requirePermission(ctx, "deleteSnapshot", Permission.Action.ADMIN);
+		requirePermission(ctx, "deleteSnapshot", snapshot.getTableName().getName(), Permission.Action.ADMIN);
 	}
 	@Override
 	public void preDeleteTable(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName) throws IOException {
