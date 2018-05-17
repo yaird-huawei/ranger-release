@@ -168,3 +168,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1883] : Part 2 - All tag sources and sinks should use the same kerberos identity and reuse it
 [RANGER-2007] : ranger-tagsync's Kerberos ticket fails to renew
 [RANGER-2010] : Ranger Tagsync should use cookie based authentication for subsequent requests to Ranger admin
+[RANGER-2104] : Ranger tagsync should ignore ENTITY_UPDATE events if the updated entity does not have associated traits
