@@ -49,14 +49,18 @@
                 <outputDirectory>/lib/ranger-sqoop-plugin-impl</outputDirectory>
                 <unpack>false</unpack>
                 <includes>
-                    <include>org.eclipse.persistence:eclipselink</include>
-                    <include>org.eclipse.persistence:javax.persistence</include>
-                    <include>org.apache.httpcomponents:httpmime:jar:${httpcomponents.httpmime.version}</include>
-                    <include>org.apache.httpcomponents:httpclient:jar:${httpcomponents.httpclient.version}</include>
-                    <include>org.apache.httpcomponents:httpcore:jar:${httpcomponents.httpcore.version}</include>
-                    <include>org.noggit:noggit:jar:${noggit.version}</include>
-                    <include>org.apache.solr:solr-solrj</include>
-                </includes>
+					<include>org.eclipse.persistence:eclipselink</include>
+					<include>org.eclipse.persistence:javax.persistence</include>
+					<include>org.apache.httpcomponents:httpmime:jar:${httpcomponents.httpmime.version}</include>
+					<include>org.apache.httpcomponents:httpclient:jar:${httpcomponents.httpclient.version}</include>
+					<include>org.apache.httpcomponents:httpcore:jar:${httpcomponents.httpcore.version}</include>
+					<include>org.noggit:noggit:jar:${noggit.version}</include>
+					<include>org.apache.solr:solr-solrj</include>
+					<include>org.apache.htrace:htrace-core4:jar:${htrace-core.version}</include>
+					<include>com.fasterxml.woodstox:woodstox-core:jar:${fasterxml.woodstox.version}</include>
+					<include>org.codehaus.woodstox:stax2-api:jar:${codehaus.woodstox.stax2api.version}</include>
+					<include>org.apache.commons:commons-configuration2:jar:${commons.configuration2.version}</include>
+				</includes>
             </dependencySet>
             <dependencySet>
                 <outputDirectory>/install/lib</outputDirectory>
