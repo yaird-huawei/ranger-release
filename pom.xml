@@ -189,7 +189,7 @@
         <kafka.version>0.10.1.3.0.0.0-SNAPSHOT</kafka.version>
         <kerby.version>1.0.0</kerby.version>
         <knox.gateway.version>1.0.0.3.0.0.0-SNAPSHOT</knox.gateway.version>
-        <libpam4j.version>1.8</libpam4j.version>
+        <libpam4j.version>1.10</libpam4j.version>
         <libfb303.version>0.9.3</libfb303.version>
         <libthrift.version>0.11.0</libthrift.version>
         <local.lib.dir>${project.basedir}/../lib/local</local.lib.dir>
