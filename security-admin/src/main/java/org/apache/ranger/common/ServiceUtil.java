@@ -1263,6 +1263,7 @@ public class ServiceUtil {
 				mapResource.put("table", tableName);
 				mapResource.put("column-family", colFamily);
 				mapResource.put("column", qualifier);
+                                ret.setResource(mapResource);
 				
 			}
 			
