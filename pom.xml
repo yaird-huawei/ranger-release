@@ -111,6 +111,8 @@
         <module>plugin-atlas</module>
         <module>plugin-sqoop</module>
         <module>ranger-sqoop-plugin-shim</module>
+	<module>plugin-kylin</module>
+	<module>ranger-kylin-plugin-shim</module>
   </modules>
     <properties>
         <maven.version.required>3.3.3</maven.version.required>
@@ -187,6 +189,7 @@
         <kafka.version>0.10.1.3.0.0.0-SNAPSHOT</kafka.version>
         <kerby.version>1.0.0</kerby.version>
         <knox.gateway.version>1.0.0.3.0.0.0-SNAPSHOT</knox.gateway.version>
+	<kylin.version>2.3.0</kylin.version>
         <libpam4j.version>1.10</libpam4j.version>
         <libfb303.version>0.9.3</libfb303.version>
         <libthrift.version>0.11.0</libthrift.version>
@@ -436,6 +439,7 @@
                             <descriptor>src/main/assembly/ranger-src.xml</descriptor>
                             <descriptor>src/main/assembly/plugin-atlas.xml</descriptor>
                             <descriptor>src/main/assembly/plugin-sqoop.xml</descriptor>
+			    <descriptor>src/main/assembly/plugin-kylin.xml</descriptor>
                         </descriptors>
                     </configuration>
                 </plugin>
