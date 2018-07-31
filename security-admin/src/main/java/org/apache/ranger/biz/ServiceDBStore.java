@@ -2366,7 +2366,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 			LOG.debug("==> ServiceDBStore.getServicePoliciesFromDb(" + service.getName() + ")");
 		}
 
-		RangerPolicyRetriever policyRetriever = new RangerPolicyRetriever(daoMgr);
+		RangerPolicyRetriever policyRetriever = new RangerPolicyRetriever(daoMgr, txManager);
 
 		List<RangerPolicy> ret = policyRetriever.getServicePolicies(service);
 
