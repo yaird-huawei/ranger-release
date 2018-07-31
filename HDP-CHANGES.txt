@@ -177,3 +177,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-1731] : : Add jettison jar to the security-admin module
 [RANGER-2173] : Optimize Trie constuction and Policy lookup
 [RANGER-2168] : Add service admin user through service config
+[RANGER-2165] : Address JPA Cache issue when policies Create, Update and Delete are done via REST API in Apache Ranger admin
