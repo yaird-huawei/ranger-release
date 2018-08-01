@@ -59,7 +59,7 @@ public class RangerServiceDefService extends RangerServiceDefServiceBase<XXServi
 		Map<String, String> serviceDefOptions = ret.getOptions();
 
 		if (serviceDefOptions.get(RangerServiceDef.OPTION_ENABLE_DENY_AND_EXCEPTIONS_IN_POLICIES) == null) {
-			boolean enableDenyAndExceptionsInPoliciesHiddenOption = RangerConfiguration.getInstance().getBoolean("ranger.servicedef.enableDenyAndExceptionsInPolicies", false);
+			boolean enableDenyAndExceptionsInPoliciesHiddenOption = RangerConfiguration.getInstance().getBoolean("ranger.servicedef.enableDenyAndExceptionsInPolicies", true);
 			if (enableDenyAndExceptionsInPoliciesHiddenOption || StringUtils.equalsIgnoreCase(ret.getName(), EmbeddedServiceDefsUtil.EMBEDDED_SERVICEDEF_TAG_NAME)) {
 				serviceDefOptions.put(RangerServiceDef.OPTION_ENABLE_DENY_AND_EXCEPTIONS_IN_POLICIES, "true");
 			} else {
