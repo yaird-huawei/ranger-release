@@ -283,6 +283,33 @@ define(function(require) {
 			}
 		},
 
+		revert : function(e, collection, modal){
+			e.preventDefault();
+			var policyId = this.policy.attributes.id;
+			var rangerPolicy = new RangerPolicy({id : policyId});
+			rangerPolicy.attributes = this.policy.attributes;
+			rangerPolicy.save({}, {
+				wait: true,
+				success: function() {
+					XAUtil.blockUI('unblock');
+					XAUtil.notifySuccess('Success', 'Policy reverted successfully.');
+					collection.fetch({
+						cache : false,
+						reset : true
+					});
+					modal.close();
+				},
+				error: function(model, response, options) {
+					XAUtil.blockUI('unblock');
+					if(response && response.responseJSON && response.responseJSON.msgDesc) {
+						XAUtil.showErrorMsg(response.responseJSON.msgDesc);
+					} else {
+						XAUtil.notifyError('Error', 'Error reverting policy.');
+					}
+				}
+			});
+		},
+
 		/** on close */
 		onClose: function() {}
 	});
