@@ -46,7 +46,6 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kerby.kerberos.kerb.server.SimpleKdcServer;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,8 +334,7 @@ public class KafkaRangerAuthorizerGSSTest {
         final Producer<String, String> producer = new KafkaProducer<>(producerProps);
 
         // Send a message
-        Future<RecordMetadata> record =
-                producer.send(new ProducerRecord<String, String>("test", "somekey", "somevalue"));
+        producer.send(new ProducerRecord<String, String>("test", "somekey", "somevalue"));
         producer.flush();
         producer.close();
     }

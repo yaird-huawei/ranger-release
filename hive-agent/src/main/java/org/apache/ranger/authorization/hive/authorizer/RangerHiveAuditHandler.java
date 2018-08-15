@@ -201,6 +201,9 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 
 		auditEvent.setResourcePath(dfsCommand);
 
+		if(LOG.isDebugEnabled()){
+			LOG.debug("Logging DFS event " + auditEvent.toString());
+		}
 		addAuthzAuditEvent(auditEvent);
     }
 
