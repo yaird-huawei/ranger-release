@@ -180,3 +180,4 @@ Changes only in Hortonworks github and not in Ranger 0.7.0 Apache Release
 [RANGER-2021] : RANGER-2064: Ranger Login Sessions Audits impossible to browse due to 'rangerusersync'   because Ranger Usersync should use cookie based authentication for subsequent requests
 [RANGER-2166] : A ClassNotFound exception is thrown with atlasrest as a tag source
 [RANGER-2297] : : getContentSummary validation failure
+[RANGER-2191] : : Update ranger-tool with new options to control Trie
