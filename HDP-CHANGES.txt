@@ -5,125 +5,32 @@
 [BUG-89359] : 'repl dump <database>.<table>' failed to authorize in Ranger
 [BUG-90059] :  Initial checkin with Hadoop version 3.0.0-beta1 and zookeeper version 3.5.3-beta. Also Cherry picked the changes for BUG-53891 from 2.6-maint branch
 [BUG-90059] :  checkin with Hbase 2.0.0-aplpha3 and corresponding ranger hbase plugin changes. Skipping failed unit tests for now
-[BUG-90059] :  Fixing the PMD vialotions
-[BUG-90059] :  integrated with latest changes on hbase side (based on 2.0.0-alpha4)
-[BUG-90059] :  Fixing some more PMD vialotions
-[BUG-90059] :  using atlantic version of atlas in ranger
 [RMP-9676] :  Updating hbase coprocessor APIs on ranger side according to the changes on hbase side.
-[RANGER-1841] :  Audit log record for 'use dbName' hive command contains large number of tags
-[RANGER-1828] :  Good coding practice-add additional headers in ranger
-[RANGER-1833] :  Update Ranger to use 0.8.1 Atlas version
-[RANGER-1825] : BUG-89494 : Ranger Tagsync start is failing
 [RMP-9766] : Address Hive Ranger Plugin compatibility with Hive 3.0 - Hive new commands authorization
-[RMP-9676] : Updating hbase coprocessor APIs on ranger side according to the changes on hbase side.
-[BUG-91119] : Ranger installation failing due to unavailability of dependencies of CredentialBuilder
-[BUG-91119] : credentialBuilder dependency for ranger knox plugin
-[BUG-91119] : kms installation failing due to unavailability of dependencies of CredentialBuilder
 [RMP-10044] : Ranger KMS compatibility with Hadoop 3.0 changes
-[RANGER-91119] :  Exclude jackson jaxrs library from ranger-admin packaging
-[BUG-91119] :  Exclude jackson jaxrs library from ranger-admin packaging
-[BUG-90944] :  Implement best coding practices in logging messages
-[RMP-10044] : 
+[BUG-91119] :  Ranger installation failing due to unavailability of dependencies of CredentialBuilder
 [BUG-91344] :  Upgrade Spring Framework version
-[RMP-9676] :  Cleaned up unused coprocessor APIs and fixed the hbase plugin unit tests.
-[BUG-91461] :  Fixed Ranger atlantic build failure for hbase plugin
 [BUG-91489] :  Incremental sync is not working for manual ranger installation
-[BUG-91648] :  Fixed Ranger build failure for atlantic branch
-[BUG-91648] :  Fixed Ranger build failure for atlantic branch
 [RANGER-1886] : TagSync updates for changes in Atlas API
-[BUG-91648] :  Fixed Ranger build failure for atlantic branch
 [BUG-91225] :  Update Ranger KMS dependencies which is compatible with Hadoop 3 changes
-[BUG-91225] :  Update Ranger KMS dependencies which is compatible with Hadoop 3 changes
-[RANGER-1886] :  TagSync updates for changes in Atlas API - Part 2
-[BUG-91990] :  Ranger deploys fail - Ranger Tag Sync Start issue
-[BUG-91225] :  Update Ranger KMS dependencies which is compatible with Hadoop 3 changes
-[RANGER-1883] :  Part 2 - All tag sources and sinks should use the same kerberos identity and reuse it
-[BUG-92363 & BUG-92402] Fixed the issue with initializing the hbase plugin
+[RANGER-1883] :  TagSync should reuse kerberos ticket in REST calls to Ranger Admin
 [BUG-92423] : Cluster name not logged in audit for yarn operations
-[BUG-92587] :  tags are not uploading to db from file
-[BUG-92600] :  Added dependency jar files to ranger-admin hbase plugin directory
-[BUG-92504] :  hiveserver2 is going down after starting up
-[BUG-92602] :  NoClassDefFoundError during ranger plugin enabling due to unavailability of dependencies
 [BUG-92634] :  Change commons-configuration2 version from 2.1 to 2.1.1
-[BUG-92573] :  Atlas plugin installation needs Jackson libraries
-[BUG-92800] :  policy evaluation is not happening for hiveserver2
-[BUG-92573] :  Fixed issues during Ranger coprocessor startup
-[BUG-92927] :  Fixed build issue because of changes on Hbase side for HBASE-19410
-[BUG-92927] :  Fixed build failures
-[BUG-92927] :  Fixed more build failures caused by API changes from hbase side
-[BUG-93001] :  Ranger buid failure in 3.0.0
 [RANGER-1897] :  TagSync should replace use of V1 Atlas APIs with V2 APIs for efficient tag-download from Atlas
-[RANGER-1895] :  Simplify Storm dependencies
-[RANGER-1797] : Tomcat Security Vulnerability Alert. The version of the tomcat for ranger should upgrade to 7.0.82.
-[RANGER-1906] :  Simplify Atlas plugin dependency management
-[RANGER-1898] :  Simplify Knox plugin dependency management
-[RANGER-1893] :  Update HBase dependency to 1.2.6
-[BUG-93196] :  Activate previously ignored hdfs plugin unit test case
 [BUG-93249] :  Fixed code to use correct API to get the matching table descriptors
-[RANGER-1922] :  Simplify HBase dependencies
-[RMP-9767] :  Part : Audit to HDFS for knox 1.0.0
-[RANGER-1926] :  Upgrade Storm dependency to 1.1.1
-[RANGER-1905] :  Fix assembly creation - it's a black magic. As ranger-plugins-audit doesn't exclude guava from hadoop common, an older guava is leaked into embeddedwebserver classpath, which somehow filtered out by the assembly plugin Fix the atlas plugin assembly, so the guava is actually coming from the 'atlas-plugin's dependency, and not from the ranger-plugins-audit's dependency. And revert "RANGER-1858:ranger-admin start fail when policymgr_http_enabled equal to false."
+[RMP-9767] :  Address Knox Ranger Plugin compatibility with Knox 1.0.0
 [BUG-93599] :  Catching the exception while getting the user information
-[BUG-93958] :  RANGER-1932- Create default YARN policy with correct policy-resource value
 [BUG-82843] : Add reencryptEncryptedKey interface to KMS and improve logs
 [BUG-93805] : Ranger HBase authorizer request user fetch fails to get the user for some of hbase coprocessor calls
-[BUG-94481] :  Fixing failed hbase unit tests because of some jar dependencies
-[BUG-94473] :  Hbase test connection is failing due to class not found error of RpcController
-[BUG-95072] :  Ranger HBase Plugin module compilation failing with cannot access HBaseCommonTestingUtility error
-[BUG-95252] : Change Ranger Knox plugin package to refer org.apache.knox.gateway
 [BUG-95563 Upgrade Jackson Databind to 2.8.11+ or 2.9.4
-[BUG-95560] :  Upgrade Spring-LDAP to 2.3.2+
 [RMP-9794] : Authorizations for workload management commands
-[BUG-76637] :  Disable, by default, deny policies with ranger.servicedef.enableDenyAndExceptionsInPolicies config parameter
 [BUG-96500] : LZ4-java 1.4 GPL in Ranger - Remove from 3.1-maint
-[BUG-96305 for atlantic
-[BUG-91293] :  Knox proxy + sso is not working for ranger in case of HA if load balancer URL is used in topology ui.xml.
-[RANGER-1984] :  Hbase audit log records may not show all tags associated with accessed column
-[BUG-97446 Ranger build failure in atlantic fix.
-[BUG-97661] :  Compilation error on Atlantic for Ranger
-[RANGER-1999] :  Ranger policy engine updates to support list-of-values in access reource
-[RANGER-2000] :  Policy effective dates to support time-bound and temporary authorization
-set snapshot versions - jenkins
-[BUG-97840] : Knox Topology deployment is failing if ranger authorisation is enabled in it
-[BUG-98073] : Incorporate Kafka 1.0.0 version in Ranger with update to plugin with new kafka apis
-[RANGER-1987] :  Upgrade to Storm 1.2.0 in Ranger
-[BUG-98136] :  disable deny option in Atlas service-def
-set snapshot versions - jenkins
-[BUG-95568] :  Upgrade to Spring Security 4.1.1+ and Spring Framework 4.3.1+
-[RMP-9769] :  RANGER-1967 Address Kafka Ranger Plugin compatibility with Kafka 1.0
-[RMP-9768] :  RANGER-1987: Storm Ranger Plugin compatibility with Storm 1.2
-[RANGER-2019] Handle upgrade scenario to rename the old ATLAS service def and use the new service def
-Revert "RANGER-2019 Handle upgrade scenario to rename the old ATLAS service def"
 [BUG-98627] :  Mtastore resource lookup is failing due to NoClassDefFoundError
-[RANGER-2019] :  Handle upgrade scenario to rename the old ATLAS  service def and use the new service def
 [BUG-97856] :  RMP-9794 Workload resource management access type changes
-[RANGER-2027] :  Evaluate grantor's group membership in the plugin for grant/revoke request
-[RANGER-2026] :  Update Hbase plugin to handle default namespace
-Handle upgrade scenario to rename the old ATLAS  service def and use the new service def
-[BUG-98946] :  NoClassDefFoundError com/ctc/wstx/io/InputBootstrapper during ranger start
-[RANGER-2018] :  Upgrade to Spring 4
-[BUG-99210] :  Ranger HBase plugin fix of java.lang.NoClassDefFoundError: org/apache/htrace/core/Tracer$Builder
-[RANGER-1994] : Tomcat Security Vulnerability Alert. The version of the tomcat for ranger should upgrade to 7.0.85.
-[BUG-98019] :  Code changes to support follow-up tasks found during internal demo
-[BUG-99827] : Ranger compilation error for atlantic
-[RANGER-2035] :  fix handling of null implClass in servicedefs (Oracle returns null for stored empty strings)
-[BUG-98424] :  Ranger login fails with 401 error on cluster with knox proxy.
-[RMP-9795] :  Policy Engine changes -  RANGER-2061: Add policy engine support to get summary user and group ACLs  for a resource
 [RMP-6526] : Ranger Authorization Check on UDF execution on HiveServer2- TestCase
 [RMP-9795] :  Hive plugin changes to support retrieval of Information Schema
 [BUG-99652] :  Ranger should add service admin privilege support for hive service objects - LLAP command sets
-[RANGER-2043] :  Ranger KMS KeyProvider and HSM KeyProvider should have more debug logs
-[Revert "BUG-100604] :  Changed the default value for min group ID to 0 inorder to keep the behavior same as older releases"
 [BUG-101147] : BlackDuck] [Ranger] Update Jackson Databind version to 2.9.5+
-[BUG-99652] : Ranger should add service admin privilege support for hive service objects - LLAP command sets-HiveOperationType Change fix
-[BUG-101314] : Ranger KMS client issue
-[BUG-79561] :  Modified ranger admin assembly file to include commons-io jar in ews/lib folder
 [BUG-101701] :  Support for creating RangerHiveResource for COLUMN-type HivePrivilegeObject
-[BUG-100992] :  Fix Ranger or Hadoop to reaccommodate HADOOP-14445
-[BUG-95909 RANGER-1960] :  Take snapshot's table name into consideration for deletion
-[Revert "BUG-100992] :  Fix Ranger or Hadoop to reaccommodate HADOOP-14445"
-[BUG-103093] :  Kafka start failed during EU due to CNF InputBootstrapper
-[BUG-102835] :  RANGER-2104: Ranger tagsync should ignore ENTITY_UPDATE events if the updated entity does not have associated traits
-[RANGER-2115] : Atlas service def creation failing in Ranger manual installation
-[BUG-104302] :  Update libpam4j version in ranger package
+[BUG-108359] : Remove Sqoop/Kylin from supported components list
+[BUG-108370] : Enable deny section for policies after QE-19961 is resolved
