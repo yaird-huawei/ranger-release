@@ -13,7 +13,6 @@
 [BUG-91489] :  Incremental sync is not working for manual ranger installation
 [RANGER-1886] : TagSync updates for changes in Atlas API
 [BUG-91225] :  Update Ranger KMS dependencies which is compatible with Hadoop 3 changes
-[RANGER-1883] :  TagSync should reuse kerberos ticket in REST calls to Ranger Admin
 [BUG-92423] : Cluster name not logged in audit for yarn operations
 [BUG-92634] :  Change commons-configuration2 version from 2.1 to 2.1.1
 [RANGER-1897] :  TagSync should replace use of V1 Atlas APIs with V2 APIs for efficient tag-download from Atlas
@@ -34,3 +33,43 @@
 [BUG-101701] :  Support for creating RangerHiveResource for COLUMN-type HivePrivilegeObject
 [BUG-108359] : Remove Sqoop/Kylin from supported components list
 [BUG-108370] : Enable deny section for policies after QE-19961 is resolved
+[RANGER-2201] Fix to log no ranger audits when entityId value is not null or empty string
+[BUG-109803] Ranger authorization for ADD, COMPILE and CREATE TEMPORARY UDF operation in Hive
+[BUG-109777]  RANGER-2197: Delegate Admin is not able to create policy
+[BUG-109720] RANGER-2196:Ensure that any explicit threads used by Ranger are marked as daemon threads
+[RANGER-2195] TagPolicy not working due to failure to update tag policy version --BUG-109598
+[RANGER-2188] Support multiple threads to build Trie and on-lookup post-setup for Trie nodes - set default to lazy post-setup
+[RANGER-2167] Upgrade to Apache parent pom version 20
+[RANGER-2191] Update ranger-tool with new options to control Trie
+[RANGER-2186] Increment service-specific policy and tag versions after update transaction is committed
+[RANGER-2189] default policy for Atlas service should allow relationship-type access to all
+[BUG-108281] Address JPA Cache issue when policies Create, Update and Delete are done via REST API in Apache Ranger admin
+[BUG-108401] Support multiple threads to build Trie and on-lookup post-setup for Trie nodes
+[RANGER-2114] Internal Exception: com.mysql.jdbc.MysqlDataTruncation: Data truncation: Data too long for
+[RANGER-2177] Handle validations for duplicate configuration item during service create/edit
+[BUG-108882]  External Group search fails on Ranger UI when installed with postgres
+[RANGER-2153] Supply the function of reverting policy history version.
+[RANGER-2184] Update RangerAtlas authorization to authorize add/update/remove of relationships
+[BUG-95462]  Use INodeAttribute information to authorize HDFS access
+[BUG-108146]  Handle upgrade scenario since atlas-service def is added with new resources for relationship
+[BUG-108617] Code Improvement To Follow Best Practices
+[RANGER-2180] Handle token replacement correctly when token is not defined in the request context
+[BUG-108407] Unit Test cases to cover policy operations from service admin user
+[RANGER-2177] Handle validations for duplicate configuration item during service create/edit
+[BUG-108370]  Enable deny section for policies after QE-19961 is resolved
+[BUG-108401] Optimize Trie constuction and Policy lookup - Part II
+[RANGER-2168] Add service admin user through service config
+[BUG-108282 RANGER-2168] Add service admin user through service config
+[BUG-107236 RANGER-2166] A ClassNotFound exception is thrown with atlasrest as a tag source
+[BUG-108359] Remove Sqoop/Kylin from supported components list
+[BUG-108340] Good coding practices for unix authentication Service in Ranger
+[BUG-108283 RANGER-2169] Create unique index on service and name column of x_policy table
+[BUG-108401 RANGER-2173] Optimize Trie constuction and Policy lookup
+[BUG-108281 RANGER-2165] Address JPA Cache issue when policies Create, Update and Delete are done via REST API in Apache Ranger admin
+[BUG-107965 RANGER-2164]  Ranger to add default altlas policy for rangertagsync user
+[RANGER-2162] Upgrade c3p0 libraries
+[BUG-107346 RANGER-2161] Improvement in policy screen permission item's.
+[BUG-104222 RANGER-2138] Add unit tests for org.apache.ranger.service package
+[RANGER-2152] Incorrect debugging information in RangerPluginClassLoader.java
+[RANGER-2150] Unit test coverage for XUserMgr and UserMgr class
+[RANGER-2158] Performance improvement to REST API call to update policy
