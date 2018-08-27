@@ -222,7 +222,7 @@
         <sun.jersey.core.version>1.4</sun.jersey.core.version>
         <sun.jersey.spring.version>1.4</sun.jersey.spring.version>
         <tez.version>0.7.0.2.6.5.0-SNAPSHOT</tez.version>
-        <tomcat.embed.version>7.0.82</tomcat.embed.version>
+        <tomcat.embed.version>7.0.90</tomcat.embed.version>
         <velocity.version>1.7</velocity.version>
         <xmlenc.version>0.52</xmlenc.version>
         <xz.version>1.0</xz.version>
