@@ -904,6 +904,10 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				ret = new RangerHiveResource(objectType, hiveObj.getObjectName());
             break;
 
+			case GLOBAL:
+				ret = new RangerHiveResource(objectType,hiveObj.getObjectName());
+			break;
+
 			case NONE:
 			break;
 		}
@@ -917,6 +921,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 	private HiveObjectType getObjectType(HivePrivilegeObject hiveObj, HiveOperationType hiveOpType) {
 		HiveObjectType objType = HiveObjectType.NONE;
+		String hiveOpTypeName  = hiveOpType.name().toLowerCase();
+
 		if (hiveObj.getType() == null) {
 			return HiveObjectType.DATABASE;
 		}
@@ -931,7 +937,6 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			break;
 
 			case TABLE_OR_VIEW:
-				String hiveOpTypeName = hiveOpType.name().toLowerCase();
 				if(hiveOpTypeName.contains("index")) {
 					objType = HiveObjectType.INDEX;
 				} else if(! StringUtil.isEmpty(hiveObj.getColumns())) {
@@ -945,6 +950,12 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 			case FUNCTION:
 				objType = HiveObjectType.FUNCTION;
+				if (hiveOpTypeName.contains("createfunction") &&
+					StringUtils.isEmpty(hiveObj.getDbname())) {
+					// This happens for temp udf function and will use
+					// global resource policy in ranger for auth
+					objType = HiveObjectType.GLOBAL;
+				}
 			break;
 
 			case DFS_URI:
@@ -954,6 +965,9 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 			case COMMAND_PARAMS:
 			case GLOBAL:
+				if ( "add".equals(hiveOpTypeName) || "compile".equals(hiveOpTypeName)) {
+					objType = HiveObjectType.GLOBAL;
+				}
 			break;
 
 			case SERVICE_NAME:
@@ -1001,6 +1015,9 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case CREATEFUNCTION:
 					if(hiveObj.getType() == HivePrivilegeObjectType.FUNCTION) {
 						accessType = HiveAccessType.CREATE;
+					}
+					if(hiveObjectType == HiveObjectType.GLOBAL ) {
+						accessType = HiveAccessType.TEMPUDFADMIN;
 					}
 				break;
 
@@ -1174,8 +1191,11 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				break;
 
 				case ADD:
-				case DELETE:
 				case COMPILE:
+					accessType = HiveAccessType.TEMPUDFADMIN;
+				break;
+
+				case DELETE:
 				case CREATEMACRO:
 				case CREATEROLE:
 				case DESCFUNCTION:
@@ -1840,8 +1860,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 	}
 }
 
-enum HiveObjectType { NONE, DATABASE, TABLE, VIEW, PARTITION, INDEX, COLUMN, FUNCTION, URI, SERVICE_NAME };
-enum HiveAccessType { NONE, CREATE, ALTER, DROP, INDEX, LOCK, SELECT, UPDATE, USE, READ, WRITE, ALL, REPLADMIN, SERVICEADMIN };
+enum HiveObjectType { NONE, DATABASE, TABLE, VIEW, PARTITION, INDEX, COLUMN, FUNCTION, URI, SERVICE_NAME, GLOBAL };
+enum HiveAccessType { NONE, CREATE, ALTER, DROP, INDEX, LOCK, SELECT, UPDATE, USE, READ, WRITE, ALL, REPLADMIN, SERVICEADMIN, TEMPUDFADMIN };
 
 class HiveObj {
 	String databaseName;
