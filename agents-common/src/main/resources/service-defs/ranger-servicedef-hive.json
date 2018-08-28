@@ -126,6 +126,7 @@
 			"type": "string",
 			"level": 10,
 			"parent": "",
+			"mandatory": true,
 			"lookupSupported": false,
 			"recursiveSupported": false,
 			"excludesSupported": false,
