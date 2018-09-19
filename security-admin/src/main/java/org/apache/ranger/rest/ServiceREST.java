@@ -3049,7 +3049,8 @@ public class ServiceREST {
 				List<RangerPolicy> listToFilter = entry.getValue();
 
 				if (CollectionUtils.isNotEmpty(listToFilter)) {
-					if (isAdmin || isKeyAdmin) {
+					boolean isServiceAdminUser=isAdmin || svcStore.isServiceAdminUser(serviceName, userName);
+                    if (isAdmin || isKeyAdmin || isServiceAdminUser) {
 						XXService xService     = daoManager.getXXService().findByName(serviceName);
 						Long      serviceDefId = xService.getType();
 						boolean   isKmsService = serviceDefId.equals(EmbeddedServiceDefsUtil.instance().getKmsServiceDefId());
@@ -3058,10 +3059,12 @@ public class ServiceREST {
 							if (!isKmsService) {
 								ret.addAll(listToFilter);
 							}
-						} else { // isKeyAdmin
+                        } else if (isKeyAdmin) {
 							if (isKmsService) {
 								ret.addAll(listToFilter);
 							}
+                                                } else if (isServiceAdminUser) {
+                                                        ret.addAll(listToFilter);
 						}
 
 						continue;
@@ -3095,16 +3098,11 @@ public class ServiceREST {
 		boolean isKeyAdmin = bizUtil.isKeyAdmin();
 		String userName = bizUtil.getCurrentUserLoginId();
 
-		if(!isAdmin && !isKeyAdmin) {
-			boolean isAllowed = false;
+        boolean isSvcAdmin = isAdmin || svcStore.isServiceAdminUser(serviceName, userName);
 
-			RangerPolicyEngine policyEngine = getDelegatedAdminPolicyEngine(serviceName);
-
-			if (policyEngine != null) {
-				Set<String> userGroups = userMgr.getGroupsForUser(userName);
-
-				isAllowed = hasAdminAccess(serviceName, userName, userGroups, resources);
-			}
+        if(!isAdmin && !isKeyAdmin && !isSvcAdmin) {
+			Set<String> userGroups = userMgr.getGroupsForUser(userName);
+			boolean isAllowed = hasAdminAccess(serviceName, userName, userGroups, resources);
 
 			if (!isAllowed) {
 				throw restErrorUtil.createRESTException(HttpServletResponse.SC_UNAUTHORIZED,

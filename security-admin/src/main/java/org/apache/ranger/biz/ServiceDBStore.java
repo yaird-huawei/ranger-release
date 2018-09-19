@@ -210,8 +210,10 @@ public class ServiceDBStore extends AbstractServiceStore {
 	private static final String USER_NAME = "Exported by";
 	private static final String RANGER_VERSION = "Ranger apache version";
 	private static final String TIMESTAMP = "Export time";
-        private static final String AUDITTOHDFS_KMS_PATH = "/ranger/audit/kms";
+    private static final String AUDITTOHDFS_KMS_PATH = "/ranger/audit/kms";
 	private static final String AUDITTOHDFS_POLICY_NAME = "kms-audit-path";
+	private static final String SERVICE_ADMIN_USERS = "service.admin.users";
+
 	
         public static final String CRYPT_ALGO = PropertiesUtil.getProperty("ranger.password.encryption.algorithm", PasswordUtils.DEFAULT_CRYPT_ALGO);
         public static final String ENCRYPT_KEY = PropertiesUtil.getProperty("ranger.password.encryption.key", PasswordUtils.DEFAULT_ENCRYPT_KEY);
@@ -4236,4 +4238,19 @@ public class ServiceDBStore extends AbstractServiceStore {
 		genericUser.setDescription(RangerPolicyEngine.RESOURCE_OWNER);
 		xUserService.createXUserWithOutLogin(genericUser);
 	}
+
+    public boolean isServiceAdminUser(String serviceName, String userName) {
+        boolean ret=false;
+        XXServiceConfigMap cfgSvcAdminUsers = daoMgr.getXXServiceConfigMap().findByServiceNameAndConfigKey(serviceName, SERVICE_ADMIN_USERS);
+        String svcAdminUsers = cfgSvcAdminUsers != null ? cfgSvcAdminUsers.getConfigvalue() : null;
+        if (svcAdminUsers != null) {
+            for (String svcAdminUser : svcAdminUsers.split(",")) {
+                if (userName.equals(svcAdminUser)) {
+                    ret=true;
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
 }
