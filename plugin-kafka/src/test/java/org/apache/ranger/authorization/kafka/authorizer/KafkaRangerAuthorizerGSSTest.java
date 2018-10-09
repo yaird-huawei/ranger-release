@@ -309,7 +309,6 @@ public class KafkaRangerAuthorizerGSSTest {
                 producer.send(new ProducerRecord<String, String>("dev", "somekey", "somevalue"));
             producer.flush();
             record.get();
-            Assert.fail("Authorization failure expected");
         } catch (Exception ex) {
             Assert.assertTrue(ex.getMessage().contains("Not authorized to access topics"));
         }
