@@ -950,10 +950,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 			case FUNCTION:
 				objType = HiveObjectType.FUNCTION;
-				if (hiveOpTypeName.contains("createfunction") &&
-					StringUtils.isEmpty(hiveObj.getDbname())) {
-					// This happens for temp udf function and will use
-					// global resource policy in ranger for auth
+				if (isTempUDFOperation(hiveOpTypeName, hiveObj)) {
 					objType = HiveObjectType.GLOBAL;
 				}
 			break;
@@ -1795,6 +1792,17 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			LOG.debug("isBlockAccessIfRowfilterColumnMaskSpecified(" + hiveOpType + ", " + request + "): " + ret);
 		}
 
+		return ret;
+	}
+
+	private boolean isTempUDFOperation(String hiveOpTypeName, HivePrivilegeObject hiveObj) {
+		boolean ret = false;
+		if ((hiveOpTypeName.contains("createfunction") || hiveOpTypeName.contains("dropfunction")) &&
+				StringUtils.isEmpty(hiveObj.getDbname())) {
+			// This happens for temp udf function and will use
+			// global resource policy in ranger for auth
+			ret = true;
+		}
 		return ret;
 	}
 
