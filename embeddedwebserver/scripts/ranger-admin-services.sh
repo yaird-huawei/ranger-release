@@ -28,7 +28,7 @@ action=`echo $action | tr '[:lower:]' '[:upper:]'`
 realScriptPath=`readlink -f $0`
 realScriptDir=`dirname $realScriptPath`
 XAPOLICYMGR_DIR=`(cd $realScriptDir/..; pwd)`
-max_memory=8g
+max_memory=12g
 
 XAPOLICYMGR_EWS_DIR=${XAPOLICYMGR_DIR}/ews
 RANGER_JAAS_LIB_DIR="${XAPOLICYMGR_EWS_DIR}/ranger_jaas"

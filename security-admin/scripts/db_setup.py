@@ -37,7 +37,7 @@ jisql_debug=True
 retryPatchAfterSeconds=120
 java_patch_regex="^Patch.*?J\d{5}.class$"
 is_unix = os_name == "LINUX" or os_name == "DARWIN"
-max_memory='8g'
+max_memory='12g'
 
 if is_unix:
 	RANGER_ADMIN_HOME = os.getenv("RANGER_ADMIN_HOME")
