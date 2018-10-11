@@ -204,6 +204,8 @@ public class RangerKafkaAuthorizer implements Authorizer {
 			rangerResource.setValue(KEY_CLUSTER, resource.name());
 		} else if (resource.resourceType().equals(Group$.MODULE$)) {
 			rangerResource.setValue(KEY_CONSUMER_GROUP, resource.name());
+		} else if (resource.resourceType().equals(TransactionalId$.MODULE$)) {
+			rangerResource.setValue(KEY_TRANSACTIONALID,resource.name());
 		} else if (resource.resourceType().equals(DelegationToken$.MODULE$)) {
 			rangerResource.setValue(KEY_DELEGATIONTOKEN, resource.name());
 		} else {
