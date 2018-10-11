@@ -33,3 +33,22 @@ BEGIN
         end if; 
         commit; 
 END;/
+
+CREATE OR REPLACE PROCEDURE removeConstraints(ObjName IN varchar2) IS
+BEGIN
+FOR rec IN(
+select owner, constraint_name
+from all_constraints
+where owner = sys_context('userenv','current_schema')
+and table_name = ObjName
+and constraint_type = 'R')
+LOOP
+execute immediate 'ALTER TABLE ' || rec.owner || '.' || ObjName || ' DROP CONSTRAINT ' || rec.constraint_name;
+END LOOP;
+END;/
+/
+
+CALL removeConstraints('X_TAG_ATTR_DEF');
+CALL removeConstraints('X_TAG_ATTR');
+CALL removeConstraints('X_SERVICE_RESOURCE_ELEMENT');
+CALL removeConstraints('X_SERVICE_RESOURCE_ELEMENT_VAL');

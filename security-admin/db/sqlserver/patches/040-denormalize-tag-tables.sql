@@ -16,20 +16,82 @@
 GO
 IF NOT EXISTS(select * from INFORMATION_SCHEMA.columns where table_name = 'x_tag_def' and column_name = 'tag_attrs_def_text')
 BEGIN
-	ALTER TABLE [dbo].[x_tag_def] ADD [tag_attrs_def_text] [mediumtext] DEFAULT NULL NULL;
+	ALTER TABLE [dbo].[x_tag_def] ADD [tag_attrs_def_text] [nvarchar](max) DEFAULT NULL NULL;
 END
 IF NOT EXISTS(select * from INFORMATION_SCHEMA.columns where table_name = 'x_tag' and column_name = 'tag_attrs_text')
 BEGIN
-	ALTER TABLE [dbo].[x_tag] ADD [tag_attrs_text] [mediumtext] DEFAULT NULL NULL;
+	ALTER TABLE [dbo].[x_tag] ADD [tag_attrs_text] [nvarchar](max) DEFAULT NULL NULL;
 END
 IF NOT EXISTS(select * from INFORMATION_SCHEMA.columns where table_name = 'x_service_resource' and column_name = 'service_resource_elements_text')
 BEGIN
-	ALTER TABLE [dbo].[x_service_resource] ADD [service_resource_elements_text] [mediumtext] DEFAULT NULL NULL;
+	ALTER TABLE [dbo].[x_service_resource] ADD [service_resource_elements_text] [nvarchar](max) DEFAULT NULL NULL;
 END
 IF NOT EXISTS(select * from INFORMATION_SCHEMA.columns where table_name = 'x_service_resource' and column_name = 'tags_text')
 BEGIN
-	ALTER TABLE [dbo].[x_service_resource] ADD [tags_text] [mediumtext] DEFAULT NULL NULL;
+	ALTER TABLE [dbo].[x_service_resource] ADD [tags_text] [nvarchar](max) DEFAULT NULL NULL;
 END
 GO
 
-exit
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+IF EXISTS (
+        SELECT type_desc, type
+        FROM sys.procedures WITH(NOLOCK)
+        WHERE NAME = 'removeConstraints'
+            AND type = 'P'
+      )
+BEGIN
+	 PRINT 'Proc exist with name dbo.removeConstraints'
+     DROP PROCEDURE dbo.removeConstraints
+	 PRINT 'Proc dropped dbo.removeConstraints'
+END
+GO
+CREATE PROCEDURE dbo.removeConstraints
+	-- Add the parameters for the stored procedure here
+	@tablename nvarchar(100)
+AS
+BEGIN
+
+  DECLARE @stmt VARCHAR(300);
+
+  -- Cursor to generate ALTER TABLE DROP CONSTRAINT statements
+  DECLARE cur CURSOR FOR
+     SELECT 'ALTER TABLE ' + OBJECT_SCHEMA_NAME(parent_object_id) + '.' + OBJECT_NAME(parent_object_id) +
+                    ' DROP CONSTRAINT ' + name
+     FROM sys.foreign_keys
+     WHERE OBJECT_SCHEMA_NAME(referenced_object_id) = 'dbo' AND
+                OBJECT_NAME(referenced_object_id) = @tablename;
+
+   OPEN cur;
+   FETCH cur INTO @stmt;
+
+   -- Drop each found foreign key constraint
+   WHILE @@FETCH_STATUS = 0
+     BEGIN
+       EXEC (@stmt);
+       FETCH cur INTO @stmt;
+     END
+
+  CLOSE cur;
+  DEALLOCATE cur;
+
+END
+GO
+
+EXEC dbo.removeConstraints 'x_tag_attr_def'
+GO
+
+EXEC dbo.removeConstraints 'x_tag_attr'
+GO
+
+EXEC dbo.removeConstraints 'x_service_resource_element'
+GO
+
+EXEC dbo.removeConstraints 'x_service_resource_element_val'
+GO
+
+EXIT

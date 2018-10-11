@@ -36,3 +36,47 @@ delimiter ;
 call denormalize_tag_tables();
 
 drop procedure if exists denormalize_tag_tables;
+
+DROP PROCEDURE IF EXISTS removeConstraints;
+DELIMITER ;;
+CREATE PROCEDURE removeConstraints(vTableName varchar(128))
+BEGIN
+  DECLARE done INT DEFAULT FALSE;
+  DECLARE cName VARCHAR(64);
+  DECLARE cur CURSOR FOR
+          SELECT DISTINCT CONSTRAINT_NAME
+          FROM INFORMATION_SCHEMA.Key_COLUMN_USAGE
+          WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME = vTableName
+          AND REFERENCED_TABLE_NAME IS NOT NULL;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+  SET AUTOCOMMIT=0;
+  SET FOREIGN_KEY_CHECKS=0;
+
+  OPEN cur;
+
+  read_loop: LOOP
+    FETCH cur INTO cName;
+    IF done THEN
+      LEAVE read_loop;
+    END IF;
+    SET @sql = CONCAT('ALTER TABLE ',vTableName,' DROP FOREIGN KEY ',cName,';');
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END LOOP;
+
+  CLOSE cur;
+
+  SET FOREIGN_KEY_CHECKS=1;
+  COMMIT;
+  SET AUTOCOMMIT=1;
+END ;;
+DELIMITER ;
+
+call removeConstraints('x_tag_attr_def');
+call removeConstraints('x_tag_attr');
+call removeConstraints('x_service_resource_element');
+call removeConstraints('x_service_resource_element_val');
+
+DROP PROCEDURE removeConstraints;

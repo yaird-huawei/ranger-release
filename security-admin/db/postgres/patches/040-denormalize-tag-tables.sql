@@ -42,3 +42,38 @@ select 'delimiter end';
 
 select denormalize_tag_tables();
 select 'delimiter end';
+
+select 'delimiter start';
+CREATE OR REPLACE FUNCTION remove_foreign_key(objName varchar(4000))
+RETURNS void AS $$
+declare
+ tableName VARCHAR(256);
+ constraintName VARCHAR(512);
+ query varchar(4000);
+ curs CURSOR FOR SELECT table_name,constraint_name from information_schema.key_column_usage where constraint_catalog=current_catalog and table_name=objName and position_in_unique_constraint notnull;
+begin
+  OPEN curs;
+  loop
+	FETCH curs INTO tableName,constraintName;
+	EXIT WHEN NOT FOUND;
+	query :='ALTER TABLE ' || objName || ' drop constraint ' || constraintName;
+	execute query;
+  end loop;
+  close curs;
+END;
+$$ LANGUAGE plpgsql;
+select 'delimiter end';
+
+CREATE OR REPLACE FUNCTION removekeys()
+RETURNS void AS
+$$
+BEGIN
+	perform remove_foreign_key('x_tag_attr_def');
+	perform remove_foreign_key('x_tag_attr');
+	perform remove_foreign_key('x_service_resource_element');
+	perform remove_foreign_key('x_service_resource_element_val');
+END;
+$$ LANGUAGE plpgsql;
+select removekeys();
+
+select 'delimiter end';
