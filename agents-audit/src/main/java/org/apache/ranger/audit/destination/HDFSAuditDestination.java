@@ -178,7 +178,7 @@ public class HDFSAuditDestination extends AuditDestination {
 		} finally {
 			logger.info("Flushing HDFS audit. Event Size:" + events.size());
 			if (out != null) {
-				flush();
+				out.flush();
 			}
 		}
 		addSuccessCount(events.size());
