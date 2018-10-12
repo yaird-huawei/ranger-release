@@ -195,6 +195,7 @@ public class PatchForUpdatingTagsJson_J10020 extends BaseLoader {
     }
 
     private void portServiceResource(RangerServiceResource serviceResource) throws Exception {
+        serviceResourceService.update(serviceResource);
         tagStore.refreshServiceResource(serviceResource.getId());
     }
 
