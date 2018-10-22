@@ -13,6 +13,38 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+drop procedure if exists update_TagDefAccessTypes_for_atlas;
+
+delimiter ;;
+create procedure update_TagDefAccessTypes_for_atlas() begin
+DECLARE new_atlas_def_name varchar(100);
+if exists (select version from x_db_version_h where version = 'J10013') then
+	if exists (select name from x_service_def where name like 'atlas.%') then
+		set new_atlas_def_name=(select name from x_service_def where name like 'atlas.%');
+		if exists(select * from x_access_type_def where def_id in(select id from x_service_def where name='tag') and name in('atlas:read','atlas:create','atlas:update','atlas:delete','atlas:all')) then
+			update x_access_type_def set name=concat(new_atlas_def_name,':read') where def_id=100 and name='atlas:read';
+			update x_access_type_def set name=concat(new_atlas_def_name,':create') where def_id=100 and name='atlas:create';
+			update x_access_type_def set name=concat(new_atlas_def_name,':update') where def_id=100 and name='atlas:update';
+			update x_access_type_def set name=concat(new_atlas_def_name,':delete') where def_id=100 and name='atlas:delete';
+			update x_access_type_def set name=concat(new_atlas_def_name,':all') where def_id=100 and name='atlas:all';
+		end if;
+		if exists(select * from x_access_type_def_grants where atd_id in (select id from x_access_type_def where def_id in (select id from x_service_def where name='tag') and name like 'atlas%') and implied_grant in ('atlas:read','atlas:create','atlas:update','atlas:delete','atlas:all')) then
+			update x_access_type_def_grants set implied_grant=concat(new_atlas_def_name,':read') where implied_grant='atlas:read';
+			update x_access_type_def_grants set implied_grant=concat(new_atlas_def_name,':create') where implied_grant='atlas:create';
+			update x_access_type_def_grants set implied_grant=concat(new_atlas_def_name,':update') where implied_grant='atlas:update';
+			update x_access_type_def_grants set implied_grant=concat(new_atlas_def_name,':delete') where implied_grant='atlas:delete';
+			update x_access_type_def_grants set implied_grant=concat(new_atlas_def_name,':all') where implied_grant='atlas:all';
+		end if;
+	end if;
+end if;
+end;;
+
+delimiter ;
+call update_TagDefAccessTypes_for_atlas();
+
+drop procedure if exists update_TagDefAccessTypes_for_atlas;
+
+
 drop procedure if exists alter_table_x_policy;
 
 delimiter ;;
@@ -20,7 +52,7 @@ create procedure alter_table_x_policy() begin
 
 if exists (select * from information_schema.columns where table_schema=database() and table_name = 'x_policy') then
   if not exists (select * from information_schema.columns where table_schema=database() and table_name = 'x_policy' and column_name = 'policy_text') then
-    ALTER TABLE `x_policy` ADD `policy_text` MEDIUMTEXT DEFAULT NULL;
+	ALTER TABLE `x_policy` ADD `policy_text` MEDIUMTEXT DEFAULT NULL;
   end if;
  end if; 
 end;;
@@ -37,10 +69,10 @@ BEGIN
   DECLARE done INT DEFAULT FALSE;
   DECLARE cName VARCHAR(64);
   DECLARE cur CURSOR FOR
-          SELECT DISTINCT CONSTRAINT_NAME
-          FROM INFORMATION_SCHEMA.Key_COLUMN_USAGE
-          WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME = vTableName
-          AND REFERENCED_TABLE_NAME IS NOT NULL;
+		  SELECT DISTINCT CONSTRAINT_NAME
+		  FROM INFORMATION_SCHEMA.Key_COLUMN_USAGE
+		  WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME = vTableName
+		  AND REFERENCED_TABLE_NAME IS NOT NULL;
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
   SET AUTOCOMMIT=0;
@@ -49,14 +81,14 @@ BEGIN
   OPEN cur;
 
   read_loop: LOOP
-    FETCH cur INTO cName;
-    IF done THEN
-      LEAVE read_loop;
-    END IF;
-    SET @sql = CONCAT('ALTER TABLE ',vTableName,' DROP FOREIGN KEY ',cName,';');
-    PREPARE stmt FROM @sql;
-    EXECUTE stmt;
-    DEALLOCATE PREPARE stmt;
+	FETCH cur INTO cName;
+	IF done THEN
+	  LEAVE read_loop;
+	END IF;
+	SET @sql = CONCAT('ALTER TABLE ',vTableName,' DROP FOREIGN KEY ',cName,';');
+	PREPARE stmt FROM @sql;
+	EXECUTE stmt;
+	DEALLOCATE PREPARE stmt;
   END LOOP;
 
   CLOSE cur;
