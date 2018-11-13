@@ -33,43 +33,40 @@
 [BUG-101701] :  Support for creating RangerHiveResource for COLUMN-type HivePrivilegeObject
 [BUG-108359] : Remove Sqoop/Kylin from supported components list
 [BUG-108370] : Enable deny section for policies after QE-19961 is resolved
-[RANGER-2201] Fix to log no ranger audits when entityId value is not null or empty string
 [BUG-109803] Ranger authorization for ADD, COMPILE and CREATE TEMPORARY UDF operation in Hive
-[BUG-109777]  RANGER-2197: Delegate Admin is not able to create policy
-[BUG-109720] RANGER-2196:Ensure that any explicit threads used by Ranger are marked as daemon threads
-[RANGER-2195] TagPolicy not working due to failure to update tag policy version --BUG-109598
-[RANGER-2188] Support multiple threads to build Trie and on-lookup post-setup for Trie nodes - set default to lazy post-setup
-[RANGER-2167] Upgrade to Apache parent pom version 20
-[RANGER-2191] Update ranger-tool with new options to control Trie
-[RANGER-2186] Increment service-specific policy and tag versions after update transaction is committed
-[RANGER-2189] default policy for Atlas service should allow relationship-type access to all
-[BUG-108281] Address JPA Cache issue when policies Create, Update and Delete are done via REST API in Apache Ranger admin
-[BUG-108401] Support multiple threads to build Trie and on-lookup post-setup for Trie nodes
-[RANGER-2114] Internal Exception: com.mysql.jdbc.MysqlDataTruncation: Data truncation: Data too long for
-[RANGER-2177] Handle validations for duplicate configuration item during service create/edit
-[BUG-108882]  External Group search fails on Ranger UI when installed with postgres
-[RANGER-2153] Supply the function of reverting policy history version.
-[RANGER-2184] Update RangerAtlas authorization to authorize add/update/remove of relationships
-[BUG-95462]  Use INodeAttribute information to authorize HDFS access
-[BUG-108146]  Handle upgrade scenario since atlas-service def is added with new resources for relationship
-[BUG-108617] Code Improvement To Follow Best Practices
-[RANGER-2180] Handle token replacement correctly when token is not defined in the request context
-[BUG-108407] Unit Test cases to cover policy operations from service admin user
-[RANGER-2177] Handle validations for duplicate configuration item during service create/edit
 [BUG-108370]  Enable deny section for policies after QE-19961 is resolved
-[BUG-108401] Optimize Trie constuction and Policy lookup - Part II
-[RANGER-2168] Add service admin user through service config
-[BUG-108282 RANGER-2168] Add service admin user through service config
-[BUG-107236 RANGER-2166] A ClassNotFound exception is thrown with atlasrest as a tag source
-[BUG-108359] Remove Sqoop/Kylin from supported components list
-[BUG-108340] Good coding practices for unix authentication Service in Ranger
-[BUG-108283 RANGER-2169] Create unique index on service and name column of x_policy table
-[BUG-108401 RANGER-2173] Optimize Trie constuction and Policy lookup
-[BUG-108281 RANGER-2165] Address JPA Cache issue when policies Create, Update and Delete are done via REST API in Apache Ranger admin
-[BUG-107965 RANGER-2164]  Ranger to add default altlas policy for rangertagsync user
-[RANGER-2162] Upgrade c3p0 libraries
-[BUG-107346 RANGER-2161] Improvement in policy screen permission item's.
-[BUG-104222 RANGER-2138] Add unit tests for org.apache.ranger.service package
-[RANGER-2152] Incorrect debugging information in RangerPluginClassLoader.java
-[RANGER-2150] Unit test coverage for XUserMgr and UserMgr class
-[RANGER-2158] Performance improvement to REST API call to update policy
+[RANGER-2278]: Unable to delete user if he has references in new ref tables
+[BUG-113391: RANGER-2275:] Make db_setup retry delay configurable
+[RANGER-2248]: Sorting does not work in AbstractPredicateUtil.java
+[RANGER-2257]:Add policyID to error message when click the Access log of Audit
+[RANGER-2258]: Improve the policy list page to prompt users when the service is disabled
+[BUG-113510 : RANGER-2273] : Allow service admin and delegated admin user to view list of users and groups though they have 'USER' role
+[BUG-113433 RANGER-2270]: Restrict tag module access to unprivileged users
+[BUG-113513: RANGER-2272] : Ensure that case of resource-definition names and access-type names in Ranger policy is the same as in service-definition after successful validation
+[BUG-113384: RANGER-2268] : Optimize policy and tags migration to new schema
+[RANGER-2264]:Kafka default policies for new resources are not showing up in UI when upgrade is done from older version
+[BUG-113214 : RANGER-2269] : Implement best coding practices for validating user input
+[BUG-112890]: Removed unused commons compress jars from ranger packaging (Apache Jira RANGER-2263)
+[BUG-112993 : RANGER-2262]: Export to excel from report listing page is not working for Oracle database
+[BUG-112937: RANGER-2260]: Atlas servicedef version change patch should
+[RANGER-2251]: Need to provide options for making java heap size memory configurable in Ranger services
+[RANGER-2259]: Need to provide appropriate permisssions for unix-auth files.
+[BUG-112134: RANGER-2203, RANGER-2219]: Review and update database schema for ranger policies and tag objects to minimize database queries/updates
+[RANGER-2252]:Permission Kafka Admin should not be part of Topic resource in Ranger Kafka resource definition
+[BUG-112840: RANGER-2247]: Ranger Plugin for HDFS throws StringIndexOutOfBounds exception when policy resource is \
+[BUG-112682 : RANGER-2229] : Perform graceful terminate with retries before doing forceful
+[BUG-112686 : RANGER-2250] : Service configs fields are not showing for atlas service form page
+[RANGER-2209]: Added Ranger service definition for ABFS
+[RANGER-2220]: minify JavaScript files during packaging
+[RANGER-2238]: String comparison should not use '==' in ServiceUtil.java
+[BUG-111747: RANGER-2207]: Allow resources to appear in column mask policies without being visible in access policies
+[RANGER-2249]:Ranger Audit not flushed immediately to hdfs
+[BUG-112585]:RangerKafkaPlugin transcational Id operation not getting authorized
+[BUG-112578: RANGER-2242] : JiSQL utility is failing Oracle UDF
+[BUG-110599 : RANGER-2229] : Perform graceful terminate with retries before doing forceful kill for usersync and tagsync
+[RANGER-2235]: Modify the login session detail page as a modal.
+[RANGER-2241]: Removed mds and sha1 generation
+[BUG-112218: RANGER-2245:] Exclude Jetty libraries
+[BUG-111022]:drop temporary function <udf> command should  be handled by 'global' resource and 'Temporary UDF Admin' permission
+[RANGER-2222]:Apache RangerKafkaPlugin support to handle Kafka Cluster as a new resource
+[RANGER-2210]:Ranger support for Apache Kafka 2.0.0
