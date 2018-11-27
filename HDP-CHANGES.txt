@@ -35,6 +35,18 @@
 [BUG-108370] : Enable deny section for policies after QE-19961 is resolved
 [BUG-109803] Ranger authorization for ADD, COMPILE and CREATE TEMPORARY UDF operation in Hive
 [BUG-108370]  Enable deny section for policies after QE-19961 is resolved
+[RANGER-2292] : Test case fix for RANGER-2276
+[BUG-113849 : RANGER-2244] : Tomcat Security Vulnerability Alert. The version of the tomcat for ranger should upgrade to 7.0.91 or later.
+[RANGER-2288] : Sqoop repository config missing 'Common Name for Certificate'
+[RANGER-2284] : Unable to build image using docker
+[RANGER-2276] : Email Address should be verified when Add New User in Ranger Admin
+[RANGER-2267] : Add a icon to differentiate the status of the service
+[RANGER-2277] : Kylin repository config missing 'Common Name for Certificate'
+[RANGER-2280] : The emptyText of User Sync and Plugin Status should be reasonable
+[RMP-11856]: Ranger - Support Knox Trusted Proxy (Apache jira RANGER-2049)
+[BUG-114044: RANGER-2286] : Ranger install may be prevented by leftover DB entry
+[BUG-114214 : RANGER-2283] : User is getting total count of groups even if he is assigned to one group due to which pagination is breaking
+[BUG-113390: RANGER-2279]: Reduce the time spent changing passwords during Ranger Admin install
 [RANGER-2278]: Unable to delete user if he has references in new ref tables
 [BUG-113391: RANGER-2275:] Make db_setup retry delay configurable
 [RANGER-2248]: Sorting does not work in AbstractPredicateUtil.java
