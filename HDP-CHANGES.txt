@@ -82,3 +82,4 @@
 [BUG-111022]:drop temporary function <udf> command should  be handled by 'global' resource and 'Temporary UDF Admin' permission
 [RANGER-2222]:Apache RangerKafkaPlugin support to handle Kafka Cluster as a new resource
 [RANGER-2210]:Ranger support for Apache Kafka 2.0.0
+[RANGER-2234]:Cannot add or update a child row,a foreign key constraint fails when installing ranger-admin
