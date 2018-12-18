@@ -78,6 +78,7 @@ public enum RangerHiveOperationType {
     ALTER_MAPPING,
     ALTER_TRIGGER,
     ALTER_POOL,
+    ALTERTABLE_OWNER,
     DROPVIEW_PROPERTIES,
     MSCK,
     DROPFUNCTION,

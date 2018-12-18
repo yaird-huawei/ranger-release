@@ -1070,6 +1070,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 				case ALTERVIEW_AS:
 				case ALTERVIEW_PROPERTIES:
 				case ALTERVIEW_RENAME:
+				case ALTERTABLE_EXCHANGEPARTITION:
+				case ALTERTABLE_OWNER:
 				case DROPVIEW_PROPERTIES:
 				case MSCK:
 					accessType = HiveAccessType.ALTER;
@@ -1277,6 +1279,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			case ALTERPARTITION_LOCATION:
 			case ALTERPARTITION_MERGEFILES:
 			case ALTERTBLPART_SKEWED_LOCATION:
+			case ALTERTABLE_OWNER:
 			case QUERY:
 				ret = FsAction.ALL;
 				break;
