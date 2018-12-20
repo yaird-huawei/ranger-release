@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.security.auth.Subject;
 
 import org.apache.kafka.common.network.LoginType;
+import org.apache.kafka.common.security.JaasUtils;
 import org.apache.kafka.common.security.auth.KafkaPrincipal;
 
 import kafka.security.auth.*;
@@ -81,7 +82,8 @@ public class RangerKafkaAuthorizer implements Authorizer {
 				me = rangerPlugin;
 				if (me == null) {
 					try {
-						LoginManager loginManager = LoginManager.acquireLoginManager(LoginType.SERVER, true, configs);
+						LoginManager loginManager = LoginManager.acquireLoginManager(LoginType.SERVER, true, configs,
+								JaasUtils.jaasConfig(LoginType.SERVER, configs));
 						Subject subject = loginManager.subject();
 						UserGroupInformation ugi = MiscUtil
 								.createUGIFromSubject(subject);
