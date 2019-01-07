@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.List;
-import javax.servlet.ServletException;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -228,9 +228,6 @@ public class EmbeddedServer {
 			webappCtx.init();
 			LOG.info("Finished init of webapp [" + webContextName
 					+ "] = path [" + webapp_dir + "].");
-		} catch (ServletException e1) {
-			LOG.severe("Tomcat Server failed to add webapp:" + e1.toString());
-			e1.printStackTrace();
 		} catch (LifecycleException lce) {
 			LOG.severe("Tomcat Server failed to start webapp:" + lce.toString());
 			lce.printStackTrace();
