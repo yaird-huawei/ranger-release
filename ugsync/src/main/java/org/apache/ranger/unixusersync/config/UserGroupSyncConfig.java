@@ -243,7 +243,9 @@ public class UserGroupSyncConfig  {
         private static final String USERNAME_GROUPNAME_ASSIGNMENT_LIST_DELIMITER = "ranger.usersync.username.groupname.assignment.list.delimiter";
         private static final String GROUP_BASED_ROLE_ASSIGNMENT_RULES = "ranger.usersync.group.based.role.assignment.rules";
 
-	private Properties prop = new Properties();
+    private static final String USERSYNC_RANGER_COOKIE_ENABLED_PROP = "ranger.usersync.cookie.enabled";
+
+    private Properties prop = new Properties();
 
 	private static volatile UserGroupSyncConfig me = null;
 
@@ -998,6 +1000,13 @@ public class UserGroupSyncConfig  {
 		}
 		return val;
 	}
+
+
+	public boolean isUserSyncRangerCookieEnabled() {
+		String val = prop.getProperty(USERSYNC_RANGER_COOKIE_ENABLED_PROP);
+		return val == null || Boolean.valueOf(val.trim());
+	}
+
 
 	public boolean isStartTlsEnabled() {
 		boolean starttlsEnabled;
