@@ -71,14 +71,9 @@ public class TestSecurityZoneREST {
 	private RangerSecurityZone createRangerSecurityZone() {
 		String testZone1 = "testzone1";
 		List<String> testZone1ResoursesList = new ArrayList(Arrays.asList("/path/to/resource1", "/path/to/resource2"));
-		List<String> userGroupList = new ArrayList(Arrays.asList("testuser", "testgroup"));
 
 		RangerSecurityZone zone = new RangerSecurityZone();
 		zone.setName(testZone1);
-		zone.setAdminUserGroups(userGroupList);
-		zone.setAdminUsers(userGroupList);
-		zone.setAuditUserGroups(userGroupList);
-		zone.setAuditUsers(userGroupList);
 		Map<String, RangerSecurityZoneService> services = new HashMap<>();
 
 		List<HashMap<String, List<String>>> resources = new ArrayList<>();
@@ -86,7 +81,6 @@ public class TestSecurityZoneREST {
 				testZone1ResoursesList));
 
 		RangerSecurityZoneService zoneService = new RangerSecurityZoneService();
-
 		zoneService.setResources(resources);
 		services.put("test_service_1", zoneService);
 		zone.setServices(services);

@@ -19,7 +19,6 @@
 
 package org.apache.ranger.rest;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -33,10 +32,10 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.biz.RangerBizUtil;
 import org.apache.ranger.biz.SecurityZoneDBStore;
 import org.apache.ranger.biz.ServiceDBStore;
+import org.apache.ranger.common.MessageEnums;
 import org.apache.ranger.common.RESTErrorUtil;
 import org.apache.ranger.common.RangerValidatorFactory;
 import org.apache.ranger.plugin.model.RangerSecurityZone;
-import org.apache.ranger.plugin.model.RangerSecurityZone.RangerSecurityZoneService;
 import org.apache.ranger.plugin.model.validation.RangerSecurityZoneValidator;
 import org.apache.ranger.plugin.model.validation.RangerValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +44,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Path("zones")
 @Component
@@ -82,7 +77,6 @@ public class SecurityZoneREST {
         RangerSecurityZone ret;
         try {
         	ensureAdminAccess();
-            removeEmptyEntries(securityZone);
             RangerSecurityZoneValidator validator = validatorFactory.getSecurityZoneValidator(svcStore, securityZoneStore);
             validator.validate(securityZone, RangerValidator.Action.CREATE);
             ret = securityZoneStore.createSecurityZone(securityZone);
@@ -108,7 +102,6 @@ public class SecurityZoneREST {
         }
 
         ensureAdminAccess();
-        removeEmptyEntries(securityZone);
         if (securityZone.getId() != null && !zoneId.equals(securityZone.getId())) {
             throw restErrorUtil.createRESTException("zoneId mismatch!!");
         } else {
@@ -244,37 +237,12 @@ public class SecurityZoneREST {
         return ret;
     }
     
-	private void ensureAdminAccess(){
-		if(!bizUtil.isAdmin()){
-			String userName = bizUtil.getCurrentUserLoginId();
-			throw restErrorUtil.createRESTException(HttpServletResponse.SC_FORBIDDEN, "Ranger Securtiy Zone is not accessible for user '" + userName + "'.", true);
-		}
-	}
-
-	private void removeEmptyEntries(RangerSecurityZone securityZone) {
-		bizUtil.removeEmptyStrings(securityZone.getAdminUsers());
-		bizUtil.removeEmptyStrings(securityZone.getAdminUserGroups());
-		bizUtil.removeEmptyStrings(securityZone.getAuditUsers());
-		bizUtil.removeEmptyStrings(securityZone.getAuditUserGroups());
-		Map<String, RangerSecurityZoneService> serviceResouceMap=securityZone.getServices();
-		if(serviceResouceMap!=null) {
-			Set<Map.Entry<String, RangerSecurityZoneService>> serviceResouceMapEntries = serviceResouceMap.entrySet();
-			Iterator<Map.Entry<String, RangerSecurityZoneService>> iterator=serviceResouceMapEntries.iterator();
-			while (iterator.hasNext()){
-				Map.Entry<String, RangerSecurityZoneService> serviceResouceMapEntry = iterator.next();
-				RangerSecurityZoneService rangerSecurityZoneService=serviceResouceMapEntry.getValue();
-				List<HashMap<String, List<String>>> resources=rangerSecurityZoneService.getResources();
-				if(resources!=null) {
-					for (Map<String, List<String>> resource : resources) {
-						if (resource!=null) {
-							for (Map.Entry<String, List<String>> entry : resource.entrySet()) {
-								List<String> resourceValues  = entry.getValue();
-								bizUtil.removeEmptyStrings(resourceValues);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+    private void ensureAdminAccess(){
+    	if(!bizUtil.isAdmin()){
+    		String userName = bizUtil.getCurrentUserLoginId();
+    		throw restErrorUtil.createRESTException(
+					"Ranger Securtiy Zone is not accessible for user '" + userName + "'.",
+					MessageEnums.OPER_NO_PERMISSION);
+    	}
+    }
 }

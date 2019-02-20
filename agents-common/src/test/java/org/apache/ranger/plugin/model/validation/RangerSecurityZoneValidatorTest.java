@@ -450,7 +450,6 @@ public class RangerSecurityZoneValidatorTest {
                 rangerSecurityZone.setAuditUserGroups(aduitGrpUsers);
                 rangerSecurityZone.setName("MyZone");
                 rangerSecurityZone.setServices(map);
-                rangerSecurityZone.setDescription("MyZone");
 
 
                 return rangerSecurityZone;
