@@ -37,7 +37,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ranger.admin.client.datatype.RESTResponse;
 import org.apache.ranger.biz.AssetMgr;
 import org.apache.ranger.biz.RangerBizUtil;
-import org.apache.ranger.biz.SecurityZoneDBStore;
 import org.apache.ranger.biz.ServiceDBStore;
 import org.apache.ranger.biz.ServiceMgr;
 import org.apache.ranger.biz.TagDBStore;
@@ -132,9 +131,6 @@ public class TestServiceREST {
 
 	@Mock
 	ServiceDBStore svcStore;
-
-	@Mock
-	SecurityZoneDBStore zoneStore;
 
 	@Mock
 	TagDBStore tagStore;
@@ -997,7 +993,7 @@ public class TestServiceREST {
 
 		ServicePolicies dbServicePolicies = serviceREST
 				.getServicePoliciesIfUpdated(serviceName, lastKnownVersion, 0L,
-						pluginId, "", "", request);
+						pluginId, "", request);
 		Assert.assertNull(dbServicePolicies);
 	}
 
@@ -1802,7 +1798,7 @@ public class TestServiceREST {
 		Mockito.when(restErrorUtil.createRESTException(Mockito.anyInt(), Mockito.anyString(), Mockito.anyBoolean()))
 				.thenThrow(new WebApplicationException());
 		thrown.expect(WebApplicationException.class);
-		serviceREST.getServicePoliciesIfUpdated(serviceName, lastKnownVersion, 0L, pluginId, "", "", request);
+		serviceREST.getServicePoliciesIfUpdated(serviceName, lastKnownVersion, 0L, pluginId, "", request);
 	}
 
 	@Test
@@ -1814,9 +1810,8 @@ public class TestServiceREST {
 		String pluginId = "1";
 		Mockito.when(serviceUtil.isValidateHttpsAuthentication(serviceName, request)).thenReturn(true);
 		Mockito.when(svcStore.getServicePoliciesIfUpdated(serviceName, lastKnownVersion)).thenReturn(servicePolicies);
-		Mockito.when(zoneStore.getSecurityZonesForService(serviceName)).thenReturn(null);
 		ServicePolicies dbServicePolicies = serviceREST.getServicePoliciesIfUpdated(serviceName, lastKnownVersion, 0L,
-				pluginId, "", "", request);
+				pluginId, "", request);
 		Assert.assertNotNull(dbServicePolicies);
 	}
 
@@ -1840,7 +1835,7 @@ public class TestServiceREST {
 				.thenThrow(new WebApplicationException());
 		thrown.expect(WebApplicationException.class);
 
-		serviceREST.getSecureServicePoliciesIfUpdated(serviceName, lastKnownVersion, 0L, pluginId, "", "", request);
+		serviceREST.getSecureServicePoliciesIfUpdated(serviceName, lastKnownVersion, 0L, pluginId, "", request);
 	}
 
 	@Test
@@ -1866,7 +1861,7 @@ public class TestServiceREST {
 				.thenThrow(new WebApplicationException());
 		thrown.expect(WebApplicationException.class);
 
-		serviceREST.getSecureServicePoliciesIfUpdated(serviceName, lastKnownVersion, 0L, pluginId, "", "", request);
+		serviceREST.getSecureServicePoliciesIfUpdated(serviceName, lastKnownVersion, 0L, pluginId, "", request);
 	}
 
 	@Test
@@ -1890,9 +1885,8 @@ public class TestServiceREST {
 		Mockito.when(svcStore.getServiceByNameForDP(serviceName)).thenReturn(rs);
 		Mockito.when(bizUtil.isUserAllowed(rs, ServiceREST.Allowed_User_List_For_Grant_Revoke)).thenReturn(true);
 		Mockito.when(svcStore.getServicePoliciesIfUpdated(serviceName, lastKnownVersion)).thenReturn(sp);
-		Mockito.when(zoneStore.getSecurityZonesForService(serviceName)).thenReturn(null);
 		ServicePolicies dbServiceSecurePolicies = serviceREST.getSecureServicePoliciesIfUpdated(serviceName,
-				lastKnownVersion, 0L, pluginId, "", "", request);
+				lastKnownVersion, 0L, pluginId, "", request);
 		Assert.assertNotNull(dbServiceSecurePolicies);
 		Mockito.verify(serviceUtil).isValidService(serviceName, request);
 		Mockito.verify(xServiceDao).findByName(serviceName);

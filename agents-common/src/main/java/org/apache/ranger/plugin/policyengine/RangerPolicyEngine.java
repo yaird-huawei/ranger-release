@@ -27,7 +27,6 @@ import java.util.Set;
 import org.apache.ranger.plugin.model.RangerPolicy;
 import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
-import org.apache.ranger.plugin.util.GrantRevokeRequest;
 import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
 
 public interface RangerPolicyEngine {
@@ -63,8 +62,6 @@ public interface RangerPolicyEngine {
 	Collection<RangerAccessResult> evaluatePolicies(Collection<RangerAccessRequest> requests, int policyType, RangerAccessResultProcessor resultProcessor);
 
 	RangerResourceACLs getResourceACLs(RangerAccessRequest request);
-
-	String getMatchedZoneName(GrantRevokeRequest grantRevokeRequest);
 
 	boolean preCleanup();
 

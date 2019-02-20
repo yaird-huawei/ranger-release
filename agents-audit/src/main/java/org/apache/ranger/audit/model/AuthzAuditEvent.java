@@ -118,9 +118,6 @@ public class AuthzAuditEvent extends AuditEventBase {
 	@SerializedName("cluster_name")
 	protected String clusterName;
 
-	@SerializedName("zone_name")
-	protected String zoneName;
-
 	public AuthzAuditEvent() {
 		super();
 
@@ -128,21 +125,11 @@ public class AuthzAuditEvent extends AuditEventBase {
 	}
 
 	public AuthzAuditEvent(int repositoryType, String repositoryName,
-						   String user, Date eventTime, String accessType,
-						   String resourcePath, String resourceType, String action,
-						   short accessResult, String agentId, long policyId,
-						   String resultReason, String aclEnforcer, String sessionId,
-						   String clientType, String clientIP, String requestData, String clusterName) {
-		this(repositoryType, repositoryName, user, eventTime, accessType, resourcePath, resourceType, action, accessResult, agentId,
-				policyId, resultReason, aclEnforcer, sessionId, clientType, clientIP, requestData, clusterName, null);
-	}
-
-	public AuthzAuditEvent(int repositoryType, String repositoryName,
 			String user, Date eventTime, String accessType,
 			String resourcePath, String resourceType, String action,
 			short accessResult, String agentId, long policyId,
 			String resultReason, String aclEnforcer, String sessionId,
-			String clientType, String clientIP, String requestData, String clusterName, String zoneName) {
+			String clientType, String clientIP, String requestData, String clusterName) {
 		this.repositoryType = repositoryType;
 		this.repositoryName = repositoryName;
 		this.user = user;
@@ -161,7 +148,6 @@ public class AuthzAuditEvent extends AuditEventBase {
 		this.clientIP = clientIP;
 		this.requestData = requestData;
 		this.clusterName = clusterName;
-		this.zoneName = zoneName;
 	}
 
 	/**
@@ -475,14 +461,6 @@ public class AuthzAuditEvent extends AuditEventBase {
 		return clusterName;
 	}
 
-	public void setZoneName(String zoneName) {
-		this.zoneName = zoneName;
-	}
-
-	public String getZoneName() {
-		return zoneName;
-	}
-
 	public void setClusterName(String clusterName) {
 		this.clusterName = clusterName;
 	}
@@ -544,8 +522,6 @@ public class AuthzAuditEvent extends AuditEventBase {
 				.append("tags=").append("[")
 				.append(StringUtils.join(tags, ", "))
 				.append("]")
-				.append(FIELD_SEPARATOR).append("clusterName=").append(clusterName)
-				.append(FIELD_SEPARATOR).append("zoneName=").append(zoneName)
 				.append(FIELD_SEPARATOR).append("additionalInfo=").append(additionalInfo);
 
 		return sb;

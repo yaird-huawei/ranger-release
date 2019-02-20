@@ -113,11 +113,10 @@ public class XAssetService extends XAssetServiceBase<XXAsset, VXAsset> {
 	@Override
 	protected XXAsset mapViewToEntityBean(VXAsset vObj, XXAsset mObj,
 			int OPERATION_CONTEXT) {
-	    XXAsset ret = null;
         if (vObj != null && mObj != null) {
             String oldConfig = mObj.getConfig();
-            ret = super.mapViewToEntityBean(vObj, mObj, OPERATION_CONTEXT);
-            String config = ret.getConfig();
+            super.mapViewToEntityBean(vObj, mObj, OPERATION_CONTEXT);
+            String config = vObj.getConfig();
             if (config != null && !config.isEmpty()) {
                 Map<String, String> configMap = jsonUtil.jsonToMap(config);
                 Entry<String, String> passwordEntry = getPasswordEntry(configMap);
@@ -141,15 +140,15 @@ public class XAssetService extends XAssetServiceBase<XXAsset, VXAsset> {
                     }
                 }
             }
-            ret.setConfig(config);
+            mObj.setConfig(config);
         }
-		return ret;
+		return mObj;
 	}
 
 	@Override
 	protected VXAsset mapEntityToViewBean(VXAsset vObj, XXAsset mObj) {
-		VXAsset ret = super.mapEntityToViewBean(vObj, mObj);
-		String config = ret.getConfig();
+		vObj = super.mapEntityToViewBean(vObj, mObj);
+		String config = vObj.getConfig();
 		if (config != null && !config.isEmpty()) {
 			Map<String, String> configMap = jsonUtil.jsonToMap(config);
 			Entry<String, String> passwordEntry = getPasswordEntry(configMap);
@@ -158,8 +157,8 @@ public class XAssetService extends XAssetServiceBase<XXAsset, VXAsset> {
 			}
 			config = jsonUtil.readMapToString(configMap);
 		}
-		ret.setConfig(config);
-		return ret;
+		vObj.setConfig(config);
+		return vObj;
 	}
 	
 	private Entry<String, String> getPasswordEntry(Map<String, String> configMap) {

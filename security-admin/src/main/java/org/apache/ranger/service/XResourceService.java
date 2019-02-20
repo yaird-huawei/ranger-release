@@ -408,54 +408,52 @@ public class XResourceService extends
 
 	@Override
 	protected XXResource mapViewToEntityBean(VXResource vObj, XXResource mObj, int OPERATION_CONTEXT) {
-	    XXResource ret = null;
         if(vObj!=null && mObj!=null){
-		    ret = super.mapViewToEntityBean(vObj, mObj, OPERATION_CONTEXT);
-		    ret.setUdfs(vObj.getUdfs());
+		    super.mapViewToEntityBean(vObj, mObj, OPERATION_CONTEXT);
+		    mObj.setUdfs(vObj.getUdfs());
 			XXPortalUser xXPortalUser= null;
-			if(ret.getAddedByUserId()==null || ret.getAddedByUserId()==0){
+			if(mObj.getAddedByUserId()==null || mObj.getAddedByUserId()==0){
 				if(!stringUtil.isEmpty(vObj.getOwner())){
 					xXPortalUser=daoManager.getXXPortalUser().findByLoginId(vObj.getOwner());
 					if(xXPortalUser!=null){
-						ret.setAddedByUserId(xXPortalUser.getId());
+						mObj.setAddedByUserId(xXPortalUser.getId());
 					}
 				}
 			}
-			if(ret.getUpdatedByUserId()==null || ret.getUpdatedByUserId()==0){
+			if(mObj.getUpdatedByUserId()==null || mObj.getUpdatedByUserId()==0){
 				if(!stringUtil.isEmpty(vObj.getUpdatedBy())){
 					xXPortalUser= daoManager.getXXPortalUser().findByLoginId(vObj.getUpdatedBy());
 					if(xXPortalUser!=null){
-						ret.setUpdatedByUserId(xXPortalUser.getId());
+						mObj.setUpdatedByUserId(xXPortalUser.getId());
 					}		
 				}
 			}
 			
 		}
-		return ret;
+		return mObj;
 	}
 
 	@Override
 	protected VXResource mapEntityToViewBean(VXResource vObj, XXResource mObj) {
-	    VXResource ret = null;
         if(mObj!=null && vObj!=null){
-            ret = super.mapEntityToViewBean(vObj, mObj);
-		    ret.setUdfs(mObj.getUdfs());
-		    populateAssetProperties(ret);
+            super.mapEntityToViewBean(vObj, mObj);
+		    vObj.setUdfs(mObj.getUdfs());
+		    populateAssetProperties(vObj);
 			XXPortalUser xXPortalUser= null;
-			if(stringUtil.isEmpty(ret.getOwner())){
+			if(stringUtil.isEmpty(vObj.getOwner())){
 				xXPortalUser=daoManager.getXXPortalUser().getById(mObj.getAddedByUserId());
 				if(xXPortalUser!=null){
-					ret.setOwner(xXPortalUser.getLoginId());
+					vObj.setOwner(xXPortalUser.getLoginId());
 				}
 			}
-			if(stringUtil.isEmpty(ret.getUpdatedBy())){
+			if(stringUtil.isEmpty(vObj.getUpdatedBy())){
 				xXPortalUser= daoManager.getXXPortalUser().getById(mObj.getUpdatedByUserId());
 				if(xXPortalUser!=null){
-					ret.setUpdatedBy(xXPortalUser.getLoginId());
+					vObj.setUpdatedBy(xXPortalUser.getLoginId());
 				}
 			}
 		}
-		return ret;
+		return vObj;
 	}
 
 	public List<XXTrxLog> getTransactionLog(VXResource vResource, String action){

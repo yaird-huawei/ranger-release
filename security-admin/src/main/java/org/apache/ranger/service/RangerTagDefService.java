@@ -107,19 +107,19 @@ public class RangerTagDefService extends RangerTagDefServiceBase<XXTagDef, Range
 
     @Override
     protected RangerTagDef mapEntityToViewBean(RangerTagDef vObj, XXTagDef xObj) {
-        RangerTagDef ret = super.mapEntityToViewBean(vObj, xObj);
+        super.mapEntityToViewBean(vObj, xObj);
 
         List<RangerTagDef.RangerTagAttributeDef> attributeDefs = RangerTagDBRetriever.gsonBuilder.fromJson(xObj.getTagAttrDefs(), RangerTagDBRetriever.subsumedDataType);
-        ret.setAttributeDefs(attributeDefs);
+        vObj.setAttributeDefs(attributeDefs);
 
-        return ret;
+        return vObj;
     }
 
     @Override
     protected XXTagDef mapViewToEntityBean(RangerTagDef vObj, XXTagDef xObj, int OPERATION_CONTEXT) {
-        XXTagDef ret = super.mapViewToEntityBean(vObj, xObj, OPERATION_CONTEXT);
-        ret.setTagAttrDefs(JsonUtils.listToJson(vObj.getAttributeDefs()));
-        return ret;
+        super.mapViewToEntityBean(vObj, xObj, OPERATION_CONTEXT);
+        xObj.setTagAttrDefs(JsonUtils.listToJson(vObj.getAttributeDefs()));
+        return xObj;
     }
 
     @Override

@@ -58,16 +58,12 @@ public class GrantRevokeRequest implements Serializable {
 	private String              requestData;
 	private String              sessionId;
 	private String              clusterName;
-	private String              zoneName;
 
 	public GrantRevokeRequest() {
-		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 	}
 
-	public GrantRevokeRequest(String grantor, Set<String> grantorGroups, Map<String, String> resource, Set<String> users,
-							  Set<String> groups, Set<String> accessTypes, Boolean delegateAdmin, Boolean enableAudit,
-							  Boolean replaceExistingPermissions, Boolean isRecursive, String clientIPAddress,
-							  String clientType, String requestData, String sessionId, String clusterName, String zoneName) {
+	public GrantRevokeRequest(String grantor, Set<String> grantorGroups, Map<String, String> resource, Set<String> users, Set<String> groups, Set<String> accessTypes, Boolean delegateAdmin, Boolean enableAudit, Boolean replaceExistingPermissions, Boolean isRecursive, String clientIPAddress, String clientType, String requestData, String sessionId, String clusterName) {
 		setGrantor(grantor);
 		setGrantorGroups(grantorGroups);
 		setResource(resource);
@@ -83,7 +79,6 @@ public class GrantRevokeRequest implements Serializable {
 		setRequestData(requestData);
 		setSessionId(sessionId);
 		setClusterName(clusterName);
-		setZoneName(zoneName);
 	}
 
 	/**
@@ -295,20 +290,6 @@ public class GrantRevokeRequest implements Serializable {
 		this.clusterName = clusterName;
 	}
 
-	/**
-	 * @return the clusterName
-	 */
-	public String getZoneName() {
-		return zoneName;
-	}
-
-	/**
-	 * @param zoneName the clusterName to set
-	 */
-	public void setZoneName(String zoneName) {
-		this.zoneName = zoneName;
-	}
-
 	@Override
 	public String toString( ) {
 		StringBuilder sb = new StringBuilder();
@@ -372,7 +353,6 @@ public class GrantRevokeRequest implements Serializable {
 		sb.append("requestData={").append(requestData).append("} ");
 		sb.append("sessionId={").append(sessionId).append("} ");
 		sb.append("clusterName={").append(clusterName).append("} ");
-		sb.append("zoneName={").append(zoneName).append("} ");
 
 		sb.append("}");
 

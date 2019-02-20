@@ -145,8 +145,7 @@ define(function(require) {
 					details.resources.push(resource);
 				}
 			}, this);
-            details.policyLabels = this.policy.get('policyLabels');
-            details.zoneName = this.policy.get('zoneName');
+                        details.policyLabels = this.policy.get('policyLabels');
 			var perm = details.permissions = this.getPermHeaders();
 			perm.policyItems	 = this.policy.get('policyItems');
 			perm.allowException  = this.policy.get('allowExceptions');

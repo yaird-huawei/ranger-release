@@ -77,8 +77,6 @@ public class VXPolicyExportAudit extends VXDataObject implements java.io.Seriali
 	
 	protected String clusterName;
 
-	protected String zoneName;
-
 	/**
 	 * Default constructor. This will set all the attributes to default value.
 	 */
@@ -221,13 +219,6 @@ public class VXPolicyExportAudit extends VXDataObject implements java.io.Seriali
 		this.clusterName = clusterName;
 	}
 
-	public String getZoneName() {
-		return zoneName;
-	}
-
-	public void setZoneName(String zoneName) {
-		this.zoneName = zoneName;
-	}
 
 	@Override
 	public int getMyClassType( ) {
@@ -250,7 +241,6 @@ public class VXPolicyExportAudit extends VXDataObject implements java.io.Seriali
 		str += "httpRetCode={" + httpRetCode + "} ";
 		str += "syncStatus={" + syncStatus + "} ";
 		str += "clusterName={" + clusterName + "} ";
-		str += "zoneName={" + zoneName + "}";
 		str += "}";
 		return str;
 	}
