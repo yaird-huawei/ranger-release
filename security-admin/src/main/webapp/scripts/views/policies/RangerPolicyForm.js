@@ -36,7 +36,6 @@ define(function(require){
   var vPolicyTimeList 	= require('views/policies/PolicyTimeList');
 	var RangerPolicyResource		= require('models/RangerPolicyResource');
 	var BackboneFormDataType	= require('models/BackboneFormDataType');
-    var App             = require('App');
 
 	require('backbone-forms.list');
 	require('backbone-forms.templates');
@@ -105,7 +104,7 @@ define(function(require){
 		ui : {
 			'denyConditionItems' : '[data-js="denyConditionItems"]',
 			'allowExcludePerm' : '[data-js="allowExcludePerm"]',
-      		'policyTimeBtn'      : '[data-js="policyTimeBtn"]'
+      'policyTimeBtn'      : '[data-js="policyTimeBtn"]'
 		},
 		/** fields for the form
 		*/
@@ -120,11 +119,10 @@ define(function(require){
 
 			var formDataType = new BackboneFormDataType();
 			attrs = formDataType.getFormElements(this.rangerServiceDefModel.get('resources'),this.rangerServiceDefModel.get('enums'), attrs, this, true);
-                        if(this.model.schemaBase){
-                                var attr1 = _.pick(_.result(this.model,'schemaBase'),basicSchema);
-                                var attr2 = _.pick(_.result(this.model,'schemaBase'),schemaNames);
-                                return _.extend(attr1,_.extend(attrs,attr2));
-                        }
+
+			var attr1 = _.pick(_.result(this.model,'schemaBase'),basicSchema);
+			var attr2 = _.pick(_.result(this.model,'schemaBase'),schemaNames);
+			return _.extend(attr1,_.extend(attrs,attr2));
 		},
 		/** on render callback */
 		render: function(options) {
@@ -142,15 +140,12 @@ define(function(require){
 			this.renderParentChildHideShow();
 
 			//to show error msg on below the field(only for policy name)
-                        if(this.fields.isEnabled){
-                                this.fields.isEnabled.$el.find('.control-label').removeClass();
-                        }
-                        if(this.fields.name){
-                                this.fields.name.$el.find('.help-inline').removeClass('help-inline').addClass('help-block margin-left-5');
-                        }
+			this.fields.isEnabled.$el.find('.control-label').removeClass();
+			this.fields.name.$el.find('.help-inline').removeClass('help-inline').addClass('help-block margin-left-5')
 			this.initializePlugins();
                         this.setPolicyValidityTime();
-			},
+
+		},
             setPolicyValidityTime : function(){
               var that = this;
               this.$el.find(this.ui.policyTimeBtn).on('click', function(e){
@@ -490,14 +485,11 @@ define(function(require){
 //					}
 				}
 			});
-            if(this.model.has('policyLabels')){
-                var policyLabel =[];
-                policyLabel= this.model.get('policyLabels').split(',');
-                this.model.set('policyLabels', policyLabel);
-            }
-            if(!_.isUndefined(App.vZone) && App.vZone && App.vZone.vZoneName){
-                this.model.set('zoneName', App.vZone.vZoneName);
-            }
+                        if(this.model.has('policyLabels')){
+                            var policyLabel =[];
+                            policyLabel= this.model.get('policyLabels').split(',');
+                            this.model.set('policyLabels', policyLabel);
+                        }
 			this.model.set('resources',resources);
 			this.model.unset('path');
 			

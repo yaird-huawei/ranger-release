@@ -63,8 +63,6 @@ public class RangerRESTUtils {
 	
 	public static final String REST_PARAM_CLUSTER_NAME   = "clusterName";
 
-	public static final String REST_PARAM_ZONE_NAME		 = "zoneName";
-
 	public String getPolicyRestUrl(String propertyPrefix) {
 		String url = RangerConfiguration.getInstance().get(propertyPrefix + ".policy.rest.url");
 		

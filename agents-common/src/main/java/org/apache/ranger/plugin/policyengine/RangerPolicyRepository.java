@@ -95,10 +95,6 @@ class RangerPolicyRepository {
     private final Map<String, RangerResourceTrie> rowFilterResourceTrie;
 
     RangerPolicyRepository(String appId, ServicePolicies servicePolicies, RangerPolicyEngineOptions options) {
-        this(appId, servicePolicies, options, null);
-    }
-
-    RangerPolicyRepository(String appId, ServicePolicies servicePolicies, RangerPolicyEngineOptions options, String zoneName) {
         super();
 
         this.componentServiceName = this.serviceName = servicePolicies.getServiceName();
@@ -106,12 +102,12 @@ class RangerPolicyRepository {
 
         this.appId = appId;
 
-        if (StringUtils.isEmpty(zoneName)) {
-            this.policies = Collections.unmodifiableList(servicePolicies.getPolicies());
-        } else {
-            this.policies = Collections.unmodifiableList(servicePolicies.getSecurityZones().get(zoneName).getPolicies());
-        }
+        this.policies = Collections.unmodifiableList(servicePolicies.getPolicies());
         this.policyVersion = servicePolicies.getPolicyVersion() != null ? servicePolicies.getPolicyVersion() : -1;
+
+        if(LOG.isDebugEnabled()) {
+            LOG.debug("RangerPolicyRepository : building resource-policy-repository for service " + serviceName);
+        }
 
         String auditMode = servicePolicies.getAuditMode();
 
@@ -139,7 +135,8 @@ class RangerPolicyRepository {
         }
 
         if(LOG.isDebugEnabled()) {
-            LOG.debug("RangerPolicyRepository : building policy-repository for service[" + serviceName + "], and zone:[" + zoneName + "] with auditMode[" + auditModeEnum + "]");
+            LOG.debug("RangerPolicyRepository : building policy-repository for service[" + serviceName
+                    + "] with auditMode[" + auditModeEnum + "]");
         }
 
         init(options);
@@ -183,7 +180,8 @@ class RangerPolicyRepository {
         this.accessAuditCache = null;
 
         if(LOG.isDebugEnabled()) {
-            LOG.debug("RangerPolicyRepository : building tag-policy-repository for tag service:[" + serviceName +"], with auditMode[" + auditModeEnum +"]");
+            LOG.debug("RangerPolicyRepository : building tag-policy-repository for tag service[" + serviceName
+                    + "] with auditMode[" + auditModeEnum +"]");
         }
 
         init(options);

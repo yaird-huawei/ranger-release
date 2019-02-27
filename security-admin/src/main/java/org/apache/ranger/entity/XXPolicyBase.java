@@ -130,9 +130,6 @@ public abstract class XXPolicyBase extends XXDBBase {
     	@Column(name = "policy_text")
     	protected String policyText;
 
-    @Column(name = "zone_id")
-    protected Long zoneId;
-
 	/**
 	 * @return the gUID
 	 */
@@ -326,13 +323,6 @@ public abstract class XXPolicyBase extends XXDBBase {
         	return this.policyText;
     	}
 
-    	public Long getZoneId() {return zoneId; }
-
-        public void setZoneId(Long zoneId) {
-        this.zoneId = zoneId;
-    }
-
-
     /*
 	 * (non-Javadoc)
 	 *
@@ -430,13 +420,6 @@ public abstract class XXPolicyBase extends XXDBBase {
             return false;
         }
 
-        if (zoneId == null) {
-            if (other.zoneId != null) {
-                return false;
-            }
-        } else if (!zoneId.equals(other.zoneId)) {
-            return false;
-        }
 		return true;
 	}
 
@@ -452,7 +435,7 @@ public abstract class XXPolicyBase extends XXDBBase {
 		str += " [guid=" + guid + ", version=" + version + ", service=" + service + ", name=" + name
 				+ ", policyType=" + policyType + ", policyPriority=" + policyPriority + ", description=" + description + ", resourceSignature="
 				+ resourceSignature + ", isEnabled=" + isEnabled + ", isAuditEnabled=" + isAuditEnabled
-				+ ", options=" + options + ", zoneId=" + zoneId + "]";
+				+ ", options=" + options + "]";
 		str += "}";
 		return str;
 	}

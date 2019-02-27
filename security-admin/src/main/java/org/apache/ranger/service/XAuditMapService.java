@@ -150,50 +150,48 @@ public class XAuditMapService extends
 
 	@Override
 	protected XXAuditMap mapViewToEntityBean(VXAuditMap vObj, XXAuditMap mObj, int OPERATION_CONTEXT) {
-	    XXAuditMap ret = null;
 		if(vObj!=null && mObj!=null){
-			ret = super.mapViewToEntityBean(vObj, mObj, OPERATION_CONTEXT);
+			super.mapViewToEntityBean(vObj, mObj, OPERATION_CONTEXT);
 			XXPortalUser xXPortalUser=null;
-			if(ret.getAddedByUserId()==null || ret.getAddedByUserId()==0){
+			if(mObj.getAddedByUserId()==null || mObj.getAddedByUserId()==0){
 				if(!stringUtil.isEmpty(vObj.getOwner())){
 					xXPortalUser=daoManager.getXXPortalUser().findByLoginId(vObj.getOwner());
 					if(xXPortalUser!=null){
-						ret.setAddedByUserId(xXPortalUser.getId());
+						mObj.setAddedByUserId(xXPortalUser.getId());
 					}
 				}
 			}
-			if(ret.getUpdatedByUserId()==null || ret.getUpdatedByUserId()==0){
+			if(mObj.getUpdatedByUserId()==null || mObj.getUpdatedByUserId()==0){
 				if(!stringUtil.isEmpty(vObj.getUpdatedBy())){
 					xXPortalUser= daoManager.getXXPortalUser().findByLoginId(vObj.getUpdatedBy());
 					if(xXPortalUser!=null){
-						ret.setUpdatedByUserId(xXPortalUser.getId());
+						mObj.setUpdatedByUserId(xXPortalUser.getId());
 					}		
 				}
 			}
 		}
-		return ret;
+		return mObj;
 	}
 
 	@Override
 	protected VXAuditMap mapEntityToViewBean(VXAuditMap vObj, XXAuditMap mObj) {
-	    VXAuditMap ret = null;
 		if(mObj!=null && vObj!=null){
-			ret = super.mapEntityToViewBean(vObj, mObj);
+			super.mapEntityToViewBean(vObj, mObj);
 			XXPortalUser xXPortalUser=null;
-			if(stringUtil.isEmpty(ret.getOwner())){
+			if(stringUtil.isEmpty(vObj.getOwner())){
 				xXPortalUser= daoManager.getXXPortalUser().getById(mObj.getAddedByUserId());
 				if(xXPortalUser!=null){
-					ret.setOwner(xXPortalUser.getLoginId());
+					vObj.setOwner(xXPortalUser.getLoginId());
 				}
 			}
-			if(stringUtil.isEmpty(ret.getUpdatedBy())){
+			if(stringUtil.isEmpty(vObj.getUpdatedBy())){
 				xXPortalUser= daoManager.getXXPortalUser().getById(mObj.getUpdatedByUserId());
 				if(xXPortalUser!=null){
-					ret.setUpdatedBy(xXPortalUser.getLoginId());
+					vObj.setUpdatedBy(xXPortalUser.getLoginId());
 				}
 			}
 		}
-		return ret;
+		return vObj;
 	}
 
 }

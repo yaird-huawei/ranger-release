@@ -93,7 +93,6 @@ public class RangerPolicyService extends RangerPolicyServiceBase<XXPolicy, Range
 		trxLogAttrs.put("policyLabels", new VTrxLogAttr("policyLabels", "Policy Labels", false));
 		trxLogAttrs.put("validitySchedules", new VTrxLogAttr("validitySchedules", "Validity Schedules", false));
 		trxLogAttrs.put("policyPriority", new VTrxLogAttr("policyPriority", "Priority", false));
-		trxLogAttrs.put("zoneName", new VTrxLogAttr("zoneName", "Zone Name", false));
 	}
 	
 	public RangerPolicyService() {

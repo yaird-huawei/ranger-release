@@ -103,20 +103,10 @@ define(function(require){
 			};
 		},
 		initialize: function(options) {
-                        this.bind("ok", this.okClicked);
-                        _.extend(this, _.pick(options, 'collection','serviceNames','serviceDefList','serviceType','services',
-                                'zoneServiceDefList','zoneServices'));
-                        var that =this, componentServices=[];
-                        if(!_.isEmpty(that.zoneServices) && !_.isUndefined(that.zoneServices)){
-                                _.each(that.zoneServices, function(value, key){
-                                        if(key === that.serviceType){
-                                                componentServices = componentServices.concat(value);
-                                        }
-                                });
-                        }else{
-                                componentServices = this.services.where({'type' : this.serviceType });
-                        }
-                  this.serviceNames = componentServices.map(function(m){ return { 'name' : m.get('name') } });
+		  this.bind("ok", this.okClicked);
+		  _.extend(this, _.pick(options, 'collection','serviceNames','serviceDefList','serviceType','services'));
+		  this.componentServices = this.services.where({'type' : this.serviceType })
+		  this.serviceNames =this.componentServices.map(function(m){ return { 'name' : m.get('name') } });
 		},
 		ui:{
 			'importFilePolicy'  : '[data-id="uploadPolicyFile"]',
@@ -244,11 +234,7 @@ define(function(require){
 		/* add 'component' and 'policy type' select */
 		renderComponentSelect: function(){
 			var that = this;
-                        if(!_.isEmpty(this.zoneServiceDefList) && !_.isUndefined(this.zoneServiceDefList)){
-                                var options = this.zoneServiceDefList.map(function(m){ return { 'id' : m.get('name'), 'text' : m.get('name')}});
-                        }else{
-                                var options = this.serviceDefList.map(function(m){ return { 'id' : m.get('name'), 'text' : m.get('name')}});
-                        }
+			var options = this.serviceDefList.map(function(m){ return { 'id' : m.get('name'), 'text' : m.get('name')}; });
 			var optionVal = options.map(function(m){return m.text})
             this.ui.componentType.val(optionVal);
 			this.ui.componentType.select2({
@@ -261,16 +247,8 @@ define(function(require){
 			}).on('change', function(e){
 				var selectedComp  = e.currentTarget.value, componentServices = [];
 				_.each(selectedComp.split(","), function(type){
-                                        if(!_.isEmpty(that.zoneServices) && !_.isUndefined(that.zoneServices)){
-                                                _.each(that.zoneServices, function(value, key){
-                                                        if(key === type){
-                                                                componentServices = componentServices.concat(value);
-                                                        }
-                                                });
-                                        }else{
-                                                that.serviceNam = that.services.where({'type' : type });
-                                                componentServices = componentServices.concat(that.serviceNam);
-                                        }
+					var services = that.services.where({'type' : type });
+					componentServices = componentServices.concat(services);
 				});
 				var names = componentServices.map(function(m){ return { 'name' : m.get('name') } });
 				that.serviceNames = names;
@@ -297,8 +275,7 @@ define(function(require){
 			this.$el.find('.fileValidation').hide();
 			this.targetFileObj = e.target.files[0];
 			if(!_.isUndefined(this.targetFileObj)){
-                                this.$el.find('.selectFile').html('<i>'+this.targetFileObj.name+
-                                        '</i><label class="icon icon-remove icon-1x icon-remove-btn" data-id="fileNameClosebtn"></label>').show();
+				this.$el.find('.selectFile').html('<i>'+this.targetFileObj.name+'</i><label class="icon icon-remove icon-1x icon-remove-btn" data-id="fileNameClosebtn"></label>').show()
 			}else{
 				this.$el.find('.selectFile').html("No file chosen").show();
 			}

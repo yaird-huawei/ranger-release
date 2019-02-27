@@ -24,7 +24,6 @@ import javax.persistence.NoResultException;
 
 import org.apache.ranger.common.db.BaseDao;
 import org.apache.ranger.entity.XXPolicy;
-import org.apache.solr.common.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -149,20 +148,4 @@ public class XXPolicyDao extends BaseDao<XXPolicy> {
 			return new ArrayList<XXPolicy>();
 		}
 	}
-
-	public List<XXPolicy> findByServiceNameAndZoneId(String serviceName, Long zoneId) {
-		if(StringUtils.isEmpty(serviceName) || zoneId == null) {
-			return new ArrayList<XXPolicy>();
-		}
-		try {
-			return getEntityManager()
-					.createNamedQuery("XXPolicy.findByServiceNameAndZoneId", tClass)
-					.setParameter("serviceName", serviceName)
-					.setParameter("zoneId", zoneId)
-					.getResultList();
-		} catch (NoResultException e) {
-			return new ArrayList<XXPolicy>();
-		}
-	}
-
 }

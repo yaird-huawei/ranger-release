@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ranger.plugin.model.RangerPolicy;
-import org.apache.ranger.plugin.model.RangerSecurityZone;
 import org.apache.ranger.plugin.model.RangerService;
 import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.util.SearchFilter;
@@ -100,8 +99,4 @@ public interface ServiceStore {
 	void setPopulateExistingBaseFields(Boolean populateExistingBaseFields);
 
 	Boolean getPopulateExistingBaseFields();
-
-    RangerSecurityZone getSecurityZone(Long id) throws Exception;
-
-    RangerSecurityZone getSecurityZone(String name) throws Exception;
 }

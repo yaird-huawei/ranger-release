@@ -135,9 +135,6 @@ public class VXAccessAudit extends VXDataObject implements java.io.Serializable 
 	
 	protected String clusterName;
 
-	// Security Zone
-	protected String zoneName;
-
 	/**
 	 * Default constructor. This will set all the attributes to default value.
 	 */
@@ -524,20 +521,6 @@ public class VXAccessAudit extends VXDataObject implements java.io.Serializable 
 	}
 
 	/**
-	 * @return the zoneName
-	 */
-	public String getZoneName() {
-		return zoneName;
-	}
-	/**
-	 * @param zoneName
-	 *            the zoneName to set
-	 */
-	public void setZoneName(String zoneName) {
-		this.zoneName = zoneName;
-	}
-
-	/**
 	 * This return the bean content in string format
 	 * @return formatedStr
 	*/
@@ -568,7 +551,6 @@ public class VXAccessAudit extends VXDataObject implements java.io.Serializable 
 		str += "eventDuration={" + eventDuration + "}";
 		str += "tags={" + tags + "}";
 		str += "clusterName={" + clusterName + "}";
-		str += "zoneName={" + zoneName + "}";
 		str += "}";
 		return str;
 	}

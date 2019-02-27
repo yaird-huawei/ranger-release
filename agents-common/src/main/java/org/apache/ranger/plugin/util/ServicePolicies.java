@@ -21,9 +21,7 @@ package org.apache.ranger.plugin.util;
 
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -36,6 +34,8 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import com.google.common.base.MoreObjects;
 
 @JsonAutoDetect(fieldVisibility=Visibility.ANY)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
@@ -53,7 +53,6 @@ public class ServicePolicies implements java.io.Serializable {
 	private RangerServiceDef   serviceDef;
 	private String             auditMode = RangerPolicyEngine.AUDIT_DEFAULT;
 	private TagPolicies        tagPolicies;
-	private Map<String, SecurityZoneInfo> securityZones;
 
 	/**
 	 * @return the serviceName
@@ -147,25 +146,19 @@ public class ServicePolicies implements java.io.Serializable {
 	public void setTagPolicies(ServicePolicies.TagPolicies tagPolicies) {
 		this.tagPolicies = tagPolicies;
 	}
-
-	public Map<String, SecurityZoneInfo> getSecurityZones() { return securityZones; }
-
-	public void setSecurityZones(Map<String, SecurityZoneInfo> securityZones) {
-		this.securityZones = securityZones;
-	}
-
+	
 	@Override
 	public String toString() {
-		return "serviceName=" + serviceName + ", "
-				+ "serviceId=" + serviceId + ", "
-			 	+ "policyVersion=" + policyVersion + ", "
-			 	+ "policyUpdateTime=" + policyUpdateTime + ", "
-			 	+ "policies=" + policies + ", "
-			 	+ "serviceDef=" + serviceDef + ", "
-			 	+ "auditMode=" + auditMode + ", "
-			 	+ "tagPolicies=" + tagPolicies + ", "
-			 	+ "securityZones=" + securityZones
-				;
+		return MoreObjects.toStringHelper(this.getClass())
+			.add("serviceName", serviceName)
+			.add("serviceId", serviceId)
+			.add("policyVersion", policyVersion)
+			.add("policyUpdateTime", policyUpdateTime)
+			.add("policies", policies)
+			.add("serviceDef", serviceDef)
+			.add("auditMode", auditMode)
+			.add("tagPolicies", tagPolicies)
+			.toString();
 	}
 
 	@JsonAutoDetect(fieldVisibility=Visibility.ANY)
@@ -266,58 +259,15 @@ public class ServicePolicies implements java.io.Serializable {
 
 		@Override
 		public String toString() {
-			return "serviceName=" + serviceName + ", "
-					+ "serviceId=" + serviceId + ", "
-					+ "policyVersion=" + policyVersion + ", "
-					+ "policyUpdateTime=" + policyUpdateTime + ", "
-					+ "policies=" + policies + ", "
-					+ "serviceDef=" + serviceDef + ", "
-					+ "auditMode=" + auditMode
-					;
-		}
-	}
-
-	@JsonAutoDetect(fieldVisibility = Visibility.ANY)
-	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	@XmlRootElement
-	@XmlAccessorType(XmlAccessType.FIELD)
-	public static class SecurityZoneInfo implements java.io.Serializable {
-		private static final long serialVersionUID = 1L;
-		private String                          zoneName;
-		private List<HashMap<String, List<String>>> resources;
-		private List<RangerPolicy>              policies;
-
-		public String getZoneName() {
-			return zoneName;
-		}
-
-		public List<HashMap<String, List<String>>> getResources() {
-			return resources;
-		}
-
-		public List<RangerPolicy> getPolicies() {
-			return policies;
-		}
-
-		public void setZoneName(String zoneName) {
-			this.zoneName = zoneName;
-		}
-
-		public void setResources(List<HashMap<String, List<String>>> resources) {
-			this.resources = resources;
-		}
-
-		public void setPolicies(List<RangerPolicy> policies) {
-			this.policies = policies;
-		}
-
-		@Override
-		public String toString() {
-			return "zoneName=" + zoneName + ", "
-					+ "resources=" + resources + ", "
-					+ "policies=" + policies
-					;
+			return MoreObjects.toStringHelper(this.getClass())
+					.add("serviceName", serviceName)
+					.add("serviceId", serviceId)
+					.add("policyVersion", policyVersion)
+					.add("policyUpdateTime", policyUpdateTime)
+					.add("policies", policies)
+					.add("serviceDef", serviceDef)
+					.add("auditMode", auditMode)
+					.toString();
 		}
 	}
 }
