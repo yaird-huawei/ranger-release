@@ -227,7 +227,8 @@
         <xmlenc.version>0.52</xmlenc.version>
         <xz.version>1.0</xz.version>
         <zookeeper.version>3.4.6.2.6.5.0-SNAPSHOT</zookeeper.version>
-        <hive.thrift.version>0.9.3</hive.thrift.version>
+        <libfb303.version>0.9.3</libfb303.version>
+        <hive.thrift.version>0.12.0</hive.thrift.version>
         <fasterxml.jackson.databind.version>2.8.11</fasterxml.jackson.databind.version>
     </properties>
     <profiles>
