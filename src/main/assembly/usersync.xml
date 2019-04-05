@@ -39,9 +39,7 @@
 					<include>log4j:log4j</include>
 					<include>commons-cli:commons-cli</include>
 					<include>commons-collections:commons-collections</include>
-                    <!-- just for the ldap-config-check tool -->
 					<include>commons-configuration:commons-configuration</include>
-					<include>org.apache.commons:commons-configuration2:jar</include>
 					<include>commons-lang:commons-lang</include>
 					<include>commons-logging:commons-logging</include>
 					<include>com.google.guava:guava</include>

@@ -381,6 +381,11 @@
 				<artifactId>commons-beanutils</artifactId>
 				<version>${commons.beanutils.version}</version>
 			</dependency>
+           <dependency>
+                <groupId>commons-configuration</groupId>
+                <artifactId>commons-configuration</artifactId>
+                <version>${commons.configuration.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
