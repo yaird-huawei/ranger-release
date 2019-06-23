@@ -309,6 +309,25 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+
+
+
+        <!--Added this repo-->
+        <repository>
+            <id>hortonworks.public.http</id>
+            <name>hortonworks Development  Repository</name>
+            <url>http://nexus-private.hortonworks.com:8081/nexus/content/repositories/IN-QA-SNAPSHOT/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+
+
+
+
         <!--
     <repository>
       <id>repo</id>
