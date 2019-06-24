@@ -19,35 +19,44 @@
 
 package org.apache.ranger.authorization.kafka.authorizer;
 
-import java.util.Date;
-import java.util.Map;
-
-import javax.security.auth.Subject;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huawei.policy.ranger.plugin.model.RangerAccessRequestRestObj;
+import com.huawei.policy.ranger.plugin.model.RangerAccessResourceRestObj;
+import com.huawei.policy.ranger.plugin.model.RangerAccessResultRestObj;
+import com.huawei.policy.ranger.plugin.model.RangerRequestContext;
+import kafka.network.RequestChannel.Session;
+import kafka.security.auth.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.kafka.common.network.ListenerName;
 import org.apache.kafka.common.security.JaasContext;
 import org.apache.kafka.common.security.JaasContext.Type;
 import org.apache.kafka.common.security.auth.KafkaPrincipal;
 import org.apache.kafka.common.security.auth.SecurityProtocol;
-
-import kafka.security.auth.*;
-import kafka.network.RequestChannel.Session;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.security.authenticator.LoginManager;
 import org.apache.ranger.audit.provider.MiscUtil;
 import org.apache.ranger.plugin.audit.RangerDefaultAuditHandler;
 import org.apache.ranger.plugin.policyengine.RangerAccessRequestImpl;
+import org.apache.ranger.plugin.policyengine.RangerAccessResource;
 import org.apache.ranger.plugin.policyengine.RangerAccessResourceImpl;
 import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 import org.apache.ranger.plugin.service.RangerBasePlugin;
-
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 import scala.collection.immutable.HashSet;
 import scala.collection.immutable.Set;
+
+import javax.security.auth.Subject;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Map;
 
 public class RangerKafkaAuthorizer implements Authorizer {
 	private static final Log logger = LogFactory
@@ -70,7 +79,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	public static final String ACCESS_TYPE_ALTER_CONFIGS    = "alter_configs";
 	public static final String ACCESS_TYPE_IDEMPOTENT_WRITE = "idempotent_write";
 
-	private static volatile RangerBasePlugin rangerPlugin = null;
+	private static volatile RangerKafkaPlugin rangerPlugin = null;
 
 	public RangerKafkaAuthorizer() {
 	}
@@ -107,7 +116,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 					} catch (Throwable t) {
 						logger.error("Error getting principal.", t);
 					}
-					me = rangerPlugin = new RangerBasePlugin("kafka", "kafka");
+					me = rangerPlugin = new RangerKafkaPlugin("kafka", "kafka");
 				}
 			}
 		}
@@ -133,6 +142,7 @@ public class RangerKafkaAuthorizer implements Authorizer {
 	public boolean authorize(Session session, Operation operation,
 			Resource resource) {
 
+		logger.info("YAIRD: Entering authorize() method...");
 		if (rangerPlugin == null) {
 			MiscUtil.logErrorMessageByInterval(logger,
 					"Authorizer is still not initialized");
@@ -218,6 +228,9 @@ public class RangerKafkaAuthorizer implements Authorizer {
 			try {
 				RangerAccessResult result = rangerPlugin
 						.isAccessAllowed(rangerRequest);
+
+				rangerPlugin.sendInformationToPolicyDecisionServer(session,  operation,  resource, rangerRequest, result);
+
 				if (result == null) {
 					logger.error("Ranger Plugin returned null. Returning false");
 				} else {
@@ -341,5 +354,84 @@ public class RangerKafkaAuthorizer implements Authorizer {
 			return ACCESS_TYPE_IDEMPOTENT_WRITE;
 		}
 		return null;
+	}
+}
+
+class RangerKafkaPlugin extends RangerBasePlugin {
+
+	private static final Log LOG = LogFactory.getLog(RangerKafkaPlugin.class);
+
+	public HttpClient httpclient;
+	public HttpPost postMethod;
+	public static ObjectMapper objectMapper = new ObjectMapper();
+
+	public RangerKafkaPlugin(String serviceType, String appId) {
+		super(serviceType, appId);
+	}
+
+	@Override
+	public void init() {
+		super.init();
+
+		httpclient = HttpClientBuilder.create().build();
+		postMethod = new HttpPost("http://192.168.56.1:38081/api/v1.0/decision/tenant/huawei/kafka");
+	}
+
+	public void sendInformationToPolicyDecisionServer(Session session, Operation operation, Resource resource,
+													  RangerAccessRequestImpl rangerRequest, RangerAccessResult result){
+
+		RangerAccessRequestRestObj rangerRequestRest = new RangerAccessRequestRestObj();
+		rangerRequestRest.setAccessType(rangerRequest.getAccessType());
+		rangerRequestRest.setUser(rangerRequest.getUser());
+		rangerRequestRest.setUserGroups(rangerRequest.getUserGroups());
+		rangerRequestRest.setAccessTime(rangerRequest.getAccessTime());
+		rangerRequestRest.setClientIPAddress(rangerRequest.getClientIPAddress());
+		rangerRequestRest.setForwardedAddresses(rangerRequest.getForwardedAddresses());
+		rangerRequestRest.setRemoteIPAddress(rangerRequest.getRemoteIPAddress());
+		rangerRequestRest.setClientType(rangerRequest.getClientType());
+		rangerRequestRest.setAction(rangerRequest.getAction());
+		rangerRequestRest.setRequestData(rangerRequest.getRequestData());
+		rangerRequestRest.setSessionId(rangerRequest.getSessionId());
+		rangerRequestRest.setContext(rangerRequest.getContext());
+
+		RangerAccessResourceRestObj resourceRestObj = new RangerAccessResourceRestObj();
+		RangerAccessResource rar = rangerRequest.getResource();
+		if(rar != null && rar instanceof RangerAccessResourceImpl){
+			RangerAccessResourceImpl rari = (RangerAccessResourceImpl) rar;
+			resourceRestObj.setOwnerUser(rari.getOwnerUser());
+			resourceRestObj.setElements((rari.getAsMap()));
+		}
+		rangerRequestRest.setResource(resourceRestObj);
+
+
+		RangerAccessResultRestObj resultRest = new RangerAccessResultRestObj();
+		resultRest.setAllowed(result.getIsAllowed());
+		resultRest.setAccessDetermined(result.getIsAccessDetermined());
+		resultRest.setAuditedDetermined(result.getIsAuditedDetermined());
+		resultRest.setAudited(result.getIsAudited());
+		resultRest.setPolicyType(result.getPolicyType());
+		resultRest.setPolicyId(result.getPolicyId());
+		resultRest.setAuditPolicyId(result.getAuditPolicyId());
+		resultRest.setEvaluatedPoliciesCount(result.getEvaluatedPoliciesCount());
+		resultRest.setReason(result.getReason());
+		resultRest.setAdditionalInfo(result.getAdditionalInfo());
+
+
+		RangerRequestContext rangerRequestContext = new RangerRequestContext();
+		rangerRequestContext.setRangerAccessRequestRestObj(rangerRequestRest);
+		rangerRequestContext.setRangerAccessResultRestObj(resultRest);
+
+
+		try {
+			String jsonStr = objectMapper.writeValueAsString(rangerRequestContext);
+			StringEntity requestEntity = new StringEntity(jsonStr, ContentType.APPLICATION_JSON);
+			postMethod.setEntity(requestEntity);
+			CloseableHttpResponse closeableHttpResponse = (CloseableHttpResponse) httpclient.execute(postMethod);
+			closeableHttpResponse.close();
+		} catch (IOException e) {
+			LOG.info("YAIR DIAZ - Error connecting to AUTHZ external server!");
+			LOG.info(e.getMessage());
+			LOG.info(e.toString());
+		}
 	}
 }
