@@ -101,7 +101,7 @@ define(function(require){
                   policyDirtyField.on('change',function(){
                       that.$el.find('[data-js="policyTimeBtn"]').addClass('dirtyField');
                   });
-                  var view = new vPolicyTimeList({
+                  var view = new PolicyTimeList({
                       collection: policyDirtyField,
                       model : that.model
                 });
