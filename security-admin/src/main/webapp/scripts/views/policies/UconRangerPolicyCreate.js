@@ -152,11 +152,6 @@ define(function(require){
 
 			//validate policyItems in the policy
 
-			this.savePolicy();
-		},
-		savePolicy : function(){
-			var that = this;
-			this.form.beforeSave();
 			this.saveMethod();
 		},
 		saveMethod : function(){
@@ -220,9 +215,7 @@ define(function(require){
 		/** on close */
 		onClose: function(){
 			XAUtil.allowNavigation();
-//			clear Vent 
-			Vent._events['resourceType:change']=[];
-                XAUtil.removeUnwantedDomElement();
+            XAUtil.removeUnwantedDomElement();
 		}
 	});
 	return RangerPolicyCreate;
