@@ -12,6 +12,8 @@ define(function(require){
     
 	var VXAuditMap		= require('models/VXAuditMap');
 	var VXPermMap		= require('models/VXPermMap');
+	var vPolicyTimeList 	= require('views/policies/PolicyTimeList');
+
 	var TestUconView 	= require('views/policies/TestUconView');
 
 	var BackboneFormDataType	= require('models/BackboneFormDataType');
