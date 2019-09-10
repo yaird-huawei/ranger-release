@@ -48,7 +48,16 @@ define(function(require){
 		},
 
 		breadCrumbs :function(){
-			var name  = this.rangerServiceDefModel.get('name') != XAEnums.ServiceType.SERVICE_TAG.label ? 'ServiceManager' : 'TagBasedServiceManager';
+
+			var name  = 'ServiceManager';
+
+			if(this.rangerServiceDefModel.get('name') == XAEnums.ServiceType.SERVICE_TAG.label) {
+			    name = 'TagBasedServiceManager';
+			}
+			else if(this.rangerServiceDefModel.get('name').includes(XAEnums.ServiceType.SERVICE_UCON.label)) {
+			    name = 'UconServiceManager';
+            }
+
 			if(this.model.isNew()){
 				return [XALinks.get(name), XALinks.get('ServiceCreate')];
 			} else {
@@ -252,6 +261,12 @@ define(function(require){
 				App.appRouter.navigate("#!/policymanager/tag",{trigger: true});
 				return;
 			}
+
+            if(this.rangerServiceDefModel.get('name').includes(XAEnums.ServiceType.SERVICE_UCON.label)){
+                App.appRouter.navigate("#!/policymanager/ucon",{trigger: true});
+                return;
+            }
+
 			App.appRouter.navigate("#!/policymanager/resource",{trigger: true});
 		},
 		onCancel : function(){

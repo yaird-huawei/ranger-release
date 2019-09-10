@@ -1281,6 +1281,12 @@ define(function(require) {
 	XAUtils.isAccessPolicy = function(type){
 		return type == XAEnums.RangerPolicyType.RANGER_ACCESS_POLICY_TYPE.value ? true : false;
 	};
+    XAUtils.isUconPolicy = function(type){
+        return type == XAEnums.RangerPolicyType.RANGER_UCON_POLICY_TYPE.value ? true : false;
+    };
+    XAUtils.isUconService = function(name){
+            return String(name).includes(XAEnums.ServiceType.SERVICE_UCON.label) ? true : false;
+    };
 	XAUtils.isRowFilterPolicy = function(type){
 		return type == XAEnums.RangerPolicyType.RANGER_ROW_FILTER_POLICY_TYPE.value ? true : false;
 	};

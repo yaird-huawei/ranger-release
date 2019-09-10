@@ -973,7 +973,7 @@ define(function(require) {
 		},
 		getPermHeaders : function(){
 			var permList = [];
-			if(XAUtil.isAccessPolicy(this.rangerPolicyType) ){
+			if(XAUtil.isAccessPolicy(this.rangerPolicyType)){
 				if(this.rangerServiceDefModel.get('name') != XAEnums.ServiceType.SERVICE_TAG.label){
 					permList.unshift(localization.tt('lbl.delegatedAdmin'));
 					permList.unshift(localization.tt('lbl.permissions'));

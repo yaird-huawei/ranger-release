@@ -218,12 +218,23 @@ define(function(require) {
 				   async:false
 			   })
 			   collection.add(tagServiceDef);
-		   }else{
+		   }
+		   else if(type == 'ucon'){
+		        collection.fetch({
+           				   cache : false,
+           				   async:false
+           			   });
+           			   var collUcon = collection.filter(function(model){ return model.get('name').includes(XAEnums.ServiceType.SERVICE_UCON.label)})
+           			   collection.reset(collUcon)
+           	}
+           	else{
 			   collection.fetch({
 				   cache : false,
 				   async:false
 			   });
-			   var coll = collection.filter(function(model){ return model.get('name') != XAEnums.ServiceType.SERVICE_TAG.label})
+			   var coll = collection.filter(function(model){
+			        return (model.get('name') != XAEnums.ServiceType.SERVICE_TAG.label) && !model.get('name').includes(XAEnums.ServiceType.SERVICE_UCON.label)
+			        })
 			   collection.reset(coll)
 		   }
 //		   if(App.rContent.currentView) App.rContent.currentView.close();
@@ -290,23 +301,41 @@ define(function(require) {
     	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.AccessManager.value });
 
 		   var view 			= require('views/policies/RangerPolicyCreate');
+		   var uconView 			= require('views/policies/UconRangerPolicyCreate');
 		   var RangerService	= require('models/RangerService');
 		   var RangerPolicy		= require('models/RangerPolicy');
-		   
+		   var XAUtil			 = require('utils/XAUtils');
+
 		   var rangerService = new RangerService({id : serviceId});
-		   rangerService.fetch({
-				  cache : false,
-		   }).done(function(){
-			   App.rContent.show(new view({
-				   model : new RangerPolicy({'policyType' : policyType}),
-				   rangerService : rangerService,
-			   }));
-		   });
+
+		   if(XAUtil.isUconPolicy(policyType)){
+		     rangerService.fetch({
+            				  cache : false,
+            		   }).done(function(){
+            			   App.rContent.show(new uconView({
+            				   model : new RangerPolicy({'policyType' : policyType}),
+            				   rangerService : rangerService,
+            			   }));
+            		   });
+		   }
+            else{
+		    rangerService.fetch({
+           				  cache : false,
+           		   }).done(function(){
+           			   App.rContent.show(new view({
+           				   model : new RangerPolicy({'policyType' : policyType}),
+           				   rangerService : rangerService,
+           			   }));
+           		   });
+            }
+
+
 	   },
-	   RangerPolicyEditAction :function(serviceId, policyId){
+	   RangerPolicyEditAction :function(serviceId, policyId, policyType){
     	   MAppState.set({ 'currentTab' : XAGlobals.AppTabs.AccessManager.value });
 
 		   var view 			= require('views/policies/RangerPolicyCreate');
+		   var uconView 			= require('views/policies/UconRangerPolicyCreate');
 		   var RangerService	= require('models/RangerService');
 		   var RangerPolicy		= require('models/RangerPolicy');
 		   var RangerPolicyList  = require('collections/RangerPolicyList');
@@ -320,14 +349,30 @@ define(function(require) {
 			   cache : false,
 			   async : false,
 		   });
-		   rangerPolicy.fetch({
-				  cache : false,
-		   }).done(function(){
-			   App.rContent.show(new view({
-				   model : rangerPolicy,
-				   rangerService :rangerService
-			   }));
-		   });
+
+           //NOTE: isUconService check needed?
+           if(XAUtil.isUconPolicy(policyType) && XAUtil.isUconService(rangerService.get("type"))){
+                rangerPolicy.url = rangerService.get('configs').ucon_policymgr_external_url + 'service/plugins/policies/' + policyId;
+                rangerPolicy.fetch({
+                              cache : false,
+                       }).done(function(){
+                           App.rContent.show(new uconView({
+                               model : rangerPolicy,
+                               rangerService :rangerService
+                           }));
+                       });
+
+           }
+            else{
+                 rangerPolicy.fetch({
+                				  cache : false,
+                		   }).done(function(){
+                			   App.rContent.show(new view({
+                				   model : rangerPolicy,
+                				   rangerService :rangerService
+                			   }));
+                		   });
+                }
 	   },
 	   /************PERMISSIONS LISTING *****************************************/
 	   modulePermissionsAction :function(){

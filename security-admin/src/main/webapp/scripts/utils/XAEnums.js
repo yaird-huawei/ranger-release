@@ -50,7 +50,8 @@ define(function(require) {
 	XAEnums.RangerPolicyType = mergeParams(XAEnums.RangerPolicyType, {
 		RANGER_ACCESS_POLICY_TYPE:{value:0, label:'Access', rbkey:'xa.enum.AccessResult.ACCESS_RESULT_ALLOWED', tt: 'lbl.AccessResult_ACCESS_RESULT_ALLOWED'},
 		RANGER_MASKING_POLICY_TYPE:{value:1, label:'Masking', rbkey:'xa.enum.AccessResult.ACCESS_RESULT_DENIED', tt: 'lbl.AccessResult_ACCESS_RESULT_DENIED'},
-		RANGER_ROW_FILTER_POLICY_TYPE:{value:2, label:'Row Level Filter', rbkey:'xa.enum.AccessResult.ACCESS_RESULT_DENIED', tt: 'lbl.AccessResult_ACCESS_RESULT_DENIED'}
+		RANGER_ROW_FILTER_POLICY_TYPE:{value:2, label:'Row Level Filter', rbkey:'xa.enum.AccessResult.ACCESS_RESULT_DENIED', tt: 'lbl.AccessResult_ACCESS_RESULT_DENIED'},
+		RANGER_UCON_POLICY_TYPE:{value:3, label:'Ucon', rbkey:'xa.enum.AccessResult.ACCESS_RESULT_DENIED', tt: 'lbl.AccessResult_ACCESS_RESULT_DENIED'}
 	});
 	
 	XAEnums.UserRoles = mergeParams(XAEnums.UserRoles, {
@@ -130,8 +131,9 @@ define(function(require) {
 		Service_HBASE:{value:3, label:'hbase', rbkey:'xa.enum.AssetType.ASSET_HBASE', tt: 'lbl.AssetType_ASSET_HBASE'},
 		Service_KNOX:{value:4, label:'knox', rbkey:'xa.enum.AssetType.ASSET_KNOX', tt: 'lbl.AssetType_ASSET_KNOX'},
 		Service_STORM:{value:5, label:'storm', rbkey:'xa.enum.AssetType.ASSET_STORM', tt: 'lbl.AssetType_ASSET_STORM'},
-    SERVICE_TAG:{value:6, label:'tag', rbkey:'xa.enum.ServiceType.SERVICE_TAG', tt: 'lbl.ServiceType_SERVICE_TAG'},
-    Service_KMS:{value:7, label:'kms', rbkey:'xa.enum.ServiceType.SERVICE_KMS', tt: 'lbl.ServiceType_SERVICE_KMS'}
+        SERVICE_TAG:{value:6, label:'tag', rbkey:'xa.enum.ServiceType.SERVICE_TAG', tt: 'lbl.ServiceType_SERVICE_TAG'},
+        Service_KMS:{value:7, label:'kms', rbkey:'xa.enum.ServiceType.SERVICE_KMS', tt: 'lbl.ServiceType_SERVICE_KMS'},
+        SERVICE_UCON:{value:8, label:'ucon', rbkey:'xa.enum.ServiceType.SERVICE_UCON', tt: 'lbl.ServiceType_SERVICE_UCON'}
 	});
 
 	XAEnums.AuthStatus = mergeParams(XAEnums.AuthStatus, {

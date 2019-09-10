@@ -67,7 +67,7 @@
 			<form action="" method="post" accept-charset="utf-8">
 				<fieldset>
 					<div class="fields">
-						<label><i class="icon-user"></i> Username:</label>
+						<label><i class="icon-user"></i> Username 2:</label>
 						<input type="text" name="username" id="username" tabindex="1" autofocus>
 						<label><i class="icon-lock"></i> Password:</label>	
 						<input type="password" name="password" id="password" tabindex="2" autocomplete="off">

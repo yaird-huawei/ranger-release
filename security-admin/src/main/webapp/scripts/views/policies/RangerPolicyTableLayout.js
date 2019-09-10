@@ -54,6 +54,7 @@ define(function(require){
 				rangerService : this.rangerService,
 				rangerServiceDef : this.rangerServiceDefModel,
 				rangerPolicyType : this.collection.queryParams['policyType'],
+				isRenderUconTab  : function(){return (this.rangerService.get('configs').isUconEnabled) ? true : false;},
 				isRenderAccessTab : XAUtil.isRenderMasking(this.rangerServiceDefModel.get('dataMaskDef')) ? true 
                                         : XAUtil.isRenderRowFilter(this.rangerServiceDefModel.get('rowFilterDef')) ? true : false,
                 isNotAuditorAdminOrKmsAuditor : !(XAUtil.isAuditorOrKMSAuditor(SessionMgr))
@@ -64,6 +65,10 @@ define(function(require){
     		if(this.rangerService.get('type') == XAEnums.ServiceType.SERVICE_TAG.label){
     			return [XALinks.get('TagBasedServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService})];
     		}
+    		if(this.rangerServiceDefModel.get('name').includes(XAEnums.ServiceType.SERVICE_UCON.label)){
+    			return [XALinks.get('UconServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService})];
+    		}
+
     		return [XALinks.get('ServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService})];
    		},        
 
@@ -79,8 +84,8 @@ define(function(require){
 			'btnShowLess' : '[data-id="showLess"]',
 			'visualSearch' : '.visual_search',
 			'policyTypeTab' : 'div[data-id="policyTypeTab"]',
-                        'addNewPolicy' : '[data-js="addNewPolicy"]',
-                        'iconSearchInfo' : '[data-id="searchInfo"]',
+            'addNewPolicy' : '[data-js="addNewPolicy"]',
+            'iconSearchInfo' : '[data-id="searchInfo"]',
 			'btnViewPolicy' : '[data-name ="viewPolicy"]',
 		},
 
@@ -120,7 +125,15 @@ define(function(require){
 		},
 		
 		initializePolicies : function(policyType){
-			this.collection.url = XAUtil.getServicePoliciesURL(this.rangerService.id);
+
+            this.collection.url = XAUtil.getServicePoliciesURL(this.rangerService.id);
+
+            //NOTE: XAUtil.isUconService prevents UCON policies from appearing in non-UCON services: REMOVE? to be decided
+            if(XAUtil.isUconPolicy(this.collection.queryParams.policyType) && XAUtil.isUconService(this.rangerService.get("type"))){
+                this.collection.url = this.rangerService.get('configs').ucon_policymgr_external_url + this.collection.url;
+//              this.collection.url = 'http://localhost:38080/api/v1.0/service/plugins/policies/service/' + this.rangerService.id;
+            }
+
 			if(!_.isUndefined(policyType)){
 				this.collection.queryParams['policyType'] = policyType;
 			}
@@ -148,7 +161,11 @@ define(function(require){
 			}else if( XAUtil.isRowFilterPolicy(policyType) ){
 				this.ui.policyTypeTab.find('ul li').removeClass('active');
 				this.$el.find('li[data-tab="rowLevelFilter"]').addClass('active');
-			}
+			}else if( XAUtil.isUconPolicy(policyType) ){
+                this.ui.policyTypeTab.find('ul li').removeClass('active');
+                this.$el.find('li[data-tab="ucon"]').addClass('active');
+             }
+
 			this.showRequiredTabs()
 		},
 		showRequiredTabs : function(){
@@ -177,6 +194,11 @@ define(function(require){
 			var that = this;
 			var policyId = $(e.currentTarget).data('id');
 			var rangerPolicy = new RangerPolicy({ id : policyId});
+
+            if(XAUtil.isUconPolicy(this.collection.queryParams.policyType)){
+                rangerPolicy.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'service/plugins/policies/' + policyId;
+            }
+
 			rangerPolicy.fetch({
 				cache : false,
 			}).done(function(){
@@ -232,11 +254,11 @@ define(function(require){
                                 if(!_.isEmpty(model.get('validitySchedules')) && XAUtil.isPolicyExpierd(model)){
                                     return '<div class="expiredIconPosition">\
                                                 <i class="icon-exclamation-sign backgrigModelId" title="Policy expired"></i>\
-                                                <a class="" href="#!/service/'+that.rangerService.id+'/policies/'+model.id+'/edit">'+model.id+'</a>\
+                                                <a class="" href="#!/service/'+that.rangerService.id+'/policies/'+model.id+'/edit/'+model.get("policyType")+'">'+model.id+'</a>\
                                              </div>';
                                 }else{
                                     return '<div class="expiredIconPosition">\
-                                                <a class="" href="#!/service/'+that.rangerService.id+'/policies/'+model.id+'/edit">'+model.id+'</a>\
+                                                <a class="" href="#!/service/'+that.rangerService.id+'/policies/'+model.id+'/edit/'+model.get("policyType")+'">'+model.id+'</a>\
                                             </div>';
                                 }
                             }
@@ -330,7 +352,7 @@ define(function(require){
                             return '<a href="javascript:void(0);" data-name ="viewPolicy" data-id="'+model.id+'" class="btn btn-mini" title="View"><i class="icon-eye-open icon-large" /></a>';
                         }else{
                             return '<a href="javascript:void(0);" data-name ="viewPolicy" data-id="'+model.id+'" class="btn btn-mini" title="View"><i class="icon-eye-open icon-large" /></a>\
-                                    <a href="#!/service/'+that.rangerService.id+'/policies/'+model.id+'/edit" class="btn btn-mini" title="Edit"><i class="icon-edit icon-large" /></a>\
+                                    <a href="#!/service/'+that.rangerService.id+'/policies/'+model.id+'/edit/'+model.get("policyType")+'" class="btn btn-mini" title="Edit"><i class="icon-edit icon-large" /></a>\
                                     <a href="javascript:void(0);" data-name ="deletePolicy" data-id="'+model.id+'"  class="btn btn-mini btn-danger" title="Delete"><i class="icon-trash icon-large" /></a>';
 						//You can use rawValue to custom your html, you can change this value using the name parameter.
                         }
@@ -347,6 +369,11 @@ define(function(require){
 			
 			var obj = this.collection.get($(e.currentTarget).data('id'));
 			var model = new RangerPolicy(obj.attributes);
+
+            if(XAUtil.isUconPolicy(this.collection.queryParams.policyType)){
+                model.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'service/plugins/policies/' + model.id;
+            }
+
 			model.collection = this.collection;
 			XAUtil.confirmPopup({
 				//msg :localize.tt('msg.confirmDelete'),
@@ -504,6 +531,10 @@ define(function(require){
 					var val = XAEnums.RangerPolicyType.RANGER_ACCESS_POLICY_TYPE.value;
 					App.appRouter.navigate("#!/service/"+this.rangerService.id+"/policies/"+ val,{trigger: true});
 					break;
+                case "#ucon":
+                    var val = XAEnums.RangerPolicyType.RANGER_UCON_POLICY_TYPE.value;
+                    App.appRouter.navigate("#!/service/"+this.rangerService.id+"/policies/"+ val,{trigger: true});
+                    break;
 				case "#masking":
 					var val = XAEnums.RangerPolicyType.RANGER_MASKING_POLICY_TYPE.value;
 					App.appRouter.navigate("#!/service/"+this.rangerService.id+"/policies/"+ val,{trigger: true});

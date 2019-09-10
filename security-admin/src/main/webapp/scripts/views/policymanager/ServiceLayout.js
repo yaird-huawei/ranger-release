@@ -54,6 +54,9 @@ define(function(require){
     		if(this.type == "tag"){
     			return [XALinks.get('TagBasedServiceManager')];
     		}
+            if(this.type == "ucon"){
+                return [XALinks.get('UconServiceManager')];
+            }
     		return [XALinks.get('ServiceManager')];
     	},
 

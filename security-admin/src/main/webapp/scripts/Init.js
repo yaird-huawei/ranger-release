@@ -134,7 +134,7 @@
 		'Backbone.BootstrapModal'	: '../libs/bower/backbone.bootstrap-modal/js/backbone.bootstrap-modal',
 		'bootstrap-editable'		: '../libs/bower/x-editable/js/bootstrap-editable',
 		'bootstrap-datepicker'		: '../libs/other/datepicker/js/bootstrap-datepicker',
-                'bootstrap-datetimepicker'		: '../libs/other/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min',
+        'bootstrap-datetimepicker'	: '../libs/other/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min',
 		'bootstrap-notify'			: '../libs/bower/bootstrap-notify/js/bootstrap-notify',
 
 
@@ -144,8 +144,10 @@
         'select2'					: '../libs/bower/select2/select2',
         'bootbox'					: '../libs/bower/bootbox/js/bootbox',
         'moment'					: '../libs/bower/moment/js/moment-with-locales.min',
-        'momentTz'                    : '../libs/bower/moment/js/moment-timezone-with-data.min',
+        'momentTz'                  : '../libs/bower/moment/js/moment-timezone-with-data.min',
         'visualsearch'				: '../libs/other/visualsearch/js/visualsearch',
+        'json-editor'				: '../libs/other/json-editor/js/jsoneditor.min',
+
         'globalize'               	: '../libs/bower/globalize/lib/globalize',
         /* handlebars from the require handlerbars plugin below */
         'handlebars'				: '../libs/bower/require-handlebars-plugin/js/Handlebars',

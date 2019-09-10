@@ -60,7 +60,12 @@ define(function(require) {
 				text : 'h.serviceManager',
 				title: 'h.serviceManager'
 			},
-			Users : { 
+			UconServiceManager :{
+				href : '#!/policymanager/ucon',
+				text : 'h.serviceManager',
+				title: 'h.serviceManager'
+			},
+			Users : {
 				href : '#!/users/usertab',
 				text : 'h.usersOrGroups',
 				title: 'h.usersOrGroups'

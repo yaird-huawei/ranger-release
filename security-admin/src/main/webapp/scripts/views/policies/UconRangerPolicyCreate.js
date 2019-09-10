@@ -1,23 +1,4 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 
- 
 /* 
  * Policy create view
  */
@@ -33,7 +14,7 @@ define(function(require){
 	var localization	= require('utils/XALangSupport');
 	
 	var RangerPolicycreateTmpl = require('hbs!tmpl/policies/RangerPolicyCreate_tmpl');
-	var RangerPolicyForm = require('views/policies/RangerPolicyForm');
+	var RangerPolicyForm = require('views/policies/UconRangerPolicyForm');
 	var RangerServiceDef	= require('models/RangerServiceDef');
 	var Vent			 = require('modules/Vent');
 
@@ -115,16 +96,18 @@ define(function(require){
 		*/
 		initialize: function(options) {
 			var that = this;
-			console.log("initialized a RangerPolicyCreate Layout");
+			console.log("initialized a UconRangerPolicyCreate Layout");
 
 			_.extend(this, _.pick(options, 'rangerService'));
 			this.initializeServiceDef();
+
 			that.form = new RangerPolicyForm({
-				template : require('hbs!tmpl/policies/RangerPolicyForm_tmpl'),
+				template : require('hbs!tmpl/policies/UconRangerPolicyForm_tmpl'),
 				model : this.model,
 				rangerServiceDefModel : this.rangerServiceDefModel,
 				rangerService : this.rangerService,
 			});
+
 
 			this.editPolicy = this.model.has('id') ? true : false;
 			this.bindEvents();
@@ -166,82 +149,10 @@ define(function(require){
 			if(! _.isEmpty(errors)){
 				return;
 			}
-			
-			
+
 			//validate policyItems in the policy
-			var validateObj1 = this.form.formValidation(this.form.formInputList);
-			if(!this.validatePolicyItem(validateObj1)) return;
-			var	validateObj2 = this.form.formValidation(this.form.formInputAllowExceptionList);
-			if(!this.validatePolicyItem(validateObj2)) return;
-			var	validateObj3 = this.form.formValidation(this.form.formInputDenyList);
-			if(!this.validatePolicyItem(validateObj3)) return;
-			var	validateObj4 = this.form.formValidation(this.form.formInputDenyExceptionList);
-			if(!this.validatePolicyItem(validateObj4)) return;
-			
-			var userPerm = (validateObj1.userPerm || validateObj2.userPerm
-					  || validateObj3.userPerm || validateObj4.userPerm);
-			var groupPerm = (validateObj1.groupPermSet || validateObj2.groupPermSet 
-                                        || validateObj3.groupPermSet || validateObj4.groupPermSet);
-                        var delegatePerm  = (validateObj1.delegateAdmin || validateObj2.delegateAdmin
-                                        || validateObj3.delegateAdmin || validateObj4.delegateAdmin);
-                        if((!validateObj1.auditLoggin) && !(groupPerm || userPerm || delegatePerm )){
-				XAUtil.alertPopup({ msg :localization.tt('msg.yourAuditLogginIsOff') });
-				return;
-			}
-			
-			if(!validateObj1.customMaskSet){
-				XAUtil.alertPopup({ msg :localization.tt('msg.enterCustomMask') });
-				return;
-			}
+
 			this.savePolicy();
-		},
-		validatePolicyItem : function(validateObj){
-			var that = this, valid = false;
-                        //DelegateAdmin checks
-                        if((validateObj.groupSet || validateObj.userSet) && validateObj.delegateAdmin){
-                                return true;
-                        }else if(validateObj.delegateAdmin && !(validateObj.groupSet || validateObj.userSet)) {
-                                this.popupCallBack(localization.tt('msg.addUserOrGroupForDelegateAdmin'),validateObj);
-                                return false;
-                        }
-			valid = (validateObj.groupSet && validateObj.permSet) || (validateObj.userSet && validateObj.userPerm);
-			if(!valid){
-				if((!validateObj.groupSet && !validateObj.userSet) && (validateObj.condSet)) {
-					this.popupCallBack(localization.tt('msg.addUserOrGroupForPC'),validateObj);
-				} else if((!validateObj.groupSet && !validateObj.userSet) && (validateObj.permSet)) {
-					this.popupCallBack(localization.tt('msg.addUserOrGroup'),validateObj);
-					
-				} else if(validateObj.groupSet && (!validateObj.permSet)){
-					this.popupCallBack(localization.tt('msg.addGroupPermission'),validateObj);
-				} else if((!validateObj.groupSet) && (validateObj.permSet)) {
-					this.popupCallBack(localization.tt('msg.addGroup'),validateObj);
-						
-				} else if(validateObj.userSet && (!validateObj.userPerm)){
-					this.popupCallBack(localization.tt('msg.addUserPermission'),validateObj);
-				} else if((!validateObj.userSet) && (validateObj.userPerm)) {
-					this.popupCallBack(localization.tt('msg.addUser'),validateObj);
-						
-				} else if((!validateObj.auditLoggin) && (!validateObj.groupPermSet)){
-					return true;
-				}else{
-					return true;
-				}
-			} else {
-				if(validateObj.groupSet && (!validateObj.permSet)){
-					this.popupCallBack(localization.tt('msg.addGroupPermission'),validateObj);
-				} else if((!validateObj.groupSet) && (validateObj.permSet)) {
-					this.popupCallBack(localization.tt('msg.addGroup'),validateObj);
-						
-				} else if(validateObj.userSet && (!validateObj.userPerm)){
-					this.popupCallBack(localization.tt('msg.addUserPermission'),validateObj);
-				} else if((!validateObj.userSet) && (validateObj.userPerm)) {
-					this.popupCallBack(localization.tt('msg.addUser'),validateObj);
-						
-				} else {
-					return true;
-				}
-			}
-			return false;
 		},
 		savePolicy : function(){
 			var that = this;

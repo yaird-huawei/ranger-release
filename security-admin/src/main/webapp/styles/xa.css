@@ -1005,7 +1005,7 @@ ul.tagit input[type="text"] {
 .ui-widget-content {
   background: #fff;
   overflow: auto;
-  max-height: 200px;
+  max-height: 20000px;
 }
 
 .link-tag {
@@ -2396,4 +2396,7 @@ textarea:read-only{
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+.row {
+    margin-left: -10px;
 }

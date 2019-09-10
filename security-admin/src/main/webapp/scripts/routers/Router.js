@@ -33,6 +33,7 @@ function(Backbone, Marionette, localization, MAppState, XAUtil){
 			""									: "postLoginDefaultView",//"dashboardAction",
 			"!/policymanager/:resource"			: "serviceManagerAction",
 			"!/policymanager/:tag"				: "serviceManagerAction",
+			"!/policymanager/:ucon"				: "serviceManagerAction",
 
 			/****** Analytics Report related **********************/
 			"!/reports/userAccess"		: "userAccessReportAction",
@@ -55,9 +56,9 @@ function(Backbone, Marionette, localization, MAppState, XAUtil){
 			"!/service/:serviceType/create" 	: "serviceCreateAction",
 			"!/service/:serviceType/edit/:id"	: "serviceEditAction",
 			
-			"!/service/:serviceId/policies/:policyType"			: "policyManageAction",
-			"!/service/:serviceId/policies/create/:policyType"	: "RangerPolicyCreateAction",
-			"!/service/:serviceId/policies/:id/edit"			: "RangerPolicyEditAction",
+			"!/service/:serviceId/policies/:policyType"			    : "policyManageAction",
+			"!/service/:serviceId/policies/create/:policyType"	    : "RangerPolicyCreateAction",
+			"!/service/:serviceId/policies/:id/edit/:policyType"	: "RangerPolicyEditAction",
 
 			/************PERMISSIONS VIEWS *****************************************/
             "!/permissions"					: "modulePermissionsAction",

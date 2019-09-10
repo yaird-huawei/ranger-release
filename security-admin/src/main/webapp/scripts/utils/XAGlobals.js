@@ -66,6 +66,7 @@ define(function(require){
 			'Access Manager' : { 'Resource Based Policies' : ['serviceManagerAction','serviceCreateAction','serviceEditAction', 'policyManageAction','RangerPolicyCreateAction','RangerPolicyEditAction'],
 								 'Reports' 				   : ['userAccessReportAction'],
 								 'Tag Based Policies' 	   : ['serviceManagerAction','serviceCreateAction','serviceEditAction', 'policyManageAction','RangerPolicyCreateAction','RangerPolicyEditAction']
+//								 'UCON Policies' 	       : ['serviceManagerAction','serviceCreateAction','serviceEditAction', 'policyManageAction','RangerPolicyCreateAction','RangerPolicyEditAction']
 								},
 			'Audit' 		 : ['auditReportAction','loginSessionDetail'],
 			'Encryption'     : {'Key Manager' : ['kmsManagerAction','kmsKeyCreateAction'] },
