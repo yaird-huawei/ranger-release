@@ -40,27 +40,20 @@ define(function(require){
 		* @constructs
 		*/
 		templateData : function(){
-			var policyType = XAUtil.enumElementByValue(XAEnums.RangerPolicyType, this.model.get('policyType')), conditionType;
-			if (XAUtil.isMaskingPolicy(policyType.value)) {
-				conditionType = 'Mask';
-			} else if (XAUtil.isRowFilterPolicy(policyType.value)) {
-				conditionType = 'Row Filter';
-            } else if (XAUtil.isUconPolicy(policyType.value)) {
-                conditionType = 'U-XACML';
-			} else {
-				conditionType = 'Allow';
-			}
+            var conditionType = 'U-XACML';
+			var policyType = XAUtil.enumElementByValue(XAEnums.RangerPolicyType, this.model.get('policyType'));
+
 			return { 'id' : this.model.id,
 					'policyType' : policyType.label,
-                                        'conditionType' : conditionType,
+                    'conditionType' : conditionType,
           'policyTimeBtnLabel': (this.model.has('validitySchedules') && this.model.get('validitySchedules').length > 0) ? localization.tt('lbl.editValidityPeriod')
                   : localization.tt('lbl.addValidityPeriod')
 				};
 		},
 		initialize: function(options) {
-			console.log("initialized a RangerPolicyForm Form View");
+			console.log("initialized a UconRangerPolicyForm Form View");
 			_.extend(this, _.pick(options, 'rangerServiceDefModel', 'rangerService'));
-    		this.setupForm();
+    		//this.setupForm();
     		Backbone.Form.prototype.initialize.call(this, options);
 
 			this.initializeCollection();
