@@ -218,6 +218,17 @@ define(function(require) {
 					title: options.model.get('name') +' Policies'
 				};
 			},
+            ManageUconPolicies : function(options){
+                var href = "javascript:void(0);";
+                if(_.has(options,'model')){
+                    href =  '#!/service/'+options.model.id+"/policies/"+XAEnums.RangerPolicyType.RANGER_UCON_POLICY_TYPE.value;
+                }
+                return {
+                    href : href,
+                    text : options.model.get('name') +' Policies',
+                    title: options.model.get('name') +' Policies'
+                };
+            },
 			ManageHivePolicies : function(options){
 				var href = "javascript:void(0);";
 				if(_.has(options,'model')){

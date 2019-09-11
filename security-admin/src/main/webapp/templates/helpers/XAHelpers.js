@@ -505,6 +505,11 @@
 		var tr = '', serviceOperationDiv = '';
 		var serviceType = serviceDef.get('name'),
 		policyType = XAEnums.RangerPolicyType.RANGER_ACCESS_POLICY_TYPE.value;
+
+		if(XAUtil.isUconService(serviceType)){
+              policyType = XAEnums.RangerPolicyType.RANGER_UCON_POLICY_TYPE.value;
+        }
+
 		if(!_.isUndefined(services[serviceType])){
 			_.each(services[serviceType],function(serv){
 				serviceName = serv.get('name');

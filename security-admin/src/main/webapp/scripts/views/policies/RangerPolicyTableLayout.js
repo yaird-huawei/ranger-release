@@ -66,7 +66,7 @@ define(function(require){
     			return [XALinks.get('TagBasedServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService})];
     		}
     		if(this.rangerServiceDefModel.get('name').includes(XAEnums.ServiceType.SERVICE_UCON.label)){
-    			return [XALinks.get('UconServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService})];
+    			return [XALinks.get('UconServiceManager'),XALinks.get('ManageUconPolicies',{model : this.rangerService})];
     		}
 
     		return [XALinks.get('ServiceManager'),XALinks.get('ManagePolicies',{model : this.rangerService})];
