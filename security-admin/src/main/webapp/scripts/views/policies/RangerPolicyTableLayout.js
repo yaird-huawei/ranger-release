@@ -130,8 +130,9 @@ define(function(require){
 
             //NOTE: XAUtil.isUconService prevents UCON policies from appearing in non-UCON services: REMOVE? to be decided
             if(XAUtil.isUconPolicy(this.collection.queryParams.policyType) && XAUtil.isUconService(this.rangerService.get("type"))){
-                this.collection.url = this.rangerService.get('configs').ucon_policymgr_external_url + this.collection.url;
-//              this.collection.url = 'http://localhost:38080/api/v1.0/service/plugins/policies/service/' + this.rangerService.id;
+                XAUtil.setUconPolicyMgrUrl(this.rangerService.get('configs').ucon_policymgr_external_url);
+                this.collection.url = XAUtil.getUconPolicyMgrUrl() + this.collection.url;
+                console.log("Ucon policy manager url set to: " + XAUtil.getUconPolicyMgrUrl());
             }
 
 			if(!_.isUndefined(policyType)){

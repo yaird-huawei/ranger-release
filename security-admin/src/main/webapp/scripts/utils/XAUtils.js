@@ -19,6 +19,7 @@
 
 define(function(require) {
 	'use strict';
+    var ucon_policymgr_url;
 
 	var XAEnums = require('utils/XAEnums');
 	var localization = require('utils/XALangSupport');
@@ -1287,6 +1288,16 @@ define(function(require) {
     XAUtils.isUconService = function(name){
             return String(name).includes(XAEnums.ServiceType.SERVICE_UCON.label) ? true : false;
     };
+
+
+    XAUtils.setUconPolicyMgrUrl = function(val){
+            this.ucon_policymgr_url = val;
+    };
+     XAUtils.getUconPolicyMgrUrl = function(){
+             return this.ucon_policymgr_url;
+    };
+
+
 	XAUtils.isRowFilterPolicy = function(type){
 		return type == XAEnums.RangerPolicyType.RANGER_ROW_FILTER_POLICY_TYPE.value ? true : false;
 	};

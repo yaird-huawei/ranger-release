@@ -123,13 +123,24 @@ define(function(require){
 			if(_.isUndefined(versionNo)){
 				throw('versionNo can not be undefined');
 			}
-			opt.url = 'service/plugins/policy/'+this.get('id')+'/version/'+versionNo;
+    		opt.url = 'service/plugins/policy/'+this.get('id')+'/version/'+versionNo;
+
+    		if(XAUtils.isUconPolicy(this.get('policyType'))){
+                opt.url = XAUtils.getUconPolicyMgrUrl() + 'service/plugins/policies/'+this.get('id')+'/version/'+versionNo;
+            }
+
 			return this.fetch(opt);
 		},
 
 		fetchVersions : function(){
 			var versionList;
 			var url = 'service/plugins/policy/'+this.get('id')+'/versionList';
+
+            if(XAUtils.isUconPolicy(this.get('policyType'))){
+                url = XAUtils.getUconPolicyMgrUrl() + 'service/plugins/policies/'+this.get('id')+'/versionList';
+                console.log(url);
+            }
+
 			$.ajax({
 				url : url,
 				async : false,
