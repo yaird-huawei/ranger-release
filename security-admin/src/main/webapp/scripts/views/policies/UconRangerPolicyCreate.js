@@ -152,8 +152,13 @@ define(function(require){
 
 			//validate policyItems in the policy
 
-			this.saveMethod();
+			this.savePolicy();
 		},
+        savePolicy : function(){
+            var that = this;
+            this.form.beforeSave();
+            this.saveMethod();
+        },
 		saveMethod : function(){
 			var that = this;
 			XAUtil.blockUI();

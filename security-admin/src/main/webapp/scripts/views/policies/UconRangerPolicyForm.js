@@ -92,6 +92,8 @@ define(function(require){
 			if(!this.model.isNew()){
 				this.setUpSwitches();
 			}
+            this.fields.isEnabled.$el.find('.control-label').removeClass();
+			this.fields.name.$el.find('.help-inline').removeClass('help-inline').addClass('help-block margin-left-5')
 
             this.setPolicyValidityTime();
 
@@ -149,6 +151,9 @@ define(function(require){
 			var that = this;
 			this.fields.isAuditEnabled.editor.setValue(this.model.get('isAuditEnabled'));
 			this.fields.isEnabled.editor.setValue(this.model.get('isEnabled'));
+                    if(this.model.has('policyPriority')){
+                        this.fields.policyPriority.editor.setValue(this.model.get('policyPriority') == 1 ? true : false);
+                    }
 		},
 		/** all custom field rendering */
 		renderCustomFields: function(){
@@ -161,6 +166,15 @@ define(function(require){
             }).render().el);
 
 		},
+		beforeSave : function(){
+        	var that = this, resources = {};
+        	this.model.set('service',this.rangerService.get('name'));
+            this.model.set('name', _.escape(this.model.get('name')));
+            if(this.model.has('policyPriority')){
+                    this.model.set('policyPriority', this.model.get('policyPriority') ? 1 : 0);
+            }
+
+        },
 		getPolicyBaseFieldNames : function(){
                         return ['description','isAuditEnabled'];
 		},
