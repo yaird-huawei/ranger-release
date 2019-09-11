@@ -168,6 +168,13 @@ define(function(require){
 		},
 		beforeSave : function(){
         	var that = this, resources = {};
+
+        	if(this.model.has('policyLabels')){
+                var policyLabel =[];
+                policyLabel= this.model.get('policyLabels').split(',');
+                this.model.set('policyLabels', policyLabel);
+             }
+
         	this.model.set('service',this.rangerService.get('name'));
             this.model.set('name', _.escape(this.model.get('name')));
             if(this.model.has('policyPriority')){
