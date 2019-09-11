@@ -20,20 +20,23 @@
 		<ul class="nav nav-tabs tabs clearfix">
             {{#if isRenderUconTab}}
             <li data-tab="ucon" class=""><a data-toggle="tab" href="#ucon">Ucon</a></li>
-            {{/if}}
-            {{#showRowLevelTab .}}
-                <li data-tab="rowLevelFilter" class=""><a data-toggle="tab"
-                    href="#rowLevelFilter">Row Level Filter</a></li>
-            {{/showRowLevelTab}}
+            {{else}}
+                {{#showRowLevelTab .}}
+                    <li data-tab="rowLevelFilter" class=""><a data-toggle="tab"
+                        href="#rowLevelFilter">Row Level Filter</a></li>
+                {{/showRowLevelTab}}
 
-            {{#showMaskingTab .}}
-                <li data-tab="masking" class=""><a data-toggle="tab"
-                    href="#masking">Masking</a></li>
-            {{/showMaskingTab}}
+                {{#showMaskingTab .}}
+                    <li data-tab="masking" class=""><a data-toggle="tab"
+                        href="#masking">Masking</a></li>
+                {{/showMaskingTab}}
 
-            {{#if isRenderAccessTab}}
-                <li data-tab="access" class="active"><a data-toggle="tab" href="#access">Access</a></li>
+                {{#if isRenderAccessTab}}
+                    <li data-tab="access" class="active"><a data-toggle="tab" href="#access">Access</a></li>
+                {{/if}}
             {{/if}}
+
+
         </ul>
 </div>
 <h3 class="wrap-header bold"> {{tt 'lbl.listOfPolicies'}} : {{rangerService.attributes.name}} </h3>

@@ -70,15 +70,7 @@ define(function(require){
     		};
     	},
     	breadCrumbs :function(){
-    		var name  = 'ServiceManager';
-
-    		if(this.rangerServiceDefModel.get('name') == XAEnums.ServiceType.SERVICE_TAG.label){
-    		    name = 'TagBasedServiceManager';
-    		}
-    		else if(this.rangerServiceDefModel.get('name').includes(XAEnums.ServiceType.SERVICE_UCON.label)){
-    		    name = 'UconServiceManager';
-    		}
-
+    		var name  = this.rangerServiceDefModel.get('name') != XAEnums.ServiceType.SERVICE_TAG.label ? 'ServiceManager' : 'TagBasedServiceManager';
     		if(this.model.isNew()){
     			return [XALinks.get(name),XALinks.get('ManagePolicies',{model : this.rangerService}),XALinks.get('PolicyCreate')];
     		} else {
@@ -251,11 +243,6 @@ define(function(require){
 		saveMethod : function(){
 			var that = this;
 			XAUtil.blockUI();
-
-            if(XAUtil.isUconPolicy(this.model.get("policyType")) && this.editPolicy == false){
-                this.model.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'service/plugins/policies/';
-            }
-
 			this.model.save({},{
 				wait: true,
 				success: function () {

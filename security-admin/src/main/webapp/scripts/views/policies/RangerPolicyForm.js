@@ -33,9 +33,7 @@ define(function(require){
 	var VXAuditMapList	= require('collections/VXAuditMapList');
 	var VXUserList		= require('collections/VXUserList');
 	var PermissionList 	= require('views/policies/PermissionList');
-	var TestUconView 	= require('views/policies/TestUconView');
-
-    var vPolicyTimeList 	= require('views/policies/PolicyTimeList');
+  var vPolicyTimeList 	= require('views/policies/PolicyTimeList');
 	var RangerPolicyResource		= require('models/RangerPolicyResource');
 	var BackboneFormDataType	= require('models/BackboneFormDataType');
 
@@ -61,8 +59,6 @@ define(function(require){
 				conditionType = 'Mask';
 			} else if (XAUtil.isRowFilterPolicy(policyType.value)) {
 				conditionType = 'Row Filter';
-            } else if (XAUtil.isUconPolicy(policyType.value)) {
-                conditionType = 'U-XACML';
 			} else {
 				conditionType = 'Allow';
 			}
@@ -359,18 +355,6 @@ define(function(require){
                                         rangerPolicyType : that.model.get('policyType')
                                 }).render().el);
                         }
-
-
-                        if(XAUtil.isUconPolicy(that.model.get('policyType')) && XAUtil.isUconService(this.rangerService.get("type"))){
-                                that.$("#yair_container").html(new TestUconView({
-                                    model 	   : that.model,
-                                    accessTypes: accessType,
-                                    headerTitle: "MyTest",
-                                    rangerServiceDefModel : that.rangerServiceDefModel,
-                                    rangerPolicyType : that.model.get('policyType')
-                                }).render().el);
-                        }
-
 
 		},
 		renderParentChildHideShow : function(onChangeOfSameLevelType, val, e) {
