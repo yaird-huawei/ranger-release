@@ -155,7 +155,6 @@ define(function(require){
                         this.fields.policyPriority.editor.setValue(this.model.get('policyPriority') == 1 ? true : false);
                     }
 		},
-		/** all custom field rendering */
 		renderCustomFields: function(){
 			var that = this;
             that.$("#yair_container").html(new TestUconView({
@@ -181,6 +180,12 @@ define(function(require){
             if(this.model.has('policyPriority')){
                     this.model.set('policyPriority', this.model.get('policyPriority') ? 1 : 0);
             }
+
+            if(this.model.has('dtoPolicy')){
+                this.model.set('dtoPolicy', this.model.get('dtoPolicy'));
+            //    this.model.set('dtoPolicy.description', this.model.get('description'));
+            }
+
         },
 		getPolicyBaseFieldNames : function(){
                         return ['description','isAuditEnabled'];
