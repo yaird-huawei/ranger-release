@@ -152,26 +152,15 @@ define(function(require){
                     var jsonSchema2 = JSON.parse(jsonSchema2String);
 
 
-//////////////
-        var iframe = document.getElementById('iframeId');
-        var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
-        var element2 = innerDoc.getElementById('ucon_editor_holder2');
-        console.log(innerDoc.body);
-
-        var element3 = this.$('#iframeId')[0];
-//////////////
                     var element = this.$('#ucon_editor_holder')[0];
-                    jsonEditor.defaults.options.theme = 'jqueryui'; // jqueryui|bootstrap3|bootstrap2
-                    jsonEditor.defaults.options.iconlib = 'jqueryui';//foundation3|fontawesome4|fontawesome2||fontawesome3
-                    jsonEditor.defaults.options.object_layout = 'grid'; // grid|normal|foundation5
-//                    jsonEditor.defaults.editors.object.options.grid_columns = 4;
+                    jsonEditor.defaults.options.theme = 'bootstrap3'; // jqueryui|bootstrap3|bootstrap2|barebones
+                    jsonEditor.defaults.options.iconlib = 'bootstrap3';//foundation3|fontawesome4|fontawesome2||fontawesome3|bootstrap2|jqueryui
 //                    jsonEditor.defaults.options.template = 'handlebars';jqueryui
+
                     var options = {
                     schema: jsonSchema2,
                     keep_oneof_values: false,
-                    expand_height: false,
-                    input_height: "10px",
-                    input_width: "100px",
+                    object_layout: "grid",
                     disable_edit_json: true,
                     disable_properties: true,
                     }
