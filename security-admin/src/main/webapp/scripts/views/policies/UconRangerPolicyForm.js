@@ -162,6 +162,7 @@ define(function(require){
                 model 	   : that.model,
                 headerTitle: "MyTest",
                 rangerServiceDefModel : that.rangerServiceDefModel,
+                rangerService : that.rangerService,
                 rangerPolicyType : that.model.get('policyType')
             }).render().el);
 
@@ -180,7 +181,6 @@ define(function(require){
             if(this.model.has('policyPriority')){
                     this.model.set('policyPriority', this.model.get('policyPriority') ? 1 : 0);
             }
-
         },
 		getPolicyBaseFieldNames : function(){
                         return ['description','isAuditEnabled'];
