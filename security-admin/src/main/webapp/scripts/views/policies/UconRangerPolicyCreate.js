@@ -51,14 +51,7 @@ define(function(require){
     		};
     	},
     	breadCrumbs :function(){
-    		var name  = 'ServiceManager';
-
-    		if(this.rangerServiceDefModel.get('name') == XAEnums.ServiceType.SERVICE_TAG.label){
-    		    name = 'TagBasedServiceManager';
-    		}
-    		else if(this.rangerServiceDefModel.get('name').includes(XAEnums.ServiceType.SERVICE_UCON.label)){
-    		    name = 'UconServiceManager';
-    		}
+    		var name  = 'UconServiceManager';
 
     		if(this.model.isNew()){
     			return [XALinks.get(name),XALinks.get('ManageUconPolicies',{model : this.rangerService}),XALinks.get('PolicyCreate')];
