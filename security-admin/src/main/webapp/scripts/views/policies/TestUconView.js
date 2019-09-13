@@ -33,7 +33,7 @@ define(function(require){
         initJsonEditor: function(){
 
             var jsonSchema = null;
-            var schemaServiceUrl = this.rangerService.get('configs').ucon_policymgr_external_url + "dto/schema"
+            var schemaServiceUrl = this.rangerService.get('configs').ucon_policymgr_external_url + "schema"
             $.ajax({
                 url : schemaServiceUrl,
                 async : false,

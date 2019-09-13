@@ -122,6 +122,19 @@ define(function(require) {
 			details.service = this.policy.get('service');
 			details.serviceType = this.serviceDef.get('name');
 			details.isRecursive = undefined;
+			details.policyLabels = this.policy.get('policyLabels');
+			details.createdBy  = this.policy.get('createdBy');
+            details.createTime = Globalize.format(new Date(this.policy.get('createTime')),  "MM/dd/yyyy hh:mm tt");
+            details.updatedBy = this.policy.get('updatedBy');
+            details.updateTime = Globalize.format(new Date(this.policy.get('updateTime')),  "MM/dd/yyyy hh:mm tt");
+            if(this.policy.has('validitySchedules')){
+                    details.validitySchedules = this.policy.get('validitySchedules');
+            }
+
+			if(XAUtils.isUconPolicy(this.policy.get('policyType'))){
+                    return;
+            }
+
             if(XAUtils.isAccessPolicy(this.policy.get('policyType'))){
                 resourceDef = this.serviceDef.get('resources');
             }else{
@@ -145,7 +158,7 @@ define(function(require) {
 					details.resources.push(resource);
 				}
 			}, this);
-                        details.policyLabels = this.policy.get('policyLabels');
+
 			var perm = details.permissions = this.getPermHeaders();
 			perm.policyItems	 = this.policy.get('policyItems');
 			perm.allowException  = this.policy.get('allowExceptions');
@@ -163,13 +176,7 @@ define(function(require) {
 	            perm.maskingPolicy  = this.policy.get('dataMaskPolicyItems');
             }
             perm.rowLevelPolicy  = this.policy.get('rowFilterPolicyItems');
-			details.createdBy  = this.policy.get('createdBy');
-			details.createTime = Globalize.format(new Date(this.policy.get('createTime')),  "MM/dd/yyyy hh:mm tt");
-			details.updatedBy = this.policy.get('updatedBy');
-			details.updateTime = Globalize.format(new Date(this.policy.get('updateTime')),  "MM/dd/yyyy hh:mm tt");
-                        if(this.policy.has('validitySchedules')){
-                                details.validitySchedules = this.policy.get('validitySchedules');
-                        }
+
 			//get policyItems
 			this.createPolicyItems();
 			

@@ -164,7 +164,7 @@ define(function(require){
 			XAUtil.blockUI();
 
             if(XAUtil.isUconPolicy(this.model.get("policyType")) && this.editPolicy == false){
-                this.model.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'service/plugins/policies/';
+                this.model.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'policies/';
             }
 
 			this.model.save({},{

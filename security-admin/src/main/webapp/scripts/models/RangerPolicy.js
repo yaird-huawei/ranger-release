@@ -126,7 +126,7 @@ define(function(require){
     		opt.url = 'service/plugins/policy/'+this.get('id')+'/version/'+versionNo;
 
     		if(XAUtils.isUconPolicy(this.get('policyType'))){
-                opt.url = XAUtils.getUconPolicyMgrUrl() + 'service/plugins/policies/'+this.get('id')+'/version/'+versionNo;
+                opt.url = XAUtils.getUconPolicyMgrUrl() + 'policies/'+this.get('id')+'/version/'+versionNo;
             }
 
 			return this.fetch(opt);
@@ -137,7 +137,7 @@ define(function(require){
 			var url = 'service/plugins/policy/'+this.get('id')+'/versionList';
 
             if(XAUtils.isUconPolicy(this.get('policyType'))){
-                url = XAUtils.getUconPolicyMgrUrl() + 'service/plugins/policies/'+this.get('id')+'/versionList';
+                url = XAUtils.getUconPolicyMgrUrl() + 'policies/'+this.get('id')+'/versionList';
                 console.log(url);
             }
 

@@ -130,7 +130,7 @@ define(function(require){
 
             if(XAUtil.isUconService(this.rangerService.get("type"))){
                 XAUtil.setUconPolicyMgrUrl(this.rangerService.get('configs').ucon_policymgr_external_url);
-                this.collection.url = XAUtil.getUconPolicyMgrUrl() + this.collection.url;
+                this.collection.url = XAUtil.getUconPolicyMgrUrl() + 'policies/service/' + this.rangerService.id;
                 console.log("Ucon policy manager url set to: " + XAUtil.getUconPolicyMgrUrl());
             }
 
@@ -196,7 +196,7 @@ define(function(require){
 			var rangerPolicy = new RangerPolicy({ id : policyId});
 
             if(XAUtil.isUconPolicy(this.collection.queryParams.policyType)){
-                rangerPolicy.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'service/plugins/policies/' + policyId;
+                rangerPolicy.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'policies/' + policyId;
             }
 
 			rangerPolicy.fetch({
@@ -371,7 +371,7 @@ define(function(require){
 			var model = new RangerPolicy(obj.attributes);
 
             if(XAUtil.isUconPolicy(this.collection.queryParams.policyType)){
-                model.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'service/plugins/policies/' + model.id;
+                model.url = this.rangerService.get('configs').ucon_policymgr_external_url + 'policies/' + model.id;
             }
 
 			model.collection = this.collection;

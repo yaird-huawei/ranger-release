@@ -352,7 +352,7 @@ define(function(require) {
 
            //NOTE: isUconService check needed?
            if(XAUtil.isUconPolicy(policyType) && XAUtil.isUconService(rangerService.get("type"))){
-                rangerPolicy.url = rangerService.get('configs').ucon_policymgr_external_url + 'service/plugins/policies/' + policyId;
+                rangerPolicy.url = rangerService.get('configs').ucon_policymgr_external_url + 'policies/' + policyId;
                 rangerPolicy.fetch({
                               cache : false,
                        }).done(function(){
