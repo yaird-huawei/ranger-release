@@ -62,6 +62,7 @@ define(function(require){
 
             if(this.model.isNew()){
                 console.log("new");
+                //init template here ?
              }
              else {
                 editor.setValue(jsonInput);
