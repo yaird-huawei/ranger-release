@@ -61,9 +61,9 @@ define(function(require){
     		}
 
     		if(this.model.isNew()){
-    			return [XALinks.get(name),XALinks.get('ManagePolicies',{model : this.rangerService}),XALinks.get('PolicyCreate')];
+    			return [XALinks.get(name),XALinks.get('ManageUconPolicies',{model : this.rangerService}),XALinks.get('PolicyCreate')];
     		} else {
-    			return [XALinks.get(name),XALinks.get('ManagePolicies',{model : this.rangerService}),XALinks.get('PolicyEdit')];
+    			return [XALinks.get(name),XALinks.get('ManageUconPolicies',{model : this.rangerService}),XALinks.get('PolicyEdit')];
     		}
     	} ,        
 
