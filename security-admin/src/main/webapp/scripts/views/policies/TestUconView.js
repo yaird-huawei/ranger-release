@@ -40,7 +40,6 @@ define(function(require){
                 dataType : 'text',
                 success : function(data){
                     jsonSchema = JSON.parse(data);
-                    console.log(jsonSchema);
                 },
             });
 
@@ -59,13 +58,20 @@ define(function(require){
             disable_properties: true,
             }
             editor = new jsonEditor(element, options);
-            editor.setValue(jsonInput);
+
+
+            if(this.model.isNew()){
+                console.log("new");
+             }
+             else {
+                editor.setValue(jsonInput);
+             }
+
 
             var that = this;
             editor.on('change',function() {
                var editorUpdatedValue = editor.getValue();
                that.model.set({"dtoPolicy": editorUpdatedValue});
-               console.log(editorUpdatedValue);
             });
 
         },
