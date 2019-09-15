@@ -183,7 +183,6 @@ define(function(require){
 
             if(this.model.has('dtoPolicy')){
                 this.model.set('dtoPolicy', this.model.get('dtoPolicy'));
-            //    this.model.set('dtoPolicy.description', this.model.get('description'));
             }
 
         },

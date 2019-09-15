@@ -68,7 +68,6 @@ define(function(require){
                 editor.setValue(jsonInput);
              }
 
-
             var that = this;
             editor.on('change',function() {
                var editorUpdatedValue = editor.getValue();
@@ -76,18 +75,6 @@ define(function(require){
             });
 
         },
-//        events: {
-//            "change input": "changed",
-//            "change select": "changed"
-//        },
-        //not in use
-//        changed:function (evt) {
-//           var changed = evt.currentTarget;
-//           var value = $(evt.currentTarget).val();
-//           var obj = {};
-//           obj[changed.id] = value;
-//           this.model.set(obj);
-//        },
     });
     return TestUconView;
 });
