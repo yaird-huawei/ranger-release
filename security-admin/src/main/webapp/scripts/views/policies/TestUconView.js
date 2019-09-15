@@ -62,7 +62,8 @@ define(function(require){
 
             if(this.model.isNew()){
                 console.log("new");
-                //init template here ?
+                //init template here ? need to updated
+                this.model.set('tenantId', 'huawei');
              }
              else {
                 editor.setValue(jsonInput);
