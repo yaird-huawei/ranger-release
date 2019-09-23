@@ -19,11 +19,15 @@
 
 package org.apache.ranger.authorization.hive.authorizer;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -59,12 +63,6 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObje
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
 import org.apache.ranger.authorization.hadoop.constants.RangerHadoopConstants;
 import org.apache.ranger.authorization.utils.StringUtil;
@@ -92,6 +90,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 	private static final String HIVE_CONF_VAR_QUERY_STRING = "hive.query.string";
 
 	private static volatile RangerHivePlugin hivePlugin = null;
+
+	private static UconHiveAuthorizer uconHiveAuthorizer = null;
 
 	public RangerHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
 								  HiveConf                   hiveConf,
@@ -126,6 +126,9 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					plugin.init();
 
 					hivePlugin = plugin;
+
+					uconHiveAuthorizer = new UconHiveAuthorizer(hiveConf);
+
 				}
 			}
 		}
@@ -241,16 +244,6 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 							    HiveAuthzContext          context)
 		      throws HiveAuthzPluginException, HiveAccessControlException {
 		UserGroupInformation ugi = getCurrentUserGroupInfo();
-
-		LOG.info("YAIR DIAZ -----");
-		LOG.info(toString(hiveOpType, inputHObjs, outputHObjs, context, getHiveAuthzSessionContext()));
-		SessionState sessionState = SessionState.get();
-
-
-
-		if(sessionState.getHiveVariables() != null)
-			LOG.info(sessionState.getHiveVariables().toString());
-
 
 		if(ugi == null) {
 			throw new HiveAccessControlException("Permission denied: user information not available");
@@ -496,27 +489,8 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 														 user, request.getHiveAccessType().name(), path));
 				}
 
-
 				//Adding here my externalendPoint - start
-				HashMap<String, Object> mmap = new HashMap<>();
-				mmap.put("hiveOpType", hiveOpType);
-				mmap.put("inputHObjs", inputHObjs);
-				mmap.put("outputHObjs", outputHObjs);
-				mmap.put("context", context);
-				mmap.put("requests", requests.stream().map(req -> req.toString()).collect(Collectors.toList()));
-				mmap.put("result", result.toString());
-
-				try {
-					String jsonStr = hivePlugin.objectMapper.writeValueAsString(mmap);
-					StringEntity requestEntity = new StringEntity(jsonStr, ContentType.APPLICATION_JSON);
-					hivePlugin.postMethod.setEntity(requestEntity);
-					CloseableHttpResponse closeableHttpResponse = (CloseableHttpResponse) hivePlugin.httpclient.execute(hivePlugin.postMethod);
-					closeableHttpResponse.close();
-				} catch (IOException e) {
-					LOG.info("YAIR DIAZ - Error connecting to AUTHZ external server!");
-					LOG.info(e.getMessage());
-					LOG.info(e.toString());
-				}
+				uconHiveAuthorizer.test(hiveOpType, inputHObjs, outputHObjs, context, requests, result);
 				//Adding here my externalendPoint - end
 
 			}
@@ -1943,11 +1917,6 @@ class HiveObj {
 }
 
 class RangerHivePlugin extends RangerBasePlugin {
-
-	HttpClient httpclient;
-	HttpPost postMethod;
-	static ObjectMapper objectMapper = new ObjectMapper();
-
 	public static boolean UpdateXaPoliciesOnGrantRevoke = RangerHadoopConstants.HIVE_UPDATE_RANGER_POLICIES_ON_GRANT_REVOKE_DEFAULT_VALUE;
 	public static boolean BlockUpdateIfRowfilterColumnMaskSpecified = RangerHadoopConstants.HIVE_BLOCK_UPDATE_IF_ROWFILTER_COLUMNMASK_SPECIFIED_DEFAULT_VALUE;
 	public static String DescribeShowTableAuth = RangerHadoopConstants.HIVE_DESCRIBE_TABLE_SHOW_COLUMNS_AUTH_OPTION_PROP_DEFAULT_VALUE;
@@ -1977,13 +1946,9 @@ class RangerHivePlugin extends RangerBasePlugin {
 				fsScheme[i] = fsScheme[i].trim();
 			}
 		}
-
-		httpclient = HttpClientBuilder.create().build();
-		postMethod = new HttpPost("http://192.168.56.1:38081/api/v1.0/decision/tenant/huawei/hive");
 	}
 
 	public String[] getFSScheme() {
 		return fsScheme;
 	}
-
 }

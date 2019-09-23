@@ -49,8 +49,6 @@ public class RangerPolicyValidator extends RangerValidator {
 	}
 
 	public void validate(RangerPolicy policy, Action action, boolean isAdmin) throws Exception {
-		if(policy.getPolicyType() == 3) return;
-
 		if(LOG.isDebugEnabled()) {
 			LOG.debug(String.format("==> RangerPolicyValidator.validate(%s, %s, %s)", policy, action, isAdmin));
 		}

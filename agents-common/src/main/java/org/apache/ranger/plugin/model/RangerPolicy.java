@@ -44,14 +44,11 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
 	public static final int POLICY_TYPE_ACCESS    = 0;
 	public static final int POLICY_TYPE_DATAMASK  = 1;
 	public static final int POLICY_TYPE_ROWFILTER = 2;
-	public static final int POLICY_TYPE_UCON = 3;
-
 
 	public static final int[] POLICY_TYPES = new int[] {
 			POLICY_TYPE_ACCESS,
 			POLICY_TYPE_DATAMASK,
-			POLICY_TYPE_ROWFILTER,
-			POLICY_TYPE_UCON
+			POLICY_TYPE_ROWFILTER
 	};
 
 	public static final String MASK_TYPE_NULL   = "MASK_NULL";
