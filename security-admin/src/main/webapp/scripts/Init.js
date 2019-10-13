@@ -146,7 +146,7 @@
         'moment'					: '../libs/bower/moment/js/moment-with-locales.min',
         'momentTz'                  : '../libs/bower/moment/js/moment-timezone-with-data.min',
         'visualsearch'				: '../libs/other/visualsearch/js/visualsearch',
-        'json-editor'				: '../libs/other/json-editor/js/jsoneditor.min',
+        'json-editor'				: '../libs/other/json-editor/js/jsoneditor',
 
         'globalize'               	: '../libs/bower/globalize/lib/globalize',
         /* handlebars from the require handlerbars plugin below */

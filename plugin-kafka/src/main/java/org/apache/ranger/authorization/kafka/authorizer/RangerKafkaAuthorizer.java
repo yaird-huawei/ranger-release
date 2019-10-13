@@ -20,10 +20,10 @@
 package org.apache.ranger.authorization.kafka.authorizer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huawei.policy.ranger.plugin.model.RangerAccessRequestRestObj;
-import com.huawei.policy.ranger.plugin.model.RangerAccessResourceRestObj;
-import com.huawei.policy.ranger.plugin.model.RangerAccessResultRestObj;
-import com.huawei.policy.ranger.plugin.model.RangerRequestContext;
+import com.huawei.policy.core.model.ranger.RangerAccessRequestRestObj;
+import com.huawei.policy.core.model.ranger.RangerAccessResourceRestObj;
+import com.huawei.policy.core.model.ranger.RangerAccessResultRestObj;
+import com.huawei.policy.core.model.ranger.RangerRequestContext;
 import kafka.network.RequestChannel.Session;
 import kafka.security.auth.*;
 import org.apache.commons.lang.StringUtils;

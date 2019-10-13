@@ -391,6 +391,19 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 			buildRequestContextWithAllAccessedResources(requests);
 
+
+
+			//Adding here my externalendPoint - start
+			if(uconHiveAuthorizer.isEnabled()){
+				uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests);
+//				if(uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests))
+//					return;
+
+//				throw new HiveAccessControlException();
+			}
+			//Adding here my externalendPoint - end
+
+
             RangerAuthContext authContext = hivePlugin.createRangerAuthContext();
 
             for(RangerHiveAccessRequest request : requests) {
@@ -489,9 +502,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 														 user, request.getHiveAccessType().name(), path));
 				}
 
-				//Adding here my externalendPoint - start
-				uconHiveAuthorizer.test(hiveOpType, inputHObjs, outputHObjs, context, requests, result);
-				//Adding here my externalendPoint - end
+
 
 			}
 		} finally {

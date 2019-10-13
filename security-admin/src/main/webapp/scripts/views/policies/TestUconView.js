@@ -46,16 +46,17 @@ define(function(require){
             var jsonInput = this.model.get('dtoPolicy');
 
             var element = this.$('#ucon_editor_holder')[0];
-            jsonEditor.defaults.options.theme = 'bootstrap3'; // jqueryui|bootstrap3|bootstrap2|barebones
-            jsonEditor.defaults.options.iconlib = 'bootstrap3';//foundation3|fontawesome4|fontawesome2||fontawesome3|bootstrap2|jqueryui
+            jsonEditor.defaults.options.theme = 'bootstrap2'; // jqueryui|bootstrap3|bootstrap2|barebones
+            jsonEditor.defaults.options.iconlib = 'jqueryui';//foundation3|fontawesome4|fontawesome2||fontawesome3|bootstrap2|jqueryui
 //                    jsonEditor.defaults.options.template = 'handlebars';jqueryui
 
             var options = {
             schema: jsonSchema,
             keep_oneof_values: false,
-            object_layout: "grid",
+            //object_layout: "grid",
             disable_edit_json: true,
             disable_properties: true,
+            disable_array_delete_last_row: true,
             }
             editor = new jsonEditor(element, options);
 
