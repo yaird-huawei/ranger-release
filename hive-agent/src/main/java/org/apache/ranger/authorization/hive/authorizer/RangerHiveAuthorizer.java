@@ -395,6 +395,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 			//Adding here my externalendPoint - start
 			if(uconHiveAuthorizer.isEnabled()){
+
 				uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests);
 //				if(uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests))
 //					return;
@@ -501,9 +502,6 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					throw new HiveAccessControlException(String.format("Permission denied: user [%s] does not have [%s] privilege on [%s]",
 														 user, request.getHiveAccessType().name(), path));
 				}
-
-
-
 			}
 		} finally {
 			auditHandler.flushAudit();
@@ -616,6 +614,10 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 	@Override
 	public List<HivePrivilegeObject> applyRowFilterAndColumnMasking(HiveAuthzContext queryContext, List<HivePrivilegeObject> hiveObjs) throws SemanticException {
+		if(uconHiveAuthorizer.isEnabled()){
+			return uconHiveAuthorizer.applyUconRowFilterAndColumnMasking(queryContext, hiveObjs, getCurrentUserGroupInfo(), getHiveAuthzSessionContext());
+		}
+
 		List<HivePrivilegeObject> ret = new ArrayList<HivePrivilegeObject>();
 
 		if(LOG.isDebugEnabled()) {

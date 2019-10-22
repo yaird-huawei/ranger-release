@@ -153,9 +153,12 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.huawei.policy:policy-core</include>
+                                    <include>org.springframework:spring-core</include>
+                                    <include>org.codehaus.jackson:jackson-mapper-asl</include>
+                                    <include>commons-collections:commons-collections</include>
+                                    
                                     <include>io.opentracing.contrib:opentracing-jdbc</include>
                                     <include>io.opentracing.contrib:opentracing-thrift</include>
-    
                                     <include>io.jaegertracing:jaeger-client</include>
                                     <include> io.jaegertracing:jaeger-core</include>
                                     <include> io.opentracing:opentracing-api</include>

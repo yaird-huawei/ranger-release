@@ -2415,3 +2415,13 @@ textarea:read-only{
 .json-editor-btntype-move {
     line-height: 10px;
 }
+.container-fluid {
+    padding-right: 1px;
+    padding-left: 1px;
+}
+.well {
+    margin-bottom: 10px;
+}
+.row-fluid .control-group {
+    margin-bottom: 5px;
+}

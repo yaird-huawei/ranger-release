@@ -1,22 +1,33 @@
 package org.apache.ranger.authorization.hive.authorizer;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huawei.policy.core.model.ranger.RangerAccessRequestRestObj;
-import com.huawei.policy.core.model.ranger.RangerAccessResourceRestObj;
+import com.huawei.policy.core.dto.UconRangerConstants;
+import com.huawei.policy.core.dto.XacmlDecisionType;
+import com.huawei.policy.core.dto.XacmlObligationIdentifier;
+import com.huawei.policy.core.dto.ucon.RequestElementDTO;
+import com.huawei.policy.core.dto.ucon.ResultElementDTO;
+import com.huawei.policy.core.pep.DecisionRequest;
+import com.huawei.policy.core.pep.DecisionRequests;
+import com.huawei.policy.core.pep.DecisionResponses;
 import io.jaegertracing.Configuration;
 import io.jaegertracing.internal.JaegerTracer;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.util.GlobalTracer;
 import jodd.util.StringUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.ql.parse.ASTNode;
+import org.apache.hadoop.hive.ql.parse.ParseDriver;
+import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzContext;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
+import org.apache.hadoop.hive.ql.session.SessionState;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -24,12 +35,12 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.ranger.plugin.policyengine.RangerAccessResource;
-import org.apache.ranger.plugin.policyengine.RangerAccessResourceImpl;
+import org.apache.http.util.EntityUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
+import java.text.MessageFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class UconHiveAuthorizer {
@@ -39,6 +50,7 @@ public class UconHiveAuthorizer {
 
     private static final String  RANGER_PLUGIN_HIVE_UCON_PDP_URL = "ranger.plugin.hive.ucon.pdp.url";
     private static final String  RANGER_PLUGIN_HIVE_UCON_AUTHZ_ENABLED = "ranger.plugin.hive.ucon.authorization.enabled";
+
     private static CloseableHttpClient httpclient;
     private static String uconPdpUrl;
     private static boolean enabled = false;
@@ -70,12 +82,13 @@ public class UconHiveAuthorizer {
                      List<HivePrivilegeObject> inputHObjs,
                      List<HivePrivilegeObject> outputHObjs,
                      HiveAuthzContext context,
-                     List<RangerHiveAccessRequest> requests){
+                     List<RangerHiveAccessRequest> requests) {
 
         //allows access if hiveOpType is not supported
         if(!isHiveOpTypeSupported(hiveOpType)) return true;
 
 
+        testHiveOj(inputHObjs);
         //-------------------------- experimental --- start
         Span span = null;
         if(jaegerTracer != null) span = jaegerTracer.scopeManager().activeSpan();
@@ -90,94 +103,180 @@ public class UconHiveAuthorizer {
         }
         //-------------------------- experimental --- end
 
+        DecisionRequests decisionRequests = new DecisionRequests();
+        List<DecisionRequest> collect = requests.stream().map(request -> buildDecisionRequest(request)).collect(Collectors.toList());
+        decisionRequests.getDecisionRequestList().addAll(collect);
 
 
+         DecisionResponses decisionResponses = getDecisionResponses(decisionRequests);
 
+         boolean isAnyDeny = decisionResponses.getDecisionResponseList().stream()
+                 .map(decisionResponse -> decisionResponse.getResponseElementDTO())
+                 .filter(decisionResponseElementDTO ->
+                         decisionResponseElementDTO.getResults().stream()
+                                 .filter(resultElementDTO -> resultElementDTO.getDecisionType().equals(XacmlDecisionType.DENY))
+                                 .findFirst().isPresent()
+                 ).findFirst().isPresent();
 
-
-        //Adding here my externalendPoint - start
-        HashMap<String, Object> mmap = new HashMap<>();
-        mmap.put("hiveOpType", hiveOpType);
-        mmap.put("inputHObjs", inputHObjs);
-        mmap.put("outputHObjs", outputHObjs);
-        mmap.put("context", context);
-        mmap.put("requests", requests.stream().map(req -> requestMapper(req)).collect(Collectors.toList()));
-
-        try {
-            String jsonStr = objectMapper.writeValueAsString(mmap);
-            postClient(jsonStr);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        return true;
+         return true;
     }
 
+    protected List<HivePrivilegeObject>  applyUconRowFilterAndColumnMasking(
+            HiveAuthzContext queryContext, List<HivePrivilegeObject> hiveObjs,
+            UserGroupInformation ugi, HiveAuthzSessionContext hiveAuthzSessionContext){
 
-    private void postClient(String jsonStr){
-        StringEntity requestEntity = new StringEntity(jsonStr, ContentType.APPLICATION_JSON);
+        List<HivePrivilegeObject> ret = new ArrayList<HivePrivilegeObject>();
 
-        HttpPost postMethod = new HttpPost(uconPdpUrl);
-        postMethod.setEntity(requestEntity);
-        try {
-            CloseableHttpResponse closeableHttpResponse = httpclient.execute(postMethod);
-            closeableHttpResponse.close();
-        } catch (IOException e) {
-            LOG.info("YAIR DIAZ - Error connecting to AUTHZ external server!");
-            LOG.info(e.getMessage());
-            LOG.info(e.toString());
+        DecisionRequests decisionRequests = new DecisionRequests();
+
+        if(CollectionUtils.isNotEmpty(hiveObjs)) {
+            hiveObjs.stream().forEach(hiveObj ->{
+                String uconId = UconHiveUtils.getUconId();
+                String action = HiveAccessType.SELECT.name().toLowerCase();
+                List<String> authZColumns = UconHiveUtils.getAuthZColumns(queryContext.getCommandString(), hiveObj);
+                List<String> resources = UconHiveUtils.parseRequestResources( hiveObj.getDbname(), hiveObj.getObjectName(), authZColumns);
+                List<String> environments = new ArrayList<>();
+
+                 if(StringUtils.isEmpty(uconId)) uconId = ugi.getUserName();
+
+                RequestElementDTO requestElementDTO = UconHiveUtils.buildRequestElementDTO(uconId, action, resources, environments);
+
+                DecisionRequest decisionRequest = new DecisionRequest();
+                decisionRequest.setRequestElementDTO(requestElementDTO);
+                decisionRequest.setTenantId("huawei");
+                decisionRequest.setUconId(UconHiveUtils.getUconId());
+                decisionRequest.setSessionId(hiveAuthzSessionContext.getSessionString());
+
+                decisionRequest.addMetadataEntry("database", hiveObj.getDbname());
+                decisionRequest.addMetadataEntry("table", hiveObj.getObjectName());
+
+//                decisionRequest.addMetadataEntry("accessType", rangerRequest.getAccessType());
+//                decisionRequest.addMetadataEntry("user", rangerRequest.getUser());
+                decisionRequest.addMetadataEntry("accessTime", new Date().toString());
+                decisionRequest.addMetadataEntry("IPAddresses", queryContext.getIpAddress());
+//                decisionRequest.addMetadataEntry("ForwardedAddresses", queryContext.getForwardedAddresses().toString());
+                decisionRequest.addMetadataEntry("ClientType", hiveAuthzSessionContext.getClientType().name());
+//                decisionRequest.addMetadataEntry("Action", rangerRequest.getAction());
+                decisionRequest.addMetadataEntry("RequestData", queryContext.getCommandString());
+                decisionRequest.addMetadataEntry("SessionId", hiveAuthzSessionContext.getSessionString());
+//                decisionRequest.addMetadataEntry("UserGroups", rangerRequest.getUserGroups().toString());
+
+                //build request
+                decisionRequests.getDecisionRequestList().add(decisionRequest);
+            });
+
+            DecisionResponses decisionResponses = getDecisionResponses(decisionRequests);
+
+            Map<String, Map<String, String>> transformerMapMap = new HashMap<>();
+
+            decisionResponses.getDecisionResponseList().stream()
+                    .forEach(decisionResponse -> {
+                        String tableName = decisionResponse.getMetadata().get("table");
+
+                        Optional<ResultElementDTO> first = decisionResponse.getResponseElementDTO().getResults().stream().findFirst();
+                        if(first.isPresent()){
+                            ResultElementDTO resultElementDTO = first.get();
+                            if(resultElementDTO.getDecisionType().equals(XacmlDecisionType.PERMIT)){
+                                resultElementDTO.getObligationElementDTOs().stream().forEach(obligationElementDTO -> {
+                                    String obligationTransformer = UconRangerConstants.UCON_RANGER_OBLIGATION.get(obligationElementDTO.getObligationId());
+                                    Map<String, String> transformedColsMap = new HashMap<>();
+                                    obligationElementDTO.getAttributeAssignmentElementDTOS().stream().forEach(attributeAssignmentElementDTO -> {
+                                        String dbTableColumn = attributeAssignmentElementDTO.getAttributeValue();
+                                        String[] split = dbTableColumn.replaceFirst("/","").split("/");
+                                        if(split.length == 3){
+                                            transformedColsMap.put(split[2], obligationTransformer == null ? split[2] : obligationTransformer.replace("{col}", split[2]));
+                                        }
+                                    });
+                                    transformerMapMap.put(tableName, transformedColsMap);
+                                });
+                            }
+                        }
+                    });
+
+
+            if(transformerMapMap.size() != 0)
+                hiveObjs.stream().forEach(hivePrivilegeObject -> {
+                    Map<String, String> transformedCols = transformerMapMap.get(hivePrivilegeObject.getObjectName());
+                    List<String> cellValueTransformers = new ArrayList<>();
+                    hivePrivilegeObject.getColumns().stream().forEach( col ->{
+                        cellValueTransformers.add(transformedCols.containsKey(col) ? transformedCols.get(col) : col);
+                            });
+                    hivePrivilegeObject.setCellValueTransformers(cellValueTransformers);
+
+                    ret.add(hivePrivilegeObject);
+
+                });
         }
+
+      return ret;
+
+    }
+
+    private DecisionResponses getDecisionResponses(DecisionRequests decisionRequests) {
+        CloseableHttpResponse response = null;
+        try {
+            String jsonStr = objectMapper.writeValueAsString(decisionRequests);
+            StringEntity requestEntity = new StringEntity(jsonStr, ContentType.APPLICATION_JSON);
+
+            HttpPost postMethod = new HttpPost(uconPdpUrl);
+            postMethod.setEntity(requestEntity);
+
+            response = httpclient.execute(postMethod);
+            String jsonResponse = EntityUtils.toString(response.getEntity());
+            return objectMapper.readValue(jsonResponse, DecisionResponses.class);
+
+        } catch (IOException e) {
+            LOG.error(e.getMessage());
+            LOG.error(e.toString());
+        } finally {
+            try {
+                response.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
     }
 
     public boolean isEnabled(){
         return enabled;
     }
 
+    private DecisionRequest buildDecisionRequest(RangerHiveAccessRequest rangerRequest){
 
-    private RangerAccessRequestRestObj requestMapper(RangerHiveAccessRequest rangerRequest){
-        RangerAccessRequestRestObj rangerRequestRest = new RangerAccessRequestRestObj();
-        rangerRequestRest.setAccessType(rangerRequest.getAccessType());
-        rangerRequestRest.setUser(rangerRequest.getUser());
-        rangerRequestRest.setUserGroups(rangerRequest.getUserGroups());
-        rangerRequestRest.setAccessTime(rangerRequest.getAccessTime());
-        rangerRequestRest.setClientIPAddress(rangerRequest.getClientIPAddress());
-        rangerRequestRest.setForwardedAddresses(rangerRequest.getForwardedAddresses());
-        rangerRequestRest.setRemoteIPAddress(rangerRequest.getRemoteIPAddress());
-        rangerRequestRest.setClientType(rangerRequest.getClientType());
-        rangerRequestRest.setAction(rangerRequest.getAction());
-        rangerRequestRest.setRequestData(rangerRequest.getRequestData());
-        rangerRequestRest.setSessionId(rangerRequest.getSessionId());
-        rangerRequestRest.setContext(rangerRequest.getContext());
+        String action = rangerRequest.getAccessType();
+        List<String> resources = UconHiveUtils.parseRequestResources(rangerRequest.getResource());
+        List<String> environments = new ArrayList<>();
+        String uconId = UconHiveUtils.getUconId();
+        if(StringUtils.isEmpty(uconId)) uconId = rangerRequest.getUser();
 
-        RangerAccessResourceRestObj resourceRestObj = new RangerAccessResourceRestObj();
-        RangerAccessResource rar = rangerRequest.getResource();
-        if(rar != null && rar instanceof RangerAccessResourceImpl){
-            RangerAccessResourceImpl rari = (RangerAccessResourceImpl) rar;
-            resourceRestObj.setOwnerUser(rari.getOwnerUser());
-            resourceRestObj.setElements((rari.getAsMap()));
-        }
-        rangerRequestRest.setResource(resourceRestObj);
+        RequestElementDTO requestElementDTO = UconHiveUtils.buildRequestElementDTO(uconId, action, resources, environments);
 
-        return rangerRequestRest;
+        DecisionRequest decisionRequest = new DecisionRequest();
+        decisionRequest.setTenantId("huawei");
+        decisionRequest.setUconId(UconHiveUtils.getUconId());
+        decisionRequest.setSessionId(rangerRequest.getSessionId());
 
-//        RangerAccessResultRestObj resultRest = new RangerAccessResultRestObj();
-//        resultRest.setAllowed(result.getIsAllowed());
-//        resultRest.setAccessDetermined(result.getIsAccessDetermined());
-//        resultRest.setAuditedDetermined(result.getIsAuditedDetermined());
-//        resultRest.setAudited(result.getIsAudited());
-//        resultRest.setPolicyType(result.getPolicyType());
-//        resultRest.setPolicyId(result.getPolicyId());
-//        resultRest.setAuditPolicyId(result.getAuditPolicyId());
-//        resultRest.setEvaluatedPoliciesCount(result.getEvaluatedPoliciesCount());
-//        resultRest.setReason(result.getReason());
-//        resultRest.setAdditionalInfo(result.getAdditionalInfo());
-//
-//
-//        RangerRequestContext rangerRequestContext = new RangerRequestContext();
-//        rangerRequestContext.setRangerAccessRequestRestObj(rangerRequestRest);
-//        rangerRequestContext.setRangerAccessResultRestObj(resultRest);
+        decisionRequest.setRequestElementDTO(requestElementDTO);
 
+        decisionRequest.addMetadataEntry("accessType", rangerRequest.getAccessType());
+        decisionRequest.addMetadataEntry("user", rangerRequest.getUser());
+        decisionRequest.addMetadataEntry("accessTime", rangerRequest.getAccessTime().toString());
+        decisionRequest.addMetadataEntry("ClientIPAddress", rangerRequest.getClientIPAddress());
+        decisionRequest.addMetadataEntry("ForwardedAddresses", rangerRequest.getForwardedAddresses().toString());
+        decisionRequest.addMetadataEntry("RemoteIPAddress", rangerRequest.getRemoteIPAddress());
+        decisionRequest.addMetadataEntry("ClientType", rangerRequest.getClientType());
+        decisionRequest.addMetadataEntry("Action", rangerRequest.getAction());
+        decisionRequest.addMetadataEntry("RequestData", rangerRequest.getRequestData());
+        decisionRequest.addMetadataEntry("SessionId", rangerRequest.getSessionId());
+        decisionRequest.addMetadataEntry("Context", rangerRequest.getContext().toString());
+        decisionRequest.addMetadataEntry("UserGroups", rangerRequest.getUserGroups().toString());
+
+        return decisionRequest;
     }
+
+
 
     private static JaegerTracer initTracer(String service) {
         Configuration.SamplerConfiguration samplerConfig = Configuration.SamplerConfiguration
@@ -199,7 +298,9 @@ public class UconHiveAuthorizer {
         return config.getTracer();
     }
 
-    boolean isHiveOpTypeSupported(HiveOperationType hiveOpType){
+
+
+    private boolean isHiveOpTypeSupported(HiveOperationType hiveOpType){
         switch (hiveOpType){
             case REPLDUMP:
                 return false;
@@ -207,4 +308,24 @@ public class UconHiveAuthorizer {
                 return true;
         }
     }
+
+
+
+    public static void testHiveOj(List<HivePrivilegeObject> inputObj){
+        if(inputObj == null) return;
+        inputObj.stream().forEach(input ->{
+            if(input.getObjectName().equals("drivers")){
+                input.setCellValueTransformers(new ArrayList<String>());
+                input.getColumns().stream().forEach(col -> {
+                    if(col.equals("ssn")){
+                        input.getCellValueTransformers().add("mask_show_first_n(ssn, 4, 'x', 'x', 'x', -1, '1')");
+                    }
+                    else input.getCellValueTransformers().add(col);
+                });
+            }
+        });
+
+
+    }
+
 }
