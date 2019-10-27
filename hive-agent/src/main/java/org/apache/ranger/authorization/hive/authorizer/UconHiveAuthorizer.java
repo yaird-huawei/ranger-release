@@ -3,7 +3,6 @@ package org.apache.ranger.authorization.hive.authorizer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.policy.core.dto.UconRangerConstants;
 import com.huawei.policy.core.dto.XacmlDecisionType;
-import com.huawei.policy.core.dto.XacmlObligationIdentifier;
 import com.huawei.policy.core.dto.ucon.RequestElementDTO;
 import com.huawei.policy.core.dto.ucon.ResultElementDTO;
 import com.huawei.policy.core.pep.DecisionRequest;
@@ -19,14 +18,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.ql.parse.ASTNode;
-import org.apache.hadoop.hive.ql.parse.ParseDriver;
-import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzContext;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
-import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -39,7 +34,6 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +44,10 @@ public class UconHiveAuthorizer {
 
     private static final String  RANGER_PLUGIN_HIVE_UCON_PDP_URL = "ranger.plugin.hive.ucon.pdp.url";
     private static final String  RANGER_PLUGIN_HIVE_UCON_AUTHZ_ENABLED = "ranger.plugin.hive.ucon.authorization.enabled";
+    private static final String  UCON_REQUEST_METADATA_TABLE_NAME = "table";
+    private static final String  UCON_REQUEST_METADATA_DB_NAME = "database";
+
+
 
     private static CloseableHttpClient httpclient;
     private static String uconPdpUrl;
@@ -87,8 +85,6 @@ public class UconHiveAuthorizer {
         //allows access if hiveOpType is not supported
         if(!isHiveOpTypeSupported(hiveOpType)) return true;
 
-
-        testHiveOj(inputHObjs);
         //-------------------------- experimental --- start
         Span span = null;
         if(jaegerTracer != null) span = jaegerTracer.scopeManager().activeSpan();
@@ -147,14 +143,13 @@ public class UconHiveAuthorizer {
                 decisionRequest.setUconId(UconHiveUtils.getUconId());
                 decisionRequest.setSessionId(hiveAuthzSessionContext.getSessionString());
 
-                decisionRequest.addMetadataEntry("database", hiveObj.getDbname());
-                decisionRequest.addMetadataEntry("table", hiveObj.getObjectName());
+                decisionRequest.addMetadataEntry(UCON_REQUEST_METADATA_DB_NAME, hiveObj.getDbname());
+                decisionRequest.addMetadataEntry(UCON_REQUEST_METADATA_TABLE_NAME, hiveObj.getObjectName());
 
 //                decisionRequest.addMetadataEntry("accessType", rangerRequest.getAccessType());
 //                decisionRequest.addMetadataEntry("user", rangerRequest.getUser());
                 decisionRequest.addMetadataEntry("accessTime", new Date().toString());
                 decisionRequest.addMetadataEntry("IPAddresses", queryContext.getIpAddress());
-//                decisionRequest.addMetadataEntry("ForwardedAddresses", queryContext.getForwardedAddresses().toString());
                 decisionRequest.addMetadataEntry("ClientType", hiveAuthzSessionContext.getClientType().name());
 //                decisionRequest.addMetadataEntry("Action", rangerRequest.getAction());
                 decisionRequest.addMetadataEntry("RequestData", queryContext.getCommandString());
@@ -171,7 +166,7 @@ public class UconHiveAuthorizer {
 
             decisionResponses.getDecisionResponseList().stream()
                     .forEach(decisionResponse -> {
-                        String tableName = decisionResponse.getMetadata().get("table");
+                        String tableName = decisionResponse.getMetadata().get(UCON_REQUEST_METADATA_TABLE_NAME);
 
                         Optional<ResultElementDTO> first = decisionResponse.getResponseElementDTO().getResults().stream().findFirst();
                         if(first.isPresent()){
@@ -299,7 +294,6 @@ public class UconHiveAuthorizer {
     }
 
 
-
     private boolean isHiveOpTypeSupported(HiveOperationType hiveOpType){
         switch (hiveOpType){
             case REPLDUMP:
@@ -307,25 +301,6 @@ public class UconHiveAuthorizer {
             default:
                 return true;
         }
-    }
-
-
-
-    public static void testHiveOj(List<HivePrivilegeObject> inputObj){
-        if(inputObj == null) return;
-        inputObj.stream().forEach(input ->{
-            if(input.getObjectName().equals("drivers")){
-                input.setCellValueTransformers(new ArrayList<String>());
-                input.getColumns().stream().forEach(col -> {
-                    if(col.equals("ssn")){
-                        input.getCellValueTransformers().add("mask_show_first_n(ssn, 4, 'x', 'x', 'x', -1, '1')");
-                    }
-                    else input.getCellValueTransformers().add(col);
-                });
-            }
-        });
-
-
     }
 
 }
