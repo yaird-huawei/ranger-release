@@ -1,7 +1,7 @@
 package org.apache.ranger.authorization.hive.authorizer;
 
 import com.huawei.policy.core.dto.XacmlAttributeCategory;
-import com.huawei.policy.core.dto.XacmlAttributeIdentifier;
+import com.huawei.policy.core.dto.XacmlAttrIdDefaults;
 import com.huawei.policy.core.dto.XacmlDataType;
 import com.huawei.policy.core.dto.ucon.AttributeElementDTO;
 import com.huawei.policy.core.dto.ucon.AttributeValueElementDTO;
@@ -46,10 +46,10 @@ public class UconHiveUtils {
         AttributesElementDTO attributesElementDTO = null;
         requestElementDTO.setReturnPolicyIdList(true);
 
-        attributesElementDTO = PEPUtils.buildAttributesElementDTO(uconId, XacmlDataType.STRING, XacmlAttributeIdentifier.SUBJECT_ID, XacmlAttributeCategory.ACCESS_SUBJECT, true);
+        attributesElementDTO = PEPUtils.buildAttributesElementDTO(uconId, XacmlDataType.STRING, XacmlAttrIdDefaults.SUBJECT_ID.name(), XacmlAttributeCategory.ACCESS_SUBJECT, true);
         requestElementDTO.getAttributesElementDTOs().add(attributesElementDTO);
 
-        attributesElementDTO = PEPUtils.buildAttributesElementDTO(action, XacmlDataType.STRING, XacmlAttributeIdentifier.ACTION_ID, XacmlAttributeCategory.ACTION, true);
+        attributesElementDTO = PEPUtils.buildAttributesElementDTO(action, XacmlDataType.STRING, XacmlAttrIdDefaults.ACTION_ID.name(), XacmlAttributeCategory.ACTION, true);
         requestElementDTO.getAttributesElementDTOs().add(attributesElementDTO);
 
         if(!CollectionUtils.isEmpty(resources)) {
@@ -58,7 +58,7 @@ public class UconHiveUtils {
                 AttributeValueElementDTO actionAttributeValueElementDTO = PEPUtils.buildAttributeValueElementDTO(resource, XacmlDataType.STRING);
                 actionAttributeValueElementDTOS.add(actionAttributeValueElementDTO);
             }
-            AttributeElementDTO actionAttributeElementDTO = PEPUtils.buildAttributeElement(actionAttributeValueElementDTOS, XacmlAttributeIdentifier.RESOURCE_ID, true);
+            AttributeElementDTO actionAttributeElementDTO = PEPUtils.buildAttributeElement(actionAttributeValueElementDTOS, XacmlAttrIdDefaults.RESOURCE_ID.name(), true);
             AttributesElementDTO actionAttributesElementDTO = PEPUtils.buildAttributesElementDTO(actionAttributeElementDTO, XacmlAttributeCategory.RESOURCE);
             requestElementDTO.getAttributesElementDTOs().add(actionAttributesElementDTO);
         }
@@ -69,7 +69,7 @@ public class UconHiveUtils {
                 AttributeValueElementDTO attributeValueElementDTO = PEPUtils.buildAttributeValueElementDTO(environment, XacmlDataType.STRING);
                 envAttributeValueElementDTOS.add(attributeValueElementDTO);
             }
-            AttributeElementDTO envAttributeElementDTO = PEPUtils.buildAttributeElement(envAttributeValueElementDTOS, XacmlAttributeIdentifier.ENVIRONMENT_ID, true);
+            AttributeElementDTO envAttributeElementDTO = PEPUtils.buildAttributeElement(envAttributeValueElementDTOS, XacmlAttrIdDefaults.ENVIRONMENT_ID.name(), true);
             AttributesElementDTO envAttributesElementDTO = PEPUtils.buildAttributesElementDTO(envAttributeElementDTO, XacmlAttributeCategory.RESOURCE);
             requestElementDTO.getAttributesElementDTOs().add(envAttributesElementDTO);
         }

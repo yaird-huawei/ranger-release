@@ -172,9 +172,9 @@ public class UconHiveAuthorizer {
                         if(first.isPresent()){
                             ResultElementDTO resultElementDTO = first.get();
                             if(resultElementDTO.getDecisionType().equals(XacmlDecisionType.PERMIT)){
+                                Map<String, String> transformedColsMap = new HashMap<>();
                                 resultElementDTO.getObligationElementDTOs().stream().forEach(obligationElementDTO -> {
                                     String obligationTransformer = UconRangerConstants.UCON_RANGER_OBLIGATION.get(obligationElementDTO.getObligationId());
-                                    Map<String, String> transformedColsMap = new HashMap<>();
                                     obligationElementDTO.getAttributeAssignmentElementDTOS().stream().forEach(attributeAssignmentElementDTO -> {
                                         String dbTableColumn = attributeAssignmentElementDTO.getAttributeValue();
                                         String[] split = dbTableColumn.replaceFirst("/","").split("/");
