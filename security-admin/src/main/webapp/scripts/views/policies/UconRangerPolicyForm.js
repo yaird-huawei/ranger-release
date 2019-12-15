@@ -175,7 +175,8 @@ define(function(require){
                 this.model.set('policyLabels', policyLabel);
              }
 
-        	this.model.set('service',this.rangerService.get('name'));
+			this.model.set('serviceType',this.rangerService.get('type'));
+			this.model.set('service',this.rangerService.get('id'));
             this.model.set('name', _.escape(this.model.get('name')));
             if(this.model.has('policyPriority')){
                     this.model.set('policyPriority', this.model.get('policyPriority') ? 1 : 0);
