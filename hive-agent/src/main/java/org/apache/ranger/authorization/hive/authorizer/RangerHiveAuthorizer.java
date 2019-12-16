@@ -392,18 +392,13 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 			buildRequestContextWithAllAccessedResources(requests);
 
 
-
 			//Adding here my externalendPoint - start
 			if(uconHiveAuthorizer.isEnabled()){
-
-				uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests);
-//				if(uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests))
-//					return;
-
-//				throw new HiveAccessControlException();
+				if(uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests))
+					throw new HiveAccessControlException("UCON Permission denied: user does not have enough privileges to perform action");
+				else return;
 			}
 			//Adding here my externalendPoint - end
-
 
             RangerAuthContext authContext = hivePlugin.createRangerAuthContext();
 

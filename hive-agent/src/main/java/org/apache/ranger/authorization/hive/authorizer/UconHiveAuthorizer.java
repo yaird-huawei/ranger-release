@@ -18,10 +18,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzContext;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.*;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -46,7 +43,8 @@ public class UconHiveAuthorizer {
     private static final String  RANGER_PLUGIN_HIVE_UCON_AUTHZ_ENABLED = "ranger.plugin.hive.ucon.authorization.enabled";
     private static final String  UCON_REQUEST_METADATA_TABLE_NAME = "table";
     private static final String  UCON_REQUEST_METADATA_DB_NAME = "database";
-
+    private static final String TAG_POLICY_DECISION_KEY = "TAG_POLICY_DECISION";
+    private static final String UCON_POLICY_DECISION_KEY = "UCON_POLICY_DECISION";
 
 
     private static CloseableHttpClient httpclient;
@@ -103,18 +101,19 @@ public class UconHiveAuthorizer {
         List<DecisionRequest> collect = requests.stream().map(request -> buildDecisionRequest(request)).collect(Collectors.toList());
         decisionRequests.getDecisionRequestList().addAll(collect);
 
-
          DecisionResponses decisionResponses = getDecisionResponses(decisionRequests);
 
-         boolean isAnyDeny = decisionResponses.getDecisionResponseList().stream()
-                 .map(decisionResponse -> decisionResponse.getResponseElementDTO())
-                 .filter(decisionResponseElementDTO ->
-                         decisionResponseElementDTO.getResults().stream()
-                                 .filter(resultElementDTO -> resultElementDTO.getDecisionType().equals(XacmlDecisionType.DENY))
-                                 .findFirst().isPresent()
-                 ).findFirst().isPresent();
+        boolean isAnyDeny = decisionResponses.getDecisionResponseList().stream()
+                 .map(decisionResponse -> decisionResponse.getMetadata())
+                 .filter(map ->{
+                     String uconPolicyDecision = map.get(UCON_POLICY_DECISION_KEY);
+                     String tagPolicyDecision = map.get(TAG_POLICY_DECISION_KEY);
+                     if(!XacmlDecisionType.PERMIT.name().equals(uconPolicyDecision) || !XacmlDecisionType.PERMIT.name().equals(tagPolicyDecision))
+                         return true;
+                    return false;
+                 }).findFirst().isPresent();
 
-         return true;
+         return isAnyDeny;
     }
 
     protected List<HivePrivilegeObject>  applyUconRowFilterAndColumnMasking(
@@ -146,15 +145,11 @@ public class UconHiveAuthorizer {
                 decisionRequest.addMetadataEntry(UCON_REQUEST_METADATA_DB_NAME, hiveObj.getDbname());
                 decisionRequest.addMetadataEntry(UCON_REQUEST_METADATA_TABLE_NAME, hiveObj.getObjectName());
 
-//                decisionRequest.addMetadataEntry("accessType", rangerRequest.getAccessType());
-//                decisionRequest.addMetadataEntry("user", rangerRequest.getUser());
                 decisionRequest.addMetadataEntry("accessTime", new Date().toString());
                 decisionRequest.addMetadataEntry("IPAddresses", queryContext.getIpAddress());
                 decisionRequest.addMetadataEntry("ClientType", hiveAuthzSessionContext.getClientType().name());
-//                decisionRequest.addMetadataEntry("Action", rangerRequest.getAction());
                 decisionRequest.addMetadataEntry("RequestData", queryContext.getCommandString());
                 decisionRequest.addMetadataEntry("SessionId", hiveAuthzSessionContext.getSessionString());
-//                decisionRequest.addMetadataEntry("UserGroups", rangerRequest.getUserGroups().toString());
 
                 //build request
                 decisionRequests.getDecisionRequestList().add(decisionRequest);
