@@ -221,7 +221,7 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
     	}
     }
 
-    private void addAuthzAuditEvent(AuthzAuditEvent auditEvent) {
+    protected void addAuthzAuditEvent(AuthzAuditEvent auditEvent) {
     	if(auditEvent != null) {
     		if(auditEvents == null) {
     			auditEvents = new ArrayList<AuthzAuditEvent>();

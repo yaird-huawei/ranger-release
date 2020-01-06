@@ -19,15 +19,7 @@
 
 package org.apache.ranger.authorization.hive.authorizer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -48,21 +40,12 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzContext;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePolicyProvider;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeInfo;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.*;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivObjectActionType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.ranger.audit.model.AuthzAuditEvent;
 import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
 import org.apache.ranger.authorization.hadoop.constants.RangerHadoopConstants;
 import org.apache.ranger.authorization.utils.StringUtil;
@@ -74,11 +57,10 @@ import org.apache.ranger.plugin.service.RangerAuthContext;
 import org.apache.ranger.plugin.service.RangerBasePlugin;
 import org.apache.ranger.plugin.util.GrantRevokeRequest;
 import org.apache.ranger.plugin.util.RangerAccessRequestUtil;
-
-import com.google.common.collect.Sets;
-
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 import org.apache.ranger.plugin.util.RangerRequestedResources;
+
+import java.util.*;
 
 public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 	private static final Log LOG = LogFactory.getLog(RangerHiveAuthorizer.class);
@@ -391,16 +373,20 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 			buildRequestContextWithAllAccessedResources(requests);
 
+			RangerAuthContext authContext = hivePlugin.createRangerAuthContext();
 
 			//Adding here my externalendPoint - start
 			if(uconHiveAuthorizer.isEnabled()){
-				if(uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests))
+				List<AuthzAuditEvent> authzAuditEvents  = new ArrayList<AuthzAuditEvent>();
+				boolean isAnyDeny = uconHiveAuthorizer.getDecision(hiveOpType, inputHObjs, outputHObjs, context, requests, authzAuditEvents, auditHandler);
+				if(isAnyDeny)
 					throw new HiveAccessControlException("UCON Permission denied: user does not have enough privileges to perform action");
-				else return;
+				else {
+					return;
+				}
 			}
 			//Adding here my externalendPoint - end
 
-            RangerAuthContext authContext = hivePlugin.createRangerAuthContext();
 
             for(RangerHiveAccessRequest request : requests) {
 				if (LOG.isDebugEnabled()) {

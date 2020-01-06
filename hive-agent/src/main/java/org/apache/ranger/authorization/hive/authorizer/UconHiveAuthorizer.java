@@ -1,6 +1,7 @@
 package org.apache.ranger.authorization.hive.authorizer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huawei.policy.core.dao.PolicyType;
 import com.huawei.policy.core.dto.UconRangerConstants;
 import com.huawei.policy.core.dto.XacmlDecisionType;
 import com.huawei.policy.core.dto.ucon.RequestElementDTO;
@@ -18,7 +19,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.*;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzContext;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -28,6 +32,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
+import org.apache.ranger.audit.model.AuthzAuditEvent;
+import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -45,6 +51,8 @@ public class UconHiveAuthorizer {
     private static final String  UCON_REQUEST_METADATA_DB_NAME = "database";
     private static final String TAG_POLICY_DECISION_KEY = "TAG_POLICY_DECISION";
     private static final String UCON_POLICY_DECISION_KEY = "UCON_POLICY_DECISION";
+    private static final String EVAL_TAGS = "EVAL_TAGS";
+
 
 
     private static CloseableHttpClient httpclient;
@@ -74,11 +82,9 @@ public class UconHiveAuthorizer {
     }
 
 
-    public boolean getDecision(HiveOperationType hiveOpType,
-                     List<HivePrivilegeObject> inputHObjs,
-                     List<HivePrivilegeObject> outputHObjs,
-                     HiveAuthzContext context,
-                     List<RangerHiveAccessRequest> requests) {
+    public boolean getDecision(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
+                     List<HivePrivilegeObject> outputHObjs, HiveAuthzContext context,
+                     List<RangerHiveAccessRequest> requests, List<AuthzAuditEvent> authzAuditEvents, RangerHiveAuditHandler auditHandler) {
 
         //allows access if hiveOpType is not supported
         if(!isHiveOpTypeSupported(hiveOpType)) return true;
@@ -98,10 +104,10 @@ public class UconHiveAuthorizer {
         //-------------------------- experimental --- end
 
         DecisionRequests decisionRequests = new DecisionRequests();
-        List<DecisionRequest> collect = requests.stream().map(request -> buildDecisionRequest(request)).collect(Collectors.toList());
+        List<DecisionRequest> collect = requests.stream().map(request -> buildDecisionRequest(request, authzAuditEvents, auditHandler)).collect(Collectors.toList());
         decisionRequests.getDecisionRequestList().addAll(collect);
 
-         DecisionResponses decisionResponses = getDecisionResponses(decisionRequests);
+        DecisionResponses decisionResponses = getDecisionResponses(decisionRequests);
 
         boolean isAnyDeny = decisionResponses.getDecisionResponseList().stream()
                  .map(decisionResponse -> decisionResponse.getMetadata())
@@ -150,6 +156,8 @@ public class UconHiveAuthorizer {
                 decisionRequest.addMetadataEntry("ClientType", hiveAuthzSessionContext.getClientType().name());
                 decisionRequest.addMetadataEntry("RequestData", queryContext.getCommandString());
                 decisionRequest.addMetadataEntry("SessionId", hiveAuthzSessionContext.getSessionString());
+                decisionRequest.addMetadataEntry(EVAL_TAGS, "true");
+
 
                 //build request
                 decisionRequests.getDecisionRequestList().add(decisionRequest);
@@ -233,7 +241,7 @@ public class UconHiveAuthorizer {
         return enabled;
     }
 
-    private DecisionRequest buildDecisionRequest(RangerHiveAccessRequest rangerRequest){
+    private DecisionRequest buildDecisionRequest(RangerHiveAccessRequest rangerRequest, List<AuthzAuditEvent> authzAuditEvents, RangerHiveAuditHandler auditHandler){
 
         String action = rangerRequest.getAccessType();
         List<String> resources = UconHiveUtils.parseRequestResources(rangerRequest.getResource());
@@ -262,6 +270,18 @@ public class UconHiveAuthorizer {
         decisionRequest.addMetadataEntry("SessionId", rangerRequest.getSessionId());
         decisionRequest.addMetadataEntry("Context", rangerRequest.getContext().toString());
         decisionRequest.addMetadataEntry("UserGroups", rangerRequest.getUserGroups().toString());
+        decisionRequest.addMetadataEntry(EVAL_TAGS, "true");
+
+
+        //Build audit events
+        RangerAccessResult rangerAccessResult = new RangerAccessResult(PolicyType.UCON_RANGER.getId(), "Sandbox_hive", null, rangerRequest);
+        rangerAccessResult.setIsAllowed(true);
+        rangerAccessResult.setIsAudited(true);
+
+        AuthzAuditEvent authzEvent = auditHandler.getAuthzEvents(rangerAccessResult);
+        authzEvent.setAclEnforcer("ucon-acl");
+        authzEvent.setUser(uconId);
+        auditHandler.addAuthzAuditEvent(authzEvent);
 
         return decisionRequest;
     }
@@ -296,6 +316,14 @@ public class UconHiveAuthorizer {
             default:
                 return true;
         }
+    }
+
+
+    public void processAuditEvents(){
+
+
+
+
     }
 
 }
